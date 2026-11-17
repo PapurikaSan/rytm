@@ -19,6 +19,7 @@
   - Widoki: `viewToday`, `viewWeek`, `viewMonth`, `viewCharts`, `viewGoals`, `viewSettings`; arkusze w `sheetHtml()`. Akcje kliknięć: atrybut `data-act` → `act()`; zmiany pól: `data-chg`; wpisywanie w arkuszu: `data-inp`.
   - Katalog aktywności `CAT` (klucz, nazwa, synonimy, `share`: czy można udostępniać, `d`: domyślne ustawienia celu). Cel ma `act` (klucz z katalogu, `'none'` dla własnej aktywności albo brak). `matchAct()` dopasowuje wpisaną nazwę (bez polskich znaków, z tolerancją literówek). Grupy katalogu: Ruch, Umysł (można udostępniać), Zdrowie, Ograniczenia, Relacje (prywatne, nigdy nie są udostępniane). Słowa dwuznaczne (`trening`, `ćwiczenia`, `sport`) zawsze dają kilka propozycji.
   - `Social`: zakładka Znajomi (profil, grupy, ranking, wyzwania, piątki) i synchronizacja udostępnień (`rytm_share`) po każdym zapisie. Cel ma `groups` (id grup, którym jest udostępniony).
+  - `Asst`: asystentka Pixa (oryginalna postać pikselowa, rysowana na canvasie). Czerwona kropka w lewym dolnym rogu, pulsuje, gdy są nowe podpowiedzi; nigdy nie otwiera się sama. Podpowiedzi to reguły w `tips()` (nastrój, braki wieczorem, podsumowanie tygodnia, podniesienie/zmniejszenie celu, limity, rekordy, wnioski). Każda ma „Nie teraz” (`S.asst.snooze`) i „Nie pokazuj takich” (`S.asst.off`), wyłączenie w Ustawieniach (`S.settings.asst`). Zmiany celu tylko po kliknięciu. Nie używać postaci z cudzych marek.
   - Typy celów: `do` (zaznaczanie, dzień/tydzień/miesiąc, opcjonalnie bez celu, rodzaje `variants`), `qty` (ilość dziennie; `dir: 'max'` = „najwyżej X”, np. czas przed ekranem, kawa; 0 to prawidłowy wpis), `range` (wartość ± tolerancja), `limit` (maks. dni, wagi poziomów `w`), `contact` (spotkania/rozmowy z długością), `measure` (pomiar, np. waga). Priorytety `prio`: `main` ×3, `imp` ×1, `extra` ×0.
 - `sw.js`: offline (najpierw sieć, potem pamięć) oraz obsługa powiadomień push. Zapytania do Supabase nie są cache'owane. Przy zmianach w `sw.js` podbij `CACHE`.
 - `manifest.webmanifest` + ikony: instalacja na ekranie głównym iPhone'a.
@@ -45,5 +46,6 @@
 - Prawdziwych powiadomień i logowania nie da się sprawdzić z kontenera. Poproś użytkownika o test („Wyślij próbne” w Ustawieniach) i sprawdź logi funkcji przez konektor.
 
 ## Pomysły na później
+- Asystentka, etap 2: rozmowa przez model AI (tworzenie celów z opisu). Klucz tylko na serwerze, dzienny limit wiadomości, do modelu wyłącznie podsumowania, zgoda przy pierwszym użyciu, zmiany zawsze do zatwierdzenia.
 - Dane ze Zdrowia na iPhonie (sen, kroki) przez Skróty iOS: użytkownik na razie odpuścił.
 - Sen jako godziny zaśnięcia i pobudki (użytkownik na razie odpuścił).
