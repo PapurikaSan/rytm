@@ -39,6 +39,7 @@ const fake=fs.readFileSync(path.join(__dirname,'fake-supabase.js'),'utf8');
   console.log('  wiersz poniedziałkowy bez dni tygodnia:',await p.evaluate(()=>{const r=[...document.querySelectorAll('.rrow')].find(x=>x.textContent.includes('Podsumowanie od Pixy'));return !!r&&!r.querySelector('.rdays')}));
 
   // 2) kamienie milowe: 9 treningów, potem dziesiąty
+  await p.evaluate(()=>{S.settings.pixaChat=false;ui.say=null;render()}); // dymki mają osobny test
   await p.click('[data-act=tab][data-t=today]');await w(100);
   await p.evaluate(()=>{const t=todayS();for(let k=1;k<=20;k++){const d=addDays(t,-k);S.log[d]=S.log[d]||{};if(k<=9)S.log[d]['g-gym']=1;S.log[d]['g-read']=25;S.log[d]['g-sleep']=7.5;S.log[d]['g-eat']=1;S.mood[d]=4}save();render()});
   await w(600);

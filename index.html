@@ -2516,9 +2516,9 @@ const Asst=(()=>{
   document.addEventListener('click',e=>{
     const el=e.target.closest('[data-asst]');if(!el)return;const a=el.dataset.asst,tp=tipsCache[idx];
     if(a==='sayx'){ui.say=null;paint();return}
-    if(a==='sayopen'&&ui.say){ui.chatTip=ui.say;ui.say=null;ui.asstOpen=true;idx=0;choose(ui.chatTip.pose||'wave');paint();return}
-    if(a==='sayact'&&ui.say){const it=ui.say,x=it.acts[+el.dataset.j];ui.say=null;react(null,x.neg?null:{});x.f();save();if(x.t)toast(x.t);if(!ui.asstOpen&&(ui.tab==='today'||ui.tab==='goals'))render();else paint();return}
-    if(a==='open'){ui.say=null;ui.chatTip=null;ui.asstOpen=true;idx=0;try{localStorage.setItem(openedKey,todayS())}catch(x){}paint()}
+    if(a==='sayopen'&&ui.say){ui.chatTip=ui.say;ui.say=null;lastSay=null;ui.asstOpen=true;idx=0;choose(ui.chatTip.pose||'wave');paint();return}
+    if(a==='sayact'&&ui.say){const it=ui.say,x=it.acts[+el.dataset.j];ui.say=null;lastSay=null;react(null,x.neg?null:{});x.f();save();if(x.t)toast(x.t);if(!ui.asstOpen&&(ui.tab==='today'||ui.tab==='goals'))render();else paint();return}
+    if(a==='open'){const it=ui.say||(S.settings.pixaChat&&lastSay&&Date.now()-lastSay.at<120000?lastSay.it:null);ui.say=null;ui.chatTip=it;if(it){lastSay=null;choose(it.pose||'wave')}ui.asstOpen=true;idx=0;try{localStorage.setItem(openedKey,todayS())}catch(x){}paint()}
     if(a==='close'){ui.asstOpen=false;ui.chatTip=null;ui.ck=null;ui.fset=null;ui.fdone=null;if(ui.breath&&!bPhase())ui.breath=null;paint()}
     if(a==='ftool'){ui.ck=null;ui.breath=null;ui.fdone=null;if(!focus)ui.fset={g:(S.goals.find(g=>isMin(g)&&!isPaused(g))||{}).id||null,m:25};paint();return}
     if(a==='btool'){ui.ck=null;ui.fset=null;ui.fdone=null;ui.breath={start:Date.now()};choose('breathe');pokeT=0;paint();return}
@@ -2549,7 +2549,7 @@ const Asst=(()=>{
     if(a==='do'&&tp){const ac=tp.actions[+el.dataset.j];if(tp.kind==='adjust'||tp.kind==='paused'){const u=withUndo('Zmieniono cel.');setTimeout(u,0)}react(tp,ac);if(tp.kind==='chat')ui.chatTip=null;else S.asst.snooze[tp.id]=addDays(todayS(),3650);ac.f();save();if(ac.t)toast(ac.t);if(ui.tab==='today'||ui.tab==='settings'||ui.tab==='goals')render();else paint()}
   });
   // ---- dymki przy zakładkach: jedno zdanie po wejściu, kolejne przy następnych wejściach, potem od nowa w kółko ----
-  const SEEN='rytm-chat-seen';let sayT=null,lastGrp=null,lastAt=0;
+  const SEEN='rytm-chat-seen';let sayT=null,lastGrp=null,lastAt=0,lastSay=null;
   const seenGet=()=>{try{return JSON.parse(localStorage.getItem(SEEN)||'{}')}catch(e){return{}}};
   const seenSet=o=>{try{localStorage.setItem(SEEN,JSON.stringify(o))}catch(e){}};
   const grpOf=t=>t==='week'||t==='month'?'cal':t;
@@ -2563,7 +2563,7 @@ const Asst=(()=>{
     const seen=seenGet(),now=Date.now();
     const it=items.map((x,i)=>({x,i,s:seen[x.id]||0})).sort((a,b)=>((a.s>0)-(b.s>0))||(a.s-b.s)||(a.i-b.i))[0].x;
     seen[it.id]=now;Object.keys(seen).forEach(k=>{if(now-seen[k]>4*864e5)delete seen[k]});seenSet(seen);
-    ui.say=it;sayY=window.scrollY;choose(it.pose||'wave');pokeT=0;paint();
+    ui.say=it;lastSay={it,at:Date.now()};sayY=window.scrollY;choose(it.pose||'wave');pokeT=0;paint();
     clearTimeout(sayT);sayT=setTimeout(()=>{if(ui.say===it){ui.say=null;paint()}},it.acts&&it.acts.length?15000:9000);
     return true;
   }

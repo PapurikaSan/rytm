@@ -10,7 +10,7 @@ const fake=fs.readFileSync(path.join(__dirname,'fake-supabase.js'),'utf8');
   const now=new Date();now.setHours(19,0,0,0);await p.clock.install({time:now});
   await p.goto('http://localhost:8765/');await p.evaluate(()=>localStorage.clear());await p.reload();await p.clock.runFor(500);
   await p.fill('#a-email','jan@example.com');await p.fill('#a-pass','dobrehaslo1');await p.click('#authform button[type=submit]');await p.clock.runFor(600);
-  await p.click('[data-act=start][data-k=template]');await p.clock.runFor(300);await p.evaluate(()=>{ui.tour=null;S.tour='done';render()}); // przewodnik ma osobny test
+  await p.click('[data-act=start][data-k=template]');await p.clock.runFor(300);await p.evaluate(()=>{ui.tour=null;S.tour='done';S.settings.pixaChat=false;ui.say=null;render()}); // przewodnik ma osobny test
   // 1) ochrona serii: 5 dobrych dni, dziś brakuje tylko czytania
   await p.evaluate(()=>{const t=todayS();for(let k=1;k<=5;k++){const d=addDays(t,-k);S.log[d]={'g-sleep':7.5,'g-eat':1,'g-read':12,'g-gym':1}}S.log[t]={'g-eat':1,'g-read':12};S.mood[t]=4;S.asst.ck={};save();render()});
   const tp=await p.evaluate(()=>Asst.tips().filter(x=>x.kind==='streak').map(x=>x.text));

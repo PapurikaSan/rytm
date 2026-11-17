@@ -41,6 +41,14 @@ const fake=fs.readFileSync(path.join(__dirname,'fake-supabase.js'),'utf8');
   await p.clock.fastForward(21000);await tab('charts');const st=await say();await p.click('.pxsay .pxsayt');await w(200);
   console.log('  dotknięcie dymka → panel:',await p.isVisible('.pxpanel'),'| ten sam tekst:',(await p.textContent('.pxpanel .pxtxt')).trim()===st);
   await p.click('.pxclose');await w(100);
+  // dotknięcie soczewki przy dymku: panel pokazuje to samo zdanie; tak samo chwilę po zniknięciu dymka
+  await p.clock.fastForward(21000);await tab('goals');const s2=await say();await p.click('.hal');await w(200);
+  console.log('  soczewka przy dymku → ten sam tekst:',(await p.textContent('.pxpanel .pxtxt')).trim()===s2);
+  await p.click('.pxclose');await w(100);
+  await p.clock.fastForward(21000);await tab('cal');const s3=await say();await p.clock.fastForward(16000);await w(100);
+  const gone=!(await p.isVisible('.pxsay'));await p.click('.hal');await w(200);
+  console.log('  dymek zniknął:',gone,'| soczewka potem → ten sam tekst:',(await p.textContent('.pxpanel .pxtxt')).trim()===s3);
+  await p.click('.pxclose');await w(100);
 
   // 3) charakter: twarda
   await p.evaluate(()=>{S.settings.pixaTone='hard';save()});
