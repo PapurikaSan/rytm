@@ -427,60 +427,55 @@ const ago=d=>{if(!d)return'brak';const n=diffDays(d,todayS());return n===0?'dzi�
 /* ---------- dane ---------- */
 const KEY='rytm-v2';
 const DEF_SET={streak:.7,mainReq:true,mainSoft:false,len:{meeting:{s:'do 1 h',m:'1–3 h',l:'powyżej 3 h'},call:{s:'do 5 min',m:'5–15 min',l:'powyżej 15 min'}}};
-const ALC=['Małe (1–2 piwa)','Średnie (3–4 piwa albo wino)','Duże (5+ piw, 2+ wina, mocny alkohol)'];
-const GYM=['Full body','Upper body','Lower body','Calisthenics','Cardio'];
 function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+// Dane przykładowe: uniwersalny zestaw, który pokazuje wszystkie rodzaje celów (zaznaczanie, ilość, „najwyżej”, zakres, limit, pomiar, spotkania).
+const TRAIN=['Siłownia','Bieganie','Rower','Joga','W domu'];
 function seed(){
   const goals=[
-    {id:'gym',name:'Siłownia',cat:'Fizyczne',type:'do',period:'week',target:3,variants:GYM.slice()},
-    {id:'climb',name:'Ścianka wspinaczkowa',cat:'Fizyczne',type:'do',period:'week',target:1,variants:[]},
-    {id:'bike',name:'Rower',cat:'Fizyczne',type:'do',period:'week',target:1,variants:[]},
+    {id:'gym',name:'Trening',cat:'Ruch',type:'do',period:'week',target:3,variants:TRAIN.slice()},
+    {id:'steps',name:'Kroki',cat:'Ruch',type:'qty',period:'day',target:8000,unit:'kroków'},
     {id:'sleep',name:'Sen',cat:'Zdrowie',type:'range',period:'day',target:7.5,unit:'h',ok:.5,warn:1.5},
-    {id:'kcal',name:'Kalorie',cat:'Zdrowie',type:'range',period:'day',target:2400,unit:'kcal',ok:150,warn:400},
-    {id:'weight',name:'Waga',cat:'Zdrowie',type:'measure',period:'week',target:80,unit:'kg'},
-    {id:'eat',name:'Zdrowe jedzenie',cat:'Zdrowie',type:'do',period:'day',target:1,variants:[]},
-    {id:'out',name:'Jedzenie na mieście',cat:'Zdrowie',type:'limit',period:'week',target:2,variants:[]},
-    {id:'smoke',name:'Palenie',cat:'Zdrowie',type:'limit',period:'week',target:2,variants:[]},
-    {id:'alc',name:'Alkohol',cat:'Zdrowie',type:'limit',period:'week',target:2,variants:ALC.slice(),w:{[ALC[2]]:2}},
-    {id:'read',name:'Czytanie książki',cat:'Umysł',type:'qty',period:'day',target:20,unit:'stron'},
-    {id:'learn',name:'Nauka',cat:'Umysł',type:'qty',period:'day',target:30,unit:'min'},
+    {id:'water',name:'Woda',cat:'Zdrowie',type:'qty',period:'day',target:2,unit:'l'},
+    {id:'eat',name:'Owoce i warzywa',cat:'Zdrowie',type:'do',period:'day',target:1,variants:[]},
+    {id:'weight',name:'Waga',cat:'Zdrowie',type:'measure',period:'week',target:72,unit:'kg'},
+    {id:'screen',name:'Czas przed ekranem',cat:'Ograniczenia',type:'qty',period:'day',target:2.5,unit:'h',dir:'max'},
+    {id:'sweets',name:'Słodycze',cat:'Ograniczenia',type:'limit',period:'week',target:2,variants:[]},
+    {id:'read',name:'Czytanie',cat:'Umysł',type:'qty',period:'day',target:15,unit:'stron'},
+    {id:'lang',name:'Nauka języka',cat:'Umysł',type:'qty',period:'day',target:15,unit:'min'},
+    {id:'meditate',name:'Medytacja',cat:'Umysł',type:'qty',period:'day',target:10,unit:'min'},
     {id:'meet',name:'Spotkania ze znajomymi',cat:'Relacje',type:'contact',kind:'meeting',period:'week',target:null},
-    {id:'mom',name:'Rozmowy z mamą',cat:'Rodzina',type:'contact',kind:'call',period:'week',target:null},
-    {id:'home',name:'Wizyta w domu rodzinnym',cat:'Rodzina',type:'do',period:'month',target:null,variants:[]}
+    {id:'call',name:'Rozmowy z bliskimi',cat:'Relacje',type:'contact',kind:'call',period:'week',target:null}
   ];
-  {const PR={gym:'main',sleep:'main',read:'main',climb:'extra',bike:'extra',weight:'extra'};const AM={gym:'gym',climb:'climb',bike:'bike',sleep:'sleep',kcal:'kcal',weight:'weight',eat:'eat',out:'out',smoke:'smoke',alc:'alc',read:'read',learn:'learn',meet:'social',mom:'family',home:'family'};goals.forEach(g=>{g.prio=PR[g.id]||'imp';g.act=AM[g.id]})}
-  const people=['Kasia Nowak','Dominik Wójcik','Ola Kowalska','Marcin Zieliński'];
-  const r=rng(7),log={},off={},t=todayS();
+  {const PR={gym:'main',sleep:'main',read:'main',meditate:'extra',weight:'extra'},AM={gym:'any',steps:'steps',sleep:'sleep',water:'water',eat:'eat',weight:'weight',screen:'screen',sweets:'sweets',read:'read',lang:'lang',meditate:'meditate',meet:'social',call:'family'};goals.forEach(g=>{g.prio=PR[g.id]||'imp';g.act=AM[g.id]})}
+  const people=['Ania Lis','Tomek Mazur','Marta Kaczmarek','Kuba Wiśniewski'];
+  const r=rng(11),log={},off={},t=todayS();
   const pick=a=>a[Math.floor(r()*a.length)];
-  const mood={};let prevAlc=false;
+  const mood={};
   for(let i=110;i>=1;i--){
-    const d=addDays(t,-i),dw=(parse(d).getDay()+6)%7,L={};
-    if((dw===0||dw===2||dw===4)&&r()<.8)L.gym=pick(GYM);
-    if((dw===3||dw===5)&&r()<.3)L.climb=1;
-    if(dw===6&&r()<.4)L.bike=1;
-    if(r()<.94)L.sleep=Math.round((6.5+r()*2-(prevAlc?.9:0))*2)/2;
-    if(r()<.92)L.kcal=Math.round((2400+(r()-.5)*800)/10)*10;
-    if(dw===0&&r()<.9)L.weight=Math.round((84-(110-i)*.022+(r()-.5)*.8)*10)/10;
-    if(r()<.82)L.eat=1;
-    if(r()<.2)L.out=1;
-    if(r()<.15)L.smoke=1;
-    if((dw===4||dw===5)&&r()<.45)L.alc=pick([ALC[0],ALC[0],ALC[1],ALC[2]]);
-    if(r()<.85)L.read=Math.round(12+r()*22);
-    if(r()<.75)L.learn=Math.round((20+r()*40)/5)*5;
-    if(r()<.36){const n=r()<.3?2:1,p=[];while(p.length<n){const x=pick(people);if(!p.includes(x))p.push(x)}L.meet=[{p,l:pick(['s','m','m','l'])}]}
-    if(r()<.42)L.mom=[{p:[],l:pick(['s','m','l'])}];
-    if(i%24===5)L.home=1;
-    if(r()<.9){const m=2.8+(L.gym?.6:0)+(L.meet?.5:0)-(prevAlc?.7:0)+(L.sleep!=null&&Math.abs(L.sleep-7.5)<=.5?.5:0)+(r()-.5)*1.4;mood[d]=Math.max(1,Math.min(5,Math.round(m)))}
-    prevAlc=!!L.alc;
+    const d=addDays(t,-i),dw=(parse(d).getDay()+6)%7,we=dw>=5,L={};
+    if(((dw===0||dw===2||dw===4)&&r()<.8)||(we&&r()<.2))L.gym=pick(TRAIN);
+    if(r()<.93)L.steps=Math.round((5500+r()*5000+(L.gym?1500:0)+(we?1200:0))/100)*100;
+    if(r()<.9)L.screen=Math.round((1+r()*2.5+(we?.8:0))*4)/4;
+    if(r()<.95)L.sleep=Math.round((7.5+(r()-.5)*1.3-(L.screen>3?.7:0))*2)/2;
+    if(r()<.85)L.water=Math.round((1.2+r()*1.4)*4)/4;
+    if(r()<.75)L.eat=1;
+    if(dw===0&&r()<.9)L.weight=Math.round((76-(110-i)*.025+(r()-.5)*.6)*10)/10;
+    if(r()<(we?.45:.15))L.sweets=1;
+    if(r()<.86)L.read=Math.round(11+r()*24);
+    if(r()<.7)L.lang=Math.round((10+r()*15)/5)*5;
+    if(r()<.45)L.meditate=pick([5,10,10,15]);
+    if(r()<(we?.55:.2)){const n=r()<.35?2:1,p=[];while(p.length<n){const x=pick(people);if(!p.includes(x))p.push(x)}L.meet=[{p,l:pick(['s','m','m','l'])}]}
+    if(r()<.35)L.call=[{p:[],l:pick(['s','m','l'])}];
+    if(r()<.9){const m=2.9+(L.gym?.5:0)+(L.meet?.4:0)+(L.sleep!=null&&Math.abs(L.sleep-7.5)<=.5?.5:0)-(L.screen>3?.4:0)+(r()-.5)*1.4;mood[d]=Math.max(1,Math.min(5,Math.round(m)))}
     log[d]=L;
   }
   off[addDays(t,-40)]=true;off[addDays(t,-39)]=true;
-  const notes={};notes[addDays(t,-1)]='Ciężki dzień w pracy, ale trening zrobiony.';notes[addDays(t,-3)]='Długi spacer i dobra rozmowa.';notes[addDays(t,-9)]='Za późno poszedłem spać, jutro wcześniej.';
-  const reviews={};reviews[wstart(addDays(t,-7))]={good:'Siłownia 3 razy, dużo czytania.',improve:'Wcześniej kłaść się spać i mniej jedzenia na mieście.'};
+  const notes={};notes[addDays(t,-1)]='Długi dzień w pracy, ale trening zrobiony.';notes[addDays(t,-3)]='Spacer w parku i dobra rozmowa.';notes[addDays(t,-9)]='Za długo przy telefonie wieczorem. Jutro wcześniej spać.';
+  const reviews={};reviews[wstart(addDays(t,-7))]={good:'Trzy treningi i codziennie trochę czytania.',improve:'Mniej telefonu wieczorem, wcześniej spać.'};
   const wd=Object.keys(log).sort().find(d=>d>=addDays(t,-100)&&log[d].weight!=null),y=t.slice(0,4);
   const lt=[
-    {id:'lt1',name:'Siłownia: 45 treningów',kind:'sum',goal:'gym',target:45,from:addDays(t,-75),to:addDays(t,45)},
-    {id:'lt2',name:'Waga 80 kg',kind:'value',goal:'weight',target:80,from:addDays(t,-100),to:addDays(t,120),start:wd?log[wd].weight:84},
+    {id:'lt1',name:'Trening: 40 razy',kind:'sum',goal:'gym',target:40,from:addDays(t,-75),to:addDays(t,45)},
+    {id:'lt2',name:'Waga 72 kg',kind:'value',goal:'weight',target:72,from:addDays(t,-100),to:addDays(t,120),start:wd?log[wd].weight:76},
     {id:'lt3',name:'Książki w '+y,kind:'manual',target:12,unit:'książek',count:9,from:y+'-01-01',to:y+'-12-31'}
   ];
   return {goals,people,log,off,notes,reviews,mood,lt,sample:true,settings:JSON.parse(JSON.stringify(DEF_SET))};

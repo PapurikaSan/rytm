@@ -47,14 +47,14 @@ const fake=fs.readFileSync(path.join(__dirname,'fake-supabase.js'),'utf8');const
   await p.click('.nav [data-t=friends]');await p.waitForTimeout(300);
   console.log('12 Jan widzi piątki:',(await p.textContent('.card:has(h3:text("Piątki dla Ciebie"))')).replace(/\s+/g,' ').trim());
   // prywatność: prywatna aktywność nie do udostępnienia
-  await p.click('.nav [data-t=goals]');await p.click('[data-act=editgoal][data-g=alc]');console.log('13 alkohol:',(await p.textContent('.sheet')).includes('prywatna i nie da się jej udostępnić'));
+  await p.click('.nav [data-t=goals]');await p.click('[data-act=editgoal][data-g=sleep]');console.log('13 sen prywatny:',(await p.textContent('.sheet')).includes('prywatna i nie da się jej udostępnić'));
   // kamienie milowe w grupie: Jan włącza, Ola widzi i przybija piątkę
   await p.click('.sheet .btn[data-act=close]').catch(()=>{});await p.evaluate(()=>{ui.sheet=null;render()});
   await p.click('.nav [data-t=friends]');await p.waitForTimeout(400);await p.click('[data-soc=msshare]');await p.waitForTimeout(800);
   const db3=await p.evaluate(()=>localStorage.getItem('__fakedb'));await q.evaluate(d=>localStorage.setItem('__fakedb',d),db3);await q.reload();await q.waitForTimeout(600);
   await q.click('.nav [data-t=friends]');await q.waitForTimeout(800);
   console.log('14 Ola widzi kamienie Jana:',(await q.isVisible('.card:has(h3:text("Kamienie milowe w grupie"))'))?(await q.textContent('.card:has(h3:text("Kamienie milowe w grupie"))')).replace(/\s+/g,' ').slice(0,140):'(brak)');
-  console.log('   bez prywatnych (alkohol, sen, kalorie):',!/Alkohol|Sen|Kalorie|Rozmowy/.test(await q.textContent('#app')));
+  console.log('   bez prywatnych (alkohol, sen, kalorie):',!/Słodycze|Sen|Waga|Rozmowy|Czas przed/.test(await q.textContent('#app')));
   console.log('   Pixa u Oli:',await q.evaluate(()=>Social.chat((a,b)=>a).map(x=>x.text).filter(t=>/kamień|piątk/i.test(t)).slice(0,2).join(' | ')));
   await q.click('.card:has(h3:text("Kamienie milowe w grupie")) [data-soc=kudos]');await q.waitForTimeout(300);
   console.log('   piątka za kamień:',(await q.textContent('#toast')).trim(),'|',await q.evaluate(()=>JSON.stringify(Social.data().kudos.filter(k=>k.act.indexOf('ms:')===0).map(k=>k.act))));
