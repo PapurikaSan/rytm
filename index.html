@@ -341,6 +341,15 @@ input,select,textarea{font-size:16px}
 .pxin{display:flex;gap:6px;margin-top:8px}
 .pxin .inp{height:36px;flex:1;min-width:0}
 .pxin .btn{height:36px;padding:0 12px;flex:none}
+.pxhead{display:flex;align-items:center;gap:8px;padding-right:26px}
+.pxtools{display:flex;gap:4px;margin-left:auto}
+.pxtools button{font:600 11px var(--font-body);color:var(--accent);border:1px solid var(--line);border-radius:99px;padding:3px 8px;background:var(--surface)}
+.pxchips .pill{padding:4px 10px;font-size:12px}
+.fclock{font:700 34px var(--font-display);font-variant-numeric:tabular-nums;letter-spacing:.02em;margin:2px 0 6px}
+.brw{display:flex;align-items:center;gap:14px;margin:8px 0 4px}
+.bring{width:64px;height:64px;border-radius:50%;flex:none;background:radial-gradient(circle,var(--accent-soft) 0 45%,var(--accent) 46% 52%,transparent 53%);transition:transform .1s linear;box-shadow:0 0 18px var(--accent-soft)}
+.btxt{font:700 20px var(--font-display)}
+@media (prefers-reduced-motion:reduce){.bring{transition:none}}
 </style>
 </head>
 <body>
@@ -1948,7 +1957,9 @@ const PixaArt=(()=>{
     dance:{px:18,py:24,t:0,la:[-120,-40],ra:[60,60],ll:[-8,-4],rl:[10,6],face:'joy',dance:1},
     cheer:{px:18,py:24,t:-3,la:[-20,-30],ra:[165,10],ll:[-6,-2],rl:[8,2],face:'joy',fx:'spark',cheer:1},
     stretch:{px:18,py:24,t:0,la:[-160,-20],ra:[160,20],ll:[-6,-2],rl:[6,2],face:'closed',stretch:1},
-    comfort:{px:18,py:24,t:0,la:[-30,70],ra:[30,-70],ll:[-4,-2],rl:[4,2],face:'soft',fx:'heart'}
+    comfort:{px:18,py:24,t:0,la:[-30,70],ra:[30,-70],ll:[-4,-2],rl:[4,2],face:'soft',fx:'heart'},
+    work:{px:18,py:27,t:0,la:[-22,78],ra:[22,-78],ll:[-72,150],rl:[72,-150],face:'look',fx:'laptop'},
+    breathe:{px:18,py:27,t:0,la:[-42,-28],ra:[42,28],ll:[-72,150],rl:[72,-150],face:'closed',fx:'shadow'}
   };
   const STATE=new WeakMap();
   const KEYS=['px','py','t','la0','la1','ra0','ra1','ll0','ll1','rl0','rl1'];
@@ -2038,6 +2049,7 @@ const PixaArt=(()=>{
     if(P.fx==='spark'){[[Hd[0]-20,Hd[1]-12],[Hd[0]+20,Hd[1]-6],[Hd[0]+16,Hd[1]+16]].forEach(([x,y],i)=>{if((f+i*3)%8<5){p2(x,y,'spark');p2(x-2,y,'spark');p2(x+2,y,'spark');p2(x,y-2,'spark');p2(x,y+2,'spark')}})}
     if(P.fx==='q'){const x=Hd[0]+13,y=Hd[1]-20;[[0,0],[2,0],[4,2],[2,4],[2,8]].forEach(([dx,dy])=>p2(x+dx,y+dy,'spark'))}
     if(P.fx==='orb'){const hd=hands[1],yy=hd[1]-8-Math.abs(Math.sin(f*.25))*16;for(let y=-3;y<=3;y++)for(let x=-3;x<=3;x++){const d=x*x+y*y;if(d<=9)px(hd[0]+x,yy+y,d<=1?'core':d<=4?'acc':'lip')}}
+    if(P.fx==='laptop'){const x0=Math.round(Pv[0])-8,y0=Math.round(Pv[1])-1;for(let x=0;x<=16;x++){px(x0+x,y0+8,'edge');px(x0+x+1,y0+9,'edge')}for(let y=0;y<8;y++)for(let x=1;x<=15;x++)px(x0+x,y0+y,y===0||y===7||x===1||x===15?'edge':((x+y*3+f)%9===0?'acc':(y%2&&x<4+((f+y)%10))?'core':'body'))}
     if(P.fx==='heart'){const x=Hd[0]+14,y=Hd[1]-12-Math.round(Math.sin(f*.2)*2);[[0,0],[1,0],[3,0],[4,0],[-1,1],[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[0,2],[1,2],[2,2],[3,2],[4,2],[1,3],[2,3],[3,3],[2,4]].forEach(([dx,dy])=>px(x+dx,y+dy,'acc'))}
     if(P.peek){for(let x=0;x<W;x++)for(let y=H-4;y<H;y++)px(x,y,y===H-4?'core':'edge')}
     if(f%37<2){const y0=16+((f*13)%70),img=c.getImageData(0,y0,W,5);c.clearRect(0,y0,W,5);c.putImageData(img,(f%2?3:-3),y0)}
@@ -2060,12 +2072,70 @@ const Asst=(()=>{
     else if(!ac)pool=['wave','think','stretch'];
     const o=pool.filter(x=>x!==pose);choose((o.length?o:pool)[Math.floor(Math.random()*(o.length?o:pool).length)]);pokeT=26;
   }
+  // ---- minutnik skupienia ----
+  const FK='rytm-focus';
+  let focus=(()=>{try{return JSON.parse(localStorage.getItem(FK)||'null')}catch(e){return null}})(),wl=null;
+  const fSave=()=>{try{if(focus)localStorage.setItem(FK,JSON.stringify(focus));else localStorage.removeItem(FK)}catch(e){}};
+  const fLeft=()=>!focus?0:focus.paused?focus.left:Math.max(0,focus.end-Date.now());
+  const isMin=g=>g&&g.type==='qty'&&/^min/i.test(g.unit||'');
+  function wake(on){try{if(on&&navigator.wakeLock&&!wl)navigator.wakeLock.request('screen').then(l=>{wl=l}).catch(()=>{});if(!on&&wl){wl.release().catch(()=>{});wl=null}}catch(e){}}
+  function fStart(){const m=ui.fset.m;focus={gid:ui.fset.g||null,dur:m,end:Date.now()+m*60000,paused:false,left:0};fSave();ui.fset=null;wake(true);choose('work');pokeT=0}
+  function fFinish(){
+    const mins=Math.round((focus.dur*60000-fLeft())/60000),g=S.goals.find(x=>x.id===focus.gid),d=todayS();
+    focus=null;fSave();wake(false);
+    ui.fdone={mins,name:g?g.name:null,ask:null};
+    if(g&&mins>0){
+      const u=withUndo('Zapisano sesję skupienia.');
+      if(isMin(g)){setVal(g.id,d,(num(val(g.id,d))||0)+mins);ui.fdone.saved=mins+' min'}
+      else if(g.type==='do'){setVal(g.id,d,typeof val(g.id,d)==='string'?val(g.id,d):1);ui.fdone.saved='zaznaczone'}
+      else ui.fdone.ask=g.id;
+      if(!ui.fdone.ask){save();u()}
+    }
+    choose('jump');pokeT=24;try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}
+  }
+  setInterval(()=>{
+    if(focus&&!focus.paused&&Date.now()>=focus.end){fFinish();if(ui.tab==='today')render();else paint();if(!ui.asstOpen)toast('Sesja skupienia skończona! Otwórz Pixę.');return}
+    const c=document.getElementById('fclock');if(c&&focus){const l=fLeft();c.textContent=Math.floor(l/60000)+':'+String(Math.floor(l/1000)%60).padStart(2,'0');const b=document.getElementById('fbar');if(b)b.style.width=(100-l/(focus.dur*600))+'%'}
+  },500);
+  function focusBubble(){
+    if(ui.fdone){const f=ui.fdone;
+      if(f.ask){const g=S.goals.find(x=>x.id===f.ask);return'<p class="pxtxt">Brawo, '+f.mins+' min skupienia! Ile '+(g&&g.unit?g.unit:'')+' wyszło przy „'+esc(g?g.name:'')+'”?</p><div class="pxin"><input class="inp ckin" id="fin" inputmode="decimal" placeholder="np. 15"><button class="btn main" data-asst="fsave">Zapisz</button></div><div class="pxfoot"><button class="link" data-asst="fclose">Pomiń</button></div>'}
+      return'<p class="pxtxt">'+(f.mins>0?'Brawo! '+f.mins+' min skupienia'+(f.name?' przy „'+esc(f.name)+'”':'')+'.'+(f.saved?' Wpisałam to do celu ('+f.saved+').':''):'Sesja przerwana. Nic nie szkodzi, spróbujemy jeszcze raz.')+'</p><div class="pxact"><button class="btn main" data-asst="fclose">Dzięki!</button><button class="btn" data-asst="ftool">Jeszcze raz</button></div>'}
+    if(focus){const g=S.goals.find(x=>x.id===focus.gid);
+      return'<div class="pxstep">Minutnik skupienia'+(g?' · '+esc(g.name):'')+'</div><div class="fclock" id="fclock">'+Math.floor(fLeft()/60000)+':'+String(Math.floor(fLeft()/1000)%60).padStart(2,'0')+'</div><div class="bar-o"><div class="bar-i" id="fbar" style="width:'+(100-fLeft()/(focus.dur*600))+'%"></div></div><div class="pxact" style="margin-top:8px"><button class="btn" data-asst="fpause">'+(focus.paused?'Wznów':'Pauza')+'</button><button class="btn" data-asst="fend">Zakończ teraz</button></div><div class="pxfoot"><button class="link" data-asst="fcancel">Anuluj bez zapisu</button></div>'}
+    const fs=ui.fset,gl=S.goals.filter(g=>!isPaused(g)&&(g.type==='qty'&&!isMax(g)||g.type==='do'));
+    return'<p class="pxtxt">Na czym się skupiasz?</p><div class="chips pxchips">'+gl.map(g=>'<button class="pill'+(fs.g===g.id?' on':'')+'" data-asst="fgoal" data-g="'+g.id+'">'+esc(g.name)+'</button>').join('')+'<button class="pill'+(!fs.g?' on':'')+'" data-asst="fgoal" data-g="">Bez celu</button></div><div class="chips pxchips" style="margin-top:6px">'+[15,25,45,60].map(m=>'<button class="pill'+(fs.m===m?' on':'')+'" data-asst="fmin" data-m="'+m+'">'+m+' min</button>').join('')+'</div><div class="pxact" style="margin-top:8px"><button class="btn main" data-asst="fstart">Start</button></div><div class="pxfoot"><button class="link" data-asst="fclose">Wróć</button></div>';
+  }
+  // ---- minuta oddechu: wdech 4 s, wydech 6 s, 6 razy ----
+  const BIN=4000,BOUT=6000,BCY=BIN+BOUT,BTOT=BCY*6;
+  function bPhase(){if(!ui.breath||!ui.breath.start)return null;const e=Date.now()-ui.breath.start;if(e>=BTOT)return{done:true};const c=e%BCY,inh=c<BIN;return{inh,p:inh?c/BIN:1-(c-BIN)/BOUT,sec:Math.ceil(inh?(BIN-c)/1000:(BCY-c)/1000),left:Math.ceil((BTOT-e)/1000)}}
+  function breathBubble(){
+    const b=ui.breath;
+    if(b.offer)return'<p class="pxtxt">Przykro mi, że to gorszy dzień. Chcesz minutę spokojnego oddechu ze mną?</p><div class="pxact"><button class="btn main" data-asst="bstart">Tak, zróbmy to</button><button class="btn" data-asst="bclose">Nie teraz</button></div>';
+    const ph=bPhase();
+    if(!ph||ph.done)return'<p class="pxtxt">Dobra robota. Jak się teraz czujesz?</p><div class="pxact">'+[1,2,3,4,5].map(n=>'<button class="mb md'+n+'" data-asst="bmood" data-v="'+n+'"><b>'+n+'</b></button>').join('')+'</div><div class="pxfoot"><button class="link" data-asst="bclose">Zamknij</button></div>';
+    return'<div class="pxstep">Minuta oddechu · zostało '+ph.left+' s</div><div class="brw"><div class="bring" id="bring" style="transform:scale('+(.55+.45*ph.p)+')"></div><div><div class="btxt" id="btxt">'+(ph.inh?'Wdech':'Wydech')+'</div><div class="gs" id="bsec">'+ph.sec+' s</div></div></div><div class="pxfoot"><button class="link" data-asst="bclose">Przerwij</button></div>';
+  }
+  setInterval(()=>{const ph=bPhase();if(!ph)return;if(ph.done){if(!ui.breath.ended){ui.breath.ended=true;choose('jump');pokeT=20;paint()}return}
+    const r=document.getElementById('bring');if(r){r.style.transform='scale('+(.55+.45*ph.p)+')';document.getElementById('btxt').textContent=ph.inh?'Wdech':'Wydech';document.getElementById('bsec').textContent=ph.sec+' s'}},100);
+  // ---- ochrona serii: co minimalnie trzeba zrobić dziś, żeby dzień był dobry ----
+  function rescue(t){
+    if(S.off[t]||goodDay(t))return null;const n=streak();if(n<2)return null;
+    const cand=S.goals.filter(g=>!pausedAt(g,t)&&scorable(g)&&PW[g.prio||'imp']>0&&(goalDayScoreW(g,t)==null?1:goalDayScoreW(g,t))<1).sort((a,b)=>PW[b.prio||'imp']-PW[a.prio||'imp']);
+    const ok=set=>{let sw=0,sv=0;S.goals.forEach(g=>{if(pausedAt(g,t))return;const w=PW[g.prio||'imp'];if(!w)return;const v=set.includes(g)?1:goalDayScoreW(g,t);if(v==null)return;sw+=w;sv+=w*v});if(!sw||sv/sw<thr())return false;
+      if(S.settings.mainReq){const need=S.settings.mainSoft?.5:1;return S.goals.every(g=>g.prio!=='main'||pausedAt(g,t)||!scorable(g)||set.includes(g)||goalDayScoreW(g,t)>=need)}return true};
+    for(let k=1;k<=Math.min(3,cand.length);k++){const set=cand.slice(0,k);if(ok(set))return{n,set}}
+    return null;
+  }
   function poke(){choose(Math.random()<.6?'jump':'wave');pokeT=16}
   function step(cv){
     frame++;poseT++;
     if(pokeT>0){pokeT--;if(!pokeT)choose(ctxPose||pick())}
+    else if(focus&&!ui.fdone){if(pose!=='work')choose('work')}
+    else if(bPhase()&&!bPhase().done){if(pose!=='breathe')choose('breathe')}
     else if(poseT>hold)choose(ctxPose&&Math.random()<.35?ctxPose:pick());
     const tf=PixaArt.flat(PixaArt.POSES[pose]);
+    {const ph=bPhase();if(ph&&!ph.done){tf.py-=ph.p*1.8;tf.la0-=ph.p*14;tf.ra0+=ph.p*14}}
     if(!cur)cur=Object.assign({},tf);else PixaArt.KEYS.forEach(k=>{cur[k]+=(tf[k]-cur[k])*.35});
     PixaArt.draw(cv,frame,pose,cur,S.settings.pixaPal);
   }
@@ -2114,7 +2184,8 @@ const Asst=(()=>{
     const t=todayS(),hour=new Date().getHours(),out=[],ws=wstart(t),fd=firstDay();
     const add=(id,kind,pr,text,actions)=>{const sn=S.asst.snooze[id];if(S.asst.off[kind]||(sn&&sn>t))return;out.push({id,kind,pr,text,actions})};
     if(!S.goals.length)add('first','start',100,'Cześć! Jestem Pixa. Zacznijmy od pierwszego celu. Co chcesz robić regularnie?',[{l:'Dodaj cel',f:()=>{ui.asstOpen=false;openGoal(null)}}]);
-    if(S.mood[t]==null&&!S.off[t])add('mood-'+t,'mood',80,'Jak się dziś czujesz?',MOODS.map((m,i)=>({l:(i+1)+' '+m.toLowerCase(),mood:i+1,f:()=>{S.mood[t]=i+1;save();toast('Zapisano nastrój.')}})));
+    if(S.mood[t]==null&&!S.off[t])add('mood-'+t,'mood',80,'Jak się dziś czujesz?',MOODS.map((m,i)=>({l:(i+1)+' '+m.toLowerCase(),mood:i+1,f:()=>{S.mood[t]=i+1;save();toast('Zapisano nastrój.');if(i+1<=2)ui.breath={offer:true}}})));
+    if(hour>=17){const rs=rescue(t);if(rs){const ckable=rs.set.every(ckTypes);add('streak-'+t,'streak',90,'Seria '+rs.n+' dni jest zagrożona. Do dobrego dnia brakuje: '+names(rs.set)+'.',ckable?[{l:'Uzupełnij z Pixą',f:()=>startCk(t,rs.set)}]:[{l:'Pokaż',f:()=>{ui.asstOpen=false;ui.tab='today';ui.date=t;render();setTimeout(()=>act('jump',{g:rs.set[0].id}),50)}}])}}
     {const y=addDays(t,-1),my=missingFor(y);if(my.length&&firstDay()<=y)add('yest-'+y,'yesterday',78,'Wczoraj nie było wpisu przy: '+names(my)+'. Nie pominąłeś czegoś?',[{l:'Uzupełnij',f:()=>startCk(y,my)},{l:'Nic więcej nie było',f:()=>{my.forEach(g=>answered(y,g.id));toast('OK, wczoraj zamknięty.')}}])}
     if(hour>=18&&!S.off[t]){
       const miss=missingFor(t);
@@ -2147,33 +2218,49 @@ const Asst=(()=>{
     try{const ins=insights().find(x=>x.good===true);if(ins)add('ins-'+ins.t,'insight',20,'Zauważyłam coś w Twoich danych. '+ins.t+': średnio '+fmt(ins.a)+ins.u+', a bez tego '+fmt(ins.b)+ins.u+'.',[{l:'Ciekawe',f:()=>{}}])}catch(e){}
     return out.sort((a,b)=>b.pr-a.pr);
   }
-  function snooze(tp){const days=tp.kind==='mood'||tp.kind==='missing'||tp.kind==='yesterday'?1:tp.kind==='adjust'||tp.kind==='limit'?7:14;S.asst.snooze[tp.id]=addDays(todayS(),days);save()}
+  function snooze(tp){const days=tp.kind==='mood'||tp.kind==='missing'||tp.kind==='yesterday'||tp.kind==='streak'?1:tp.kind==='adjust'||tp.kind==='limit'?7:14;S.asst.snooze[tp.id]=addDays(todayS(),days);save()}
   function paint(){
     const pv=document.getElementById('pxprev');if(pv&&S)PixaArt.draw(pv,14,'wave',null,S.settings.pixaPal);
     const root=document.getElementById('asst');if(!root)return;
     if(anim){cancelAnimationFrame(anim);anim=null}
     if(!S||!S.settings.asst||ui.sheet){root.innerHTML='';return}
     tipsCache=tips();if(idx>=tipsCache.length)idx=0;
-    const has=tipsCache.length>0,fresh=has&&!openedToday();
+    const has=tipsCache.length>0||!!ui.fdone,fresh=(has&&!openedToday())||!!ui.fdone;
     if(!ui.asstOpen){
       root.innerHTML='<button class="hal'+(fresh?' on':'')+'" data-asst="open" aria-label="'+(has?'Pixa ma dla Ciebie '+tipsCache.length+' '+(tipsCache.length===1?'wiadomość':'wiadomości'):'Otwórz asystentkę Pixę')+'"><span class="lens"></span></button>';
       return;
     }
-    const tp=ui.ck?null:tipsCache[idx];
+    const mode=ui.ck?'ck':(ui.fset||focus||ui.fdone)?'focus':ui.breath?'breath':null;
+    const tp=mode?null:tipsCache[idx];
     let bub;
-    if(ui.ck)bub=ckBubble();
+    if(mode==='ck')bub=ckBubble();
+    else if(mode==='focus')bub=focusBubble();
+    else if(mode==='breath')bub=breathBubble();
     else if(!tp)bub='<p class="pxtxt">Wszystko gra. Nie mam teraz żadnych pytań. Zajrzę, gdy coś zauważę.</p>';
     else bub='<p class="pxtxt">'+esc(tp.text)+'</p><div class="pxact">'+(tp.actions[0]&&tp.actions[0].mood?tp.actions.map((a,j)=>'<button class="mb md'+a.mood+'" data-asst="do" data-j="'+j+'" aria-label="'+esc(a.l)+'"><b>'+a.mood+'</b></button>').join(''):tp.actions.map((a,j)=>'<button class="btn main" data-asst="do" data-j="'+j+'">'+esc(a.l)+'</button>').join(''))+'</div><div class="pxfoot"><button class="link" data-asst="later">Nie teraz</button><button class="link" data-asst="never">Nie pokazuj takich</button>'+(tipsCache.length>1?'<button class="link pxnext" data-asst="next">'+(idx+1)+'/'+tipsCache.length+' ›</button>':'')+'</div>';
-    root.innerHTML='<div class="pxpanel" role="dialog" aria-label="Pixa, asystentka"><div class="pxavw"><canvas class="pxav" width="88" height="126" data-asst="poke" role="img" aria-label="Pixa"></canvas></div><div class="pxbub"><div class="pxname">Pixa</div>'+bub+'</div><button class="pxclose" data-asst="close" aria-label="Zamknij asystentkę">×</button></div>';
+    root.innerHTML='<div class="pxpanel" role="dialog" aria-label="Pixa, asystentka"><div class="pxavw"><canvas class="pxav" width="88" height="126" data-asst="poke" role="img" aria-label="Pixa"></canvas></div><div class="pxbub"><div class="pxhead"><span class="pxname">Pixa</span>'+(mode?'':'<span class="pxtools"><button data-asst="ftool">Minutnik</button><button data-asst="btool">Oddech</button></span>')+'</div>'+bub+'</div><button class="pxclose" data-asst="close" aria-label="Zamknij asystentkę">×</button></div>';
     const cv=root.querySelector('.pxav');
-    if(!ui.ck)setCtx(tp);
+    if(!mode)setCtx(tp);
     if(reduced()){PixaArt.draw(cv,0,ctxPose||'stand',null,S.settings.pixaPal);return}
     let last=0;const loop=ts=>{if(ts-last>100){last=ts;step(cv)}anim=requestAnimationFrame(loop)};anim=requestAnimationFrame(loop);
   }
   document.addEventListener('click',e=>{
     const el=e.target.closest('[data-asst]');if(!el)return;const a=el.dataset.asst,tp=tipsCache[idx];
     if(a==='open'){ui.asstOpen=true;idx=0;try{localStorage.setItem(openedKey,todayS())}catch(x){}paint()}
-    if(a==='close'){ui.asstOpen=false;ui.ck=null;paint()}
+    if(a==='close'){ui.asstOpen=false;ui.ck=null;ui.fset=null;ui.fdone=null;if(ui.breath&&!bPhase())ui.breath=null;paint()}
+    if(a==='ftool'){ui.ck=null;ui.breath=null;ui.fdone=null;if(!focus)ui.fset={g:(S.goals.find(g=>isMin(g)&&!isPaused(g))||{}).id||null,m:25};paint();return}
+    if(a==='btool'){ui.ck=null;ui.fset=null;ui.fdone=null;ui.breath={start:Date.now()};choose('breathe');pokeT=0;paint();return}
+    if(a==='fgoal'){ui.fset.g=el.dataset.g||null;paint();return}
+    if(a==='fmin'){ui.fset.m=+el.dataset.m;paint();return}
+    if(a==='fstart'){fStart();paint();return}
+    if(a==='fpause'&&focus){if(focus.paused){focus.end=Date.now()+focus.left;focus.paused=false;wake(true)}else{focus.left=fLeft();focus.paused=true;wake(false)}fSave();paint();return}
+    if(a==='fend'&&focus){fFinish();if(ui.tab==='today')render();else paint();return}
+    if(a==='fcancel'){focus=null;fSave();wake(false);react(null,null);paint();return}
+    if(a==='fclose'){ui.fdone=null;ui.fset=null;paint();return}
+    if(a==='fsave'&&ui.fdone){const v=parseNum((document.getElementById('fin')||{}).value);if(v==null){toast('Wpisz liczbę.');return}const id=ui.fdone.ask,d=todayS();setVal(id,d,(num(val(id,d))||0)+v);save();ui.fdone.ask=null;ui.fdone.saved=fmt(v)+' '+((S.goals.find(x=>x.id===id)||{}).unit||'');react(null,{mood:5});if(ui.tab==='today')render();else paint();return}
+    if(a==='bstart'){ui.breath={start:Date.now()};choose('breathe');pokeT=0;paint();return}
+    if(a==='bclose'){ui.breath=null;react(null,null);paint();return}
+    if(a==='bmood'){const v=+el.dataset.v;S.mood[todayS()]=v;save();ui.breath=null;react(null,{mood:v});toast('Zapisano nastrój.');if(ui.tab==='today')render();else paint();return}
     if(ui.ck){
       if(a==='ckv')ckAnswer(parseNum(el.dataset.v),'val');
       if(a==='ckyes')ckAnswer(1,'yes');
@@ -2188,10 +2275,10 @@ const Asst=(()=>{
     if(a==='never'&&tp){react(tp,null);S.asst.off[tp.kind]=true;save();toast('Nie pokażę już takich podpowiedzi. Przywrócisz je w Ustawieniach.');paint()}
     if(a==='do'&&tp){const ac=tp.actions[+el.dataset.j];if(tp.kind==='adjust'||tp.kind==='paused'){const u=withUndo('Zmieniono cel.');setTimeout(u,0)}react(tp,ac);S.asst.snooze[tp.id]=addDays(todayS(),3650);ac.f();save();if(ui.tab==='today'||ui.tab==='settings'||ui.tab==='goals')render();else paint()}
   });
-  return{paint,tips};
+  return{paint,tips,rescue};
 })();
 
-document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target&&e.target.id==='ckin'){const b=document.querySelector('[data-asst=cksave]');if(b)b.click()}});
+document.addEventListener('keydown',e=>{if(e.key!=='Enter'||!e.target)return;const b=e.target.id==='ckin'?document.querySelector('[data-asst=cksave]'):e.target.id==='fin'?document.querySelector('[data-asst=fsave]'):null;if(b)b.click()});
 const Push=(()=>{
   let st='checking',msg=null;
   const ios=/iPhone|iPad|iPod/.test(navigator.userAgent),standalone=window.navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches;
