@@ -1,6 +1,6 @@
 // Rytm: wysyłanie przypomnień (Supabase Edge Function)
 // Akcje: "public-key" (klucz publiczny dla telefonu), "run" (co 5 minut z harmonogramu),
-// "test" (próbne powiadomienie dla zalogowanego użytkownika).
+// "test" (próbne powiadomienie dla zalogowanego użytkownika), "kudos" (piątka dla znajomego z tej samej grupy).
 import webpush from "npm:web-push@3.6.7";
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 
@@ -130,16 +130,42 @@ async function run() {
   return { sent };
 }
 
+async function authUser(req: Request) {
+  const jwt = (req.headers.get("Authorization") || "").replace("Bearer ", "");
+  if (!jwt) return null;
+  const { data: { user } } = await sb.auth.getUser(jwt);
+  return user;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
-  let body: { action?: string } = {};
+  let body: { action?: string; to?: string; act?: string; label?: string } = {};
   try { body = await req.json(); } catch { /* pusty */ }
   try {
     if (body.action === "public-key") return json({ publicKey: (await keys()).publicKey });
     if (body.action === "run") return json(await run());
+    if (body.action === "kudos") {
+      const user = await authUser(req);
+      if (!user) return json({ error: "Nie zalogowano" }, 401);
+      const to = String(body.to || ""), act = String(body.act || "").slice(0, 30), label = String(body.label || act).slice(0, 40);
+      if (!to || !act || to === user.id) return json({ error: "Złe dane" }, 400);
+      const { data: mine } = await sb.from("rytm_member").select("group_id").eq("user_id", user.id);
+      const { data: theirs } = await sb.from("rytm_member").select("group_id").eq("user_id", to);
+      const shared = (mine || []).some((m) => (theirs || []).some((t) => t.group_id === m.group_id));
+      if (!shared) return json({ error: "Nie jesteście w tej samej grupie" }, 403);
+      const day = local("Europe/Warsaw").day;
+      const { error } = await sb.from("rytm_kudos").insert({ from_user: user.id, to_user: to, act, day });
+      if (error) return json({ already: true });
+      const { data: prof } = await sb.from("rytm_profile").select("name").eq("user_id", user.id).maybeSingle();
+      const k = await keys();
+      webpush.setVapidDetails(APP_URL, k.publicKey, k.privateKey);
+      const { data: subs } = await sb.from("rytm_push").select("id,user_id,sub").eq("user_id", to);
+      let sent = 0;
+      for (const s of subs || []) if (await send(s, { title: "Piątka!", body: (prof?.name || "Znajomy") + " przybija Ci piątkę: " + label, url: APP_URL + "#friends" })) sent++;
+      return json({ ok: true, sent });
+    }
     if (body.action === "test") {
-      const jwt = (req.headers.get("Authorization") || "").replace("Bearer ", "");
-      const { data: { user } } = await sb.auth.getUser(jwt);
+      const user = await authUser(req);
       if (!user) return json({ error: "Nie zalogowano" }, 401);
       const k = await keys();
       webpush.setVapidDetails(APP_URL, k.publicKey, k.privateKey);

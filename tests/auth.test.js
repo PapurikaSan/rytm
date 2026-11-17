@@ -18,7 +18,7 @@ const {chromium}=require('playwright');const fs=require('fs'),path=require('path
  await p.click('[data-act=start][data-k=template]');await p.waitForTimeout(200);
  console.log('6 today goals:',(await p.$$eval('#app .goal .gn',e=>e.map(x=>x.textContent))).length,'sample banner:',await p.isVisible('text=Dane przykładowe'));
  await p.click('[data-act=mood][data-v="5"]');await p.click('#row-eat [data-act=toggle]');await p.waitForTimeout(1200);
- console.log('7 saved:',await p.textContent('#sync'),'upserts:',await p.evaluate(()=>window.__upserts),'db mood:',await p.evaluate(()=>JSON.stringify(window.__db.rows.u1.data.mood)));
+ console.log('7 saved:',await p.textContent('#sync'),'upserts:',await p.evaluate(()=>window.__upserts),'db mood:',await p.evaluate(()=>JSON.stringify(window.__db.t.rytm_state.find(r=>r.user_id==='u1').data.mood)));
  
  // odświeżenie: dane z bazy, a nie z pamięci podręcznej
  await p.evaluate(()=>{for(const k of Object.keys(localStorage))if(k.startsWith('rytm-cache'))localStorage.removeItem(k)});

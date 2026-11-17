@@ -17,6 +17,8 @@
   - Stan użytkownika to jeden obiekt `S` (cele, wpisy, ustawienia) zapisywany jako JSON w `rytm_state.data`. `fixState()` uzupełnia brakujące pola przy wczytaniu, więc nowe pola dodawaj z wartościami domyślnymi właśnie tam.
   - `Sync` (logowanie, zapis z opóźnieniem 800 ms, pamięć podręczna w localStorage, odświeżanie po powrocie do aplikacji), `Push` (włączanie powiadomień na urządzeniu).
   - Widoki: `viewToday`, `viewWeek`, `viewMonth`, `viewCharts`, `viewGoals`, `viewSettings`; arkusze w `sheetHtml()`. Akcje kliknięć: atrybut `data-act` → `act()`; zmiany pól: `data-chg`; wpisywanie w arkuszu: `data-inp`.
+  - Katalog aktywności `CAT` (klucz, nazwa, synonimy, `share`: czy można udostępniać, `d`: domyślne ustawienia celu). Cel ma `act` (klucz z katalogu, `'none'` dla własnej aktywności albo brak). `matchAct()` dopasowuje wpisaną nazwę (bez polskich znaków, z tolerancją literówek). Prywatne aktywności (sen, kalorie, waga, używki, relacje) nigdy nie są udostępniane.
+  - `Social`: zakładka Znajomi (profil, grupy, ranking, wyzwania, piątki) i synchronizacja udostępnień (`rytm_share`) po każdym zapisie. Cel ma `groups` (id grup, którym jest udostępniony).
   - Typy celów: `do` (zaznaczanie, dzień/tydzień/miesiąc, opcjonalnie bez celu, rodzaje `variants`), `qty` (ilość dziennie), `range` (wartość ± tolerancja), `limit` (maks. dni, wagi poziomów `w`), `contact` (spotkania/rozmowy z długością), `measure` (pomiar, np. waga). Priorytety `prio`: `main` ×3, `imp` ×1, `extra` ×0.
 - `sw.js`: offline (najpierw sieć, potem pamięć) oraz obsługa powiadomień push. Zapytania do Supabase nie są cache'owane. Przy zmianach w `sw.js` podbij `CACHE`.
 - `manifest.webmanifest` + ikony: instalacja na ekranie głównym iPhone'a.
@@ -26,6 +28,7 @@
 ## Baza (wszystkie tabele z RLS)
 - `rytm_state`: jeden wiersz na użytkownika, dostęp tylko do własnego.
 - `rytm_push`: urządzenia z włączonymi powiadomieniami, dostęp tylko do własnych.
+- `rytm_profile` (wyświetlana nazwa), `rytm_group` (kod zaproszenia), `rytm_member`, `rytm_share` (podsumowanie udostępnionego celu: dni z aktywnością z ostatnich 120 dni, zaliczone tygodnie, opis celu), `rytm_challenge`, `rytm_kudos`. Zasady: widzisz tylko swoje grupy, ich członków i to, co udostępniono tym grupom. Tworzenie grup i dołączanie wyłącznie przez funkcje `rytm_create_group`, `rytm_join_group`. Piątki dodaje tylko funkcja `rytm-push` (akcja `kudos`). Ostrzeżenie „SECURITY DEFINER executable by authenticated” dla `rytm_my_groups`, `rytm_create_group`, `rytm_join_group` jest oczekiwane: działają tylko na koncie wywołującego.
 - `rytm_push_log`, `rytm_config`: bez zasad, czyli dostęp wyłącznie z serwera (to celowe, ostrzeżenie „RLS enabled no policy” jest oczekiwane).
 
 ## Sprawdzanie zmian
@@ -36,10 +39,11 @@
   python3 -m http.server 8765 &   # w katalogu repo
   node tests/auth.test.js         # logowanie, ekran powitalny, zapis, drugie urządzenie, wylogowanie
   node tests/push.test.js         # przypomnienia i włączanie powiadomień
+  node tests/friends.test.js      # katalog, grupa, link z zaproszeniem, ranking, piątka, wyzwanie (dwie osoby)
   ```
   Oba powinny kończyć się `errors []`. Po zmianach w interfejsie zrób też zrzut ekranu w szerokości telefonu (390 px) w jasnym i ciemnym motywie.
 - Prawdziwych powiadomień i logowania nie da się sprawdzić z kontenera. Poproś użytkownika o test („Wyślij próbne” w Ustawieniach) i sprawdź logi funkcji przez konektor.
 
 ## Pomysły na później
-- Znajomi: osobne konta, ewentualnie porównywanie serii albo wspólne wyzwania (do przemyślenia z użytkownikiem).
+- Dane ze Zdrowia na iPhonie (sen, kroki) przez Skróty iOS: użytkownik na razie odpuścił.
 - Sen jako godziny zaśnięcia i pobudki (użytkownik na razie odpuścił).

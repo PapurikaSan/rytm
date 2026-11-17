@@ -163,7 +163,7 @@ th:not(:first-child),td:not(:first-child){text-align:right}
 .tscroll{overflow-x:auto}
 .nav{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);z-index:5}
 .nav div{max-width:640px;margin:0 auto;display:flex;padding-left:max(4px,env(safe-area-inset-left,0px));padding-right:max(4px,env(safe-area-inset-right,0px))}
-.nav button{flex:1;min-width:0;height:56px;font-size:12px;font-weight:600;color:var(--muted);position:relative}
+.nav button{flex:1;min-width:0;height:56px;font-size:11.5px;font-weight:600;color:var(--muted);position:relative}
 .nav button.on{color:var(--accent)}
 .nav button.on::before{content:"";position:absolute;top:0;left:28%;right:28%;height:3px;border-radius:0 0 3px 3px;background:var(--accent)}
 .scrim{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:20}
@@ -295,6 +295,17 @@ input,select,textarea{font-size:16px}
 .rtime{width:auto;flex:none;height:38px;padding:0 8px}
 .rdays{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;align-items:center}
 .rdays .pill{padding:4px 9px;font-size:12px}
+.actbox{margin-top:8px;font-size:13px}
+.catlist{margin-top:4px}
+.invite{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:12px;background:var(--bg);font-size:13.5px}
+.invite b{font-family:var(--font-display);letter-spacing:.08em;font-size:16px}
+.rk{display:grid;grid-template-columns:22px minmax(0,1fr) auto auto;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.rk.me .rkm b{color:var(--accent)}
+.rkn{font:700 15px var(--font-display);color:var(--muted);text-align:center}
+.rkm small{display:block;color:var(--muted);font-size:12px}
+.rkv{font:700 18px var(--font-display);font-variant-numeric:tabular-nums;text-align:right}
+.rkv small{font:500 11px var(--font-body);color:var(--muted)}
+.rkk{height:34px;padding:0 10px;font-size:12.5px;min-width:72px}
 </style>
 </head>
 <body>
@@ -353,7 +364,7 @@ function seed(){
     {id:'mom',name:'Rozmowy z mamą',cat:'Rodzina',type:'contact',kind:'call',period:'week',target:null},
     {id:'home',name:'Wizyta w domu rodzinnym',cat:'Rodzina',type:'do',period:'month',target:null,variants:[]}
   ];
-  {const PR={gym:'main',sleep:'main',read:'main',climb:'extra',bike:'extra',weight:'extra'};goals.forEach(g=>{g.prio=PR[g.id]||'imp'})}
+  {const PR={gym:'main',sleep:'main',read:'main',climb:'extra',bike:'extra',weight:'extra'};const AM={gym:'gym',climb:'climb',bike:'bike',sleep:'sleep',kcal:'kcal',weight:'weight',eat:'eat',out:'out',smoke:'smoke',alc:'alc',read:'read',learn:'learn',meet:'social',mom:'family',home:'family'};goals.forEach(g=>{g.prio=PR[g.id]||'imp';g.act=AM[g.id]})}
   const people=['Kasia Nowak','Dominik Wójcik','Ola Kowalska','Marcin Zieliński'];
   const r=rng(7),log={},off={},t=todayS();
   const pick=a=>a[Math.floor(r()*a.length)];
@@ -395,7 +406,7 @@ function fixState(o){
   if(typeof o.settings.streak!=='number')o.settings.streak=DEF_SET.streak;
   o.settings.len=o.settings.len||JSON.parse(JSON.stringify(DEF_SET.len));
   o.people=o.people||[];o.notes=o.notes||{};o.reviews=o.reviews||{};o.mood=o.mood||{};o.lt=o.lt||[];o.log=o.log||{};o.off=o.off||{};
-  o.goals.forEach(g=>{if((g.type==='do'||g.type==='limit')&&!Array.isArray(g.variants))g.variants=[];if(g.type==='limit'&&!g.w)g.w={};if(!g.prio)g.prio='imp'});
+  o.goals.forEach(g=>{if((g.type==='do'||g.type==='limit')&&!Array.isArray(g.variants))g.variants=[];if(g.type==='limit'&&!g.w)g.w={};if(!g.prio)g.prio='imp';if(!Array.isArray(g.groups))g.groups=[];if(g.act===undefined){const m=matchAct(g.name);if(m[0]&&m[0].s===100&&(!m[1]||m[1].s<100))g.act=m[0].c.k}});
   if(typeof o.settings.mainReq!=='boolean')o.settings.mainReq=true;if(typeof o.settings.mainSoft!=='boolean')o.settings.mainSoft=false;
   if(!Array.isArray(o.settings.reminders))o.settings.reminders=[{id:'r1',kind:'missing',time:'21:00',days:[0,1,2,3,4,5,6],on:true},{id:'r2',kind:'review',time:'20:00',days:[6],on:true}];
   try{o.settings.tz=Intl.DateTimeFormat().resolvedOptions().timeZone||'Europe/Warsaw'}catch(e){}
@@ -416,7 +427,59 @@ const isCheck=g=>g.type==='do'||g.type==='limit';
 const hasTarget=g=>g.target!=null&&g.target>0;
 const isMeasure=g=>g.type==='measure';
 const MOODS=['Bardzo źle','Słabo','OK','Dobrze','Świetnie'];
+/* Katalog aktywności: wspólne nazwy, dzięki którym cele różnych osób da się porównać. share=1: można udostępnić znajomym. */
+const CAT=[
+ {k:'gym',n:'Siłownia',g:'Ruch',share:1,d:['do','week',3],syn:['silownia','silka','gym','trening silowy','trening na silowni','cwiczenia silowe','ciezary','workout','fitness']},
+ {k:'run',n:'Bieganie',g:'Ruch',share:1,d:['do','week',3],syn:['bieganie','bieg','jogging','trening biegowy','running']},
+ {k:'climb',n:'Wspinaczka',g:'Ruch',share:1,d:['do','week',2],syn:['wspinaczka','scianka','scianka wspinaczkowa','bouldering','boulder','wspin','climbing']},
+ {k:'bike',n:'Rower',g:'Ruch',share:1,d:['do','week',2],syn:['rower','jazda na rowerze','kolarstwo','rowerek','cycling']},
+ {k:'swim',n:'Pływanie',g:'Ruch',share:1,d:['do','week',2],syn:['plywanie','basen','swimming']},
+ {k:'yoga',n:'Joga',g:'Ruch',share:1,d:['do','week',2],syn:['joga','yoga']},
+ {k:'walk',n:'Spacer',g:'Ruch',share:1,d:['do','day',1],syn:['spacer','spacery','chodzenie','kroki','walking']},
+ {k:'stretch',n:'Rozciąganie',g:'Ruch',share:1,d:['do','week',3],syn:['rozciaganie','stretching','mobilnosc','mobility']},
+ {k:'fight',n:'Sporty walki',g:'Ruch',share:1,d:['do','week',2],syn:['sporty walki','sztuki walki','boks','bjj','mma','karate','judo','kickboxing','muay thai','zapasy']},
+ {k:'team',n:'Sport zespołowy',g:'Ruch',share:1,d:['do','week',1],syn:['sport zespolowy','pilka nozna','nogal','siatkowka','koszykowka','pilka reczna','hokej']},
+ {k:'racket',n:'Tenis, squash, padel',g:'Ruch',share:1,d:['do','week',1],syn:['tenis','squash','padel','badminton','ping pong','tenis stolowy']},
+ {k:'dance',n:'Taniec',g:'Ruch',share:1,d:['do','week',1],syn:['taniec','tance','salsa','bachata','zumba']},
+ {k:'read',n:'Czytanie',g:'Umysł',share:1,d:['qty',20,'stron'],syn:['czytanie','czytanie ksiazki','czytanie ksiazek','ksiazka','ksiazki','lektura','strony']},
+ {k:'learn',n:'Nauka',g:'Umysł',share:1,d:['qty',30,'min'],syn:['nauka','uczenie sie','kurs','studia','nauka do egzaminu']},
+ {k:'lang',n:'Nauka języka',g:'Umysł',share:1,d:['qty',15,'min'],syn:['nauka jezyka','jezyk','angielski','niemiecki','hiszpanski','francuski','wloski','duolingo']},
+ {k:'meditate',n:'Medytacja',g:'Umysł',share:1,d:['qty',10,'min'],syn:['medytacja','mindfulness','oddech','cwiczenia oddechowe']},
+ {k:'journal',n:'Dziennik',g:'Umysł',share:1,d:['do','day',1],syn:['dziennik','journaling','pisanie dziennika','pamietnik']},
+ {k:'sleep',n:'Sen',g:'Prywatne',d:['range',7.5,'h',.5,1.5],syn:['sen','spanie','godziny snu']},
+ {k:'kcal',n:'Kalorie',g:'Prywatne',d:['range',2000,'kcal',150,400],syn:['kalorie','kcal','bilans kaloryczny']},
+ {k:'eat',n:'Zdrowe jedzenie',g:'Prywatne',d:['do','day',1],syn:['zdrowe jedzenie','zdrowe odzywianie','dieta']},
+ {k:'water',n:'Woda',g:'Prywatne',d:['qty',2,'l'],syn:['woda','picie wody','nawodnienie']},
+ {k:'out',n:'Jedzenie na mieście',g:'Prywatne',d:['limit',2],syn:['jedzenie na miescie','fast food','jedzenie poza domem','restauracja','zamawianie jedzenia']},
+ {k:'sweets',n:'Słodycze',g:'Prywatne',d:['limit',2],syn:['slodycze','cukier','slodkie']},
+ {k:'alc',n:'Alkohol',g:'Prywatne',d:['limit',2],syn:['alkohol','piwo','wino','wodka','picie alkoholu']},
+ {k:'smoke',n:'Palenie',g:'Prywatne',d:['limit',2],syn:['palenie','papierosy','fajki','e papieros','vape']},
+ {k:'weight',n:'Waga',g:'Prywatne',d:['measure'],syn:['waga','wazenie','masa ciala']},
+ {k:'screen',n:'Czas przed ekranem',g:'Prywatne',d:['limit',3],syn:['czas przed ekranem','social media','scrollowanie','media spolecznosciowe']},
+ {k:'social',n:'Spotkania ze znajomymi',g:'Prywatne',d:['contact','meeting'],syn:['spotkania','spotkania ze znajomymi','znajomi']},
+ {k:'family',n:'Rodzina',g:'Prywatne',d:['contact','call'],syn:['rodzina','rozmowy z mama','rozmowa z mama','telefon do mamy','wizyta w domu','wizyta w domu rodzinnym','dom rodzinny']}
+];
+const CAT_BY={};CAT.forEach(c=>{CAT_BY[c.k]=c});
+const catOk=g=>!!(g&&g.act&&CAT_BY[g.act]);
 const nz=s=>s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/ł/g,'l');
+function lev(a,b){if(Math.abs(a.length-b.length)>2)return 9;let p=Array.from({length:b.length+1},(_,j)=>j);for(let i=1;i<=a.length;i++){const c=[i];for(let j=1;j<=b.length;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));p=c}return p[b.length]}
+function matchAct(name){
+  const n=nz(name||'').replace(/[^a-z ]/g,' ').replace(/\b(x|razy|raz|min|minut|dziennie|tygodniowo|w tygodniu)\b/g,' ').replace(/\s+/g,' ').trim();
+  if(n.length<2)return[];
+  const words=n.split(' ').filter(w=>w.length>=4),out=[];
+  CAT.forEach(c=>{
+    let best=0;
+    [c.n].concat(c.syn).forEach(sy=>{
+      const s=nz(sy);
+      if(n===s){best=100;return}
+      if((' '+n+' ').includes(' '+s+' '))best=Math.max(best,s.length>=5?90:80);
+      s.split(' ').forEach(v=>{if(v.length<4)return;words.forEach(w=>{if(w===v)best=Math.max(best,70);else{const d=lev(w,v);if(d<=(v.length>=8?2:1))best=Math.max(best,60-d*5)}})});
+    });
+    if(best)out.push({c,s:best});
+  });
+  out.sort((a,b)=>b.s-a.s);
+  return(out.length&&out[0].s>=90?out.filter(x=>x.s>=out[0].s-20):out).slice(0,3);
+}
 const plOs=n=>n===1?'osoba':(n%10>=2&&n%10<=4&&(n%100<12||n%100>14))?'osoby':'osób';
 function rankPeople(){const t=todayS(),st=peopleStats(addDays(t,-89),t);return S.people.slice().sort((a,b)=>{const x=st[a],y=st[b];return((y?y.n:0)-(x?x.n:0))||(y?y.last:'').localeCompare(x?x.last:'')||a.localeCompare(b,'pl')})}
 function pickMatches(q,excl){const r=rankPeople().filter(p=>!excl.includes(p)),qq=q.trim();if(!qq)return{list:r.slice(0,6),more:Math.max(0,r.length-6),top:true};const m=r.filter(p=>nz(p).includes(nz(qq)));return{list:m.slice(0,8),more:Math.max(0,m.length-8)}}
@@ -1142,7 +1205,7 @@ function viewCharts(){
 }
 
 /* ---------- widok: Cele ---------- */
-function goalDesc(g){const r=goalRuns(g),pl=scorable(g)?PRL[g.prio||'imp']+' · ':'';return pl+goalDesc0(g)+(r&&r.best>=2?' · rekord serii: '+r.best+' '+r.ub:'')}
+function goalDesc(g){const r=goalRuns(g),pl=scorable(g)?PRL[g.prio||'imp']+' · ':'',gn=(g.groups||[]).length;return pl+(catOk(g)?esc(CAT_BY[g.act].n)+' · ':'')+goalDesc0(g)+(gn?' · widoczny dla '+gn+' '+(gn===1?'grupy':'grup'):'')+(r&&r.best>=2?' · rekord serii: '+r.best+' '+r.ub:'')}
 function goalDesc0(g){
   if(isMeasure(g))return'pomiar '+PER[g.period]+(g.target!=null?' · cel '+fmt(g.target)+' '+esc(g.unit):'');
   if(g.type==='range')return'wartość: '+fmt(g.target)+' '+esc(g.unit)+' ±'+fmt(g.ok);
@@ -1164,6 +1227,25 @@ function viewGoals(){
 }
 
 /* ---------- widok: Ustawienia ---------- */
+function actBox(g){
+  const cur=catOk(g)?CAT_BY[g.act]:null;let h='<div class="actbox">';
+  if(cur)return h+'<div class="gs">Aktywność z katalogu: <b style="color:var(--fg)">'+esc(cur.n)+'</b>'+(cur.share?'':' (prywatna)')+' · <button class="link" data-act="gact" data-k="">zmień</button></div></div>';
+  if(g.act==='none')return h+'<div class="gs">Własna aktywność, bez porównań ze znajomymi · <button class="link" data-act="gact" data-k="">wybierz z katalogu</button></div></div>';
+  const m=matchAct(g.name);
+  if(m.length)h+='<div class="gs">'+(m[0].s>=90&&(!m[1]||m[1].s<m[0].s)?'To wygląda na:':'Czy chodzi o:')+'</div><div class="chips" style="margin-top:4px">'+m.map(x=>'<button class="pill" data-act="gact" data-k="'+x.c.k+'">'+esc(x.c.n)+'</button>').join('')+'<button class="pill" data-act="gact" data-k="none">Inna aktywność</button></div>';
+  else if(g.name.trim().length>=3)h+='<div class="gs">Nie rozpoznaję tej aktywności. Wybierz z listy albo <button class="link" data-act="gact" data-k="none">zostaw jako własną</button>.</div>';
+  h+=ui.sheet&&ui.sheet.catOpen?'<div class="catlist">'+['Ruch','Umysł','Prywatne'].map(gr=>'<div class="gs" style="margin:8px 0 4px">'+gr+'</div><div class="chips">'+CAT.filter(c=>c.g===gr).map(c=>'<button class="pill" data-act="gact" data-k="'+c.k+'">'+esc(c.n)+'</button>').join('')+'</div>').join('')+'</div>':'<button class="link" style="margin-top:6px" data-act="gactlist">Wybierz z listy aktywności</button>';
+  return h+'</div>';
+}
+function shareBox(g){
+  let h='<span class="fl">Widoczne dla grup znajomych</span>';
+  const c=catOk(g)?CAT_BY[g.act]:null;
+  if(!c)return h+'<p class="gs" style="margin:0">Żeby udostępnić cel, wybierz wyżej aktywność z katalogu. Dzięki temu porównasz się z osobami, które nazwały ją inaczej.</p>';
+  if(!c.share)return h+'<p class="gs" style="margin:0">Ta aktywność jest prywatna i nie da się jej udostępnić.</p>';
+  const gr=Social.groups();
+  if(!gr.length)return h+'<p class="gs" style="margin:0">Nie należysz jeszcze do żadnej grupy. Utworzysz ją albo dołączysz w zakładce Znajomi.</p>';
+  return h+'<p class="gs" style="margin:0 0 6px">Znajomi zobaczą tylko podsumowanie: dni z aktywnością, Twój cel i zaliczone tygodnie. Bez szczegółów i notatek.</p><div class="chips">'+gr.map(x=>'<button class="pill'+((g.groups||[]).includes(x.id)?' on':'')+'" data-act="gshare" data-id="'+x.id+'" aria-pressed="'+(g.groups||[]).includes(x.id)+'">'+esc(x.name)+'</button>').join('')+'</div>';
+}
 function remindersCard(){
   const R=S.settings.reminders,KL={missing:['Uzupełnij dzień','Przychodzi tylko wtedy, gdy czegoś brakuje, i wymienia czego.'],review:['Podsumuj tydzień','Tylko jeśli ten tydzień nie ma jeszcze podsumowania.'],custom:['Własne','']};
   let h='<div class="card"><h3>Przypomnienia</h3><p class="sub">Przychodzą nawet przy zamkniętej aplikacji. Każde urządzenie włączasz osobno, a godziny poniżej są wspólne dla wszystkich.</p><div id="pushbox" class="pushbox">'+Push.boxHtml()+'</div>';
@@ -1197,6 +1279,7 @@ function sheetHtml(){
     h+='<div class="actions"><button class="btn" data-act="close">Anuluj</button><button class="btn main" data-act="savec">Zapisz</button></div>';
     return'<div class="scrim" data-act="close"></div><div class="sheet" role="dialog" aria-modal="true">'+h+'</div>';
   }
+  if(s.kind==='challenge')return Social.chSheet();
   if(s.kind==='lt'){
     const x=s.x,opts=ltOpts(x.kind);
     let h='<h2>'+(s.isNew?'Nowy cel długoterminowy':'Zmień cel długoterminowy')+'</h2>';
@@ -1217,7 +1300,7 @@ function sheetHtml(){
   }
   const g=s.g,ex=cats();
   let h='<h2>'+(s.isNew?'Nowy cel':'Zmień cel')+'</h2>';
-  h+='<label class="fl" for="gname">1. Co chcesz śledzić?</label><input class="inp" id="gname" data-inp="name" value="'+esc(g.name)+'" placeholder="np. Siłownia, Czytanie, Sen">';
+  h+='<label class="fl" for="gname">1. Co chcesz śledzić?</label><input class="inp" id="gname" data-inp="name" value="'+esc(g.name)+'" placeholder="np. Siłownia, Czytanie, Sen"><div id="actbox">'+actBox(g)+'</div>';
   h+='<span class="fl">2. W jakiej kategorii?</span><div class="chips">'+ex.map(c=>'<button class="pill'+(g.cat===c?' on':'')+'" data-act="gcat" data-c="'+esc(c)+'">'+esc(c)+'</button>').join('')+'</div><input class="inp" id="gcat" style="margin-top:8px" data-inp="cat" value="'+(ex.includes(g.cat)?'':esc(g.cat))+'" placeholder="albo wpisz nową kategorię">';
   h+='<span class="fl">3. Jaki to rodzaj celu?</span>'+[
     ['do','Chcę to robić','Zaznaczasz dni, w które to zrobiłeś. Np. siłownia 3 dni w tygodniu, zdrowe jedzenie codziennie.'],
@@ -1242,6 +1325,7 @@ function sheetHtml(){
   if(isMeasure(g))h+='<div class="row2">'+perSel(['day','week','month'])+'<div><label class="fl" style="margin-top:0" for="f-unit"><small>Jednostka</small></label><input class="inp" id="f-unit" data-inp="unit" value="'+esc(g.unit||'')+'" placeholder="kg, cm"></div></div>'+(g.target==null?'':'<div class="row2" style="margin-top:8px">'+tin('Cel, np. docelowa waga','target',g.target)+'</div>')+'<div class="chips" style="margin-top:8px"><button class="pill'+(g.target==null?' on':'')+'" data-act="gnotarget">Bez celu</button></div>';
   if(isCheck(g))h+='<label class="fl" for="f-var">5. Rodzaje <small>(opcjonalnie, jeden w linii). Po zaznaczeniu dnia rozwinie się wybór.</small></label><textarea class="inp" id="f-var" data-inp="variants" data-chg="gvar" placeholder="'+(g.type==='limit'?'np. Małe (1–2 piwa)':'np. Full body\nUpper body')+'">'+esc((g.variants||[]).join('\n'))+'</textarea>';
   if(g.type==='limit'&&g.variants&&g.variants.length){g.w=g.w||{};h+='<span class="fl">Jak liczyć poziomy do limitu?</span>'+g.variants.map((v,i)=>'<div class="srow"><span style="flex:1;font-size:13px;min-width:0">'+esc(v)+'</span><select id="gw-'+i+'" data-chg="gw" data-i="'+i+'" style="width:auto;margin:0">'+[1,2,3].map(n=>'<option value="'+n+'"'+((g.w[v]||1)===n?' selected':'')+'>jak '+n+' '+dni(n)+'</option>').join('')+'</select></div>').join('')}
+  h+=shareBox(g);
   h+='<span class="fl">Priorytet</span>'+(scorable(g)?[['main','Główny','Liczy się potrójnie. Na takich celach budujesz serię.'],['imp','Ważny','Liczy się normalnie.'],['extra','Dodatkowy','Widzisz go i jego statystyki, ale nie wpływa na wynik dnia ani na serię.']].map(o=>'<button class="opt'+((g.prio||'imp')===o[0]?' on':'')+'" data-act="gprio" data-p="'+o[0]+'"><b>'+o[1]+'</b><span>'+o[2]+'</span></button>').join(''):'<p class="gs" style="margin:0">Cel bez minimum nie wlicza się do wyniku dnia ani serii, więc nie ma priorytetu.</p>');
   h+='<div class="summary" id="sum">'+esc(summary(g))+'</div>';
   const orig=s.isNew?null:S.goals.find(x=>x.id===g.id);
@@ -1257,15 +1341,15 @@ function renderSheet(){
 const GEAR='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
 function render(){
   if(!S)return;
-  const tabs=[['today','Dziś'],['week','Tydzień'],['month','Miesiąc'],['charts','Wykresy'],['goals','Cele']];
-  const body={today:viewToday,week:viewWeek,month:viewMonth,charts:viewCharts,goals:viewGoals,settings:viewSettings}[ui.tab]();
+  const tabs=[['today','Dziś'],['week','Tydzień'],['month','Miesiąc'],['charts','Wykresy'],['friends','Znajomi'],['goals','Cele']];
+  const body={today:viewToday,week:viewWeek,month:viewMonth,charts:viewCharts,goals:viewGoals,settings:viewSettings,friends:viewFriends}[ui.tab]();
   document.getElementById('app').innerHTML='<div class="top"><div class="brand">Rytm'+Sync.badge()+'</div><button class="iconbtn'+(ui.tab==='settings'?' on':'')+'" data-act="tab" data-t="settings">'+GEAR+'Ustawienia</button></div>'+body+'<nav class="nav" aria-label="Widoki"><div>'+tabs.map(t=>'<button class="'+(ui.tab===t[0]?'on':'')+'" data-act="tab" data-t="'+t[0]+'">'+t[1]+'</button>').join('')+'</div></nav>';
   renderSheet();
 }
 
 /* ---------- zdarzenia ---------- */
 function openGoal(id){
-  const g=id?JSON.parse(JSON.stringify(S.goals.find(x=>x.id===id))):{id:'g'+Date.now(),name:'',cat:cats()[0]||'',type:'do',period:'week',target:3,variants:[],prio:'imp'};
+  const g=id?JSON.parse(JSON.stringify(S.goals.find(x=>x.id===id))):{id:'g'+Date.now(),name:'',cat:cats()[0]||'',type:'do',period:'week',target:3,variants:[],prio:'imp',groups:[]};
   ui.sheet={kind:'goal',g,isNew:!id,del:false};renderSheet();
 }
 function defaults(g,type){
@@ -1340,6 +1424,13 @@ function act(a,ds){
       else{if(arr.length>=3){toast('Maksymalnie 3 naraz. Przy większej liczbie kolory zaczynają się mylić.');break}const used=arr.map(x=>x.slot);arr.push({k,slot:[1,2,3].find(n=>!used.includes(n))})}
       render();break}
     case'serclr':ui.ser[ds.c]=[];render();break;
+    case'gact':{const g=ui.sheet.g,k=ds.k;g.act=k===''?undefined:k;ui.sheet.catOpen=false;
+      if(k&&k!=='none'&&CAT_BY[k]){const c=CAT_BY[k];if(!g.name.trim())g.name=c.n;
+        if(ui.sheet.isNew&&!ui.sheet.typed){const d=c.d;defaults(g,d[0]);if(d[0]==='do'){g.period=d[1];g.target=d[1]==='day'?1:d[2]}if(d[0]==='qty'){g.target=d[1];g.unit=d[2]}if(d[0]==='range'){g.target=d[1];g.unit=d[2];g.ok=d[3];g.warn=d[4]}if(d[0]==='limit')g.target=d[1];if(d[0]==='contact'){g.kind=d[1];g.target=null}if(d[0]==='measure'){g.unit='kg'}}
+        if(!c.share)g.groups=[]}
+      renderSheet();break}
+    case'gactlist':ui.sheet.catOpen=true;renderSheet();break;
+    case'gshare':{const g=ui.sheet.g,id=ds.id;g.groups=g.groups||[];if(g.groups.includes(id))g.groups=g.groups.filter(x=>x!==id);else g.groups.push(id);renderSheet();break}
     case'gprio':ui.sheet.g.prio=ds.p;renderSheet();break;
     case'ssoft':S.settings.mainSoft=!S.settings.mainSoft;save();render();break;
     case'smain':S.settings.mainReq=!S.settings.mainReq;save();render();break;
@@ -1351,7 +1442,7 @@ function act(a,ds){
     case'newgoal':openGoal(null);break;
     case'editgoal':openGoal(ds.g);break;
     case'gcat':ui.sheet.g.cat=ds.c;renderSheet();break;
-    case'gtype':defaults(ui.sheet.g,ds.t);renderSheet();break;
+    case'gtype':ui.sheet.typed=true;defaults(ui.sheet.g,ds.t);renderSheet();break;
     case'gkind':ui.sheet.g.kind=ds.k;renderSheet();break;
     case'gnotarget':{const g=ui.sheet.g;g.target=g.target==null?(g.type==='do'?3:g.type==='measure'?70:2):null;renderSheet();break}
     case'askdel':ui.sheet.del=true;renderSheet();break;
@@ -1425,6 +1516,8 @@ document.addEventListener('input',e=>{
   if(ui.sheet.kind==='lt'){const x=ui.sheet.x;if(f==='target'){const n=parseNum(el.value);x.target=n==null?0:n}else x[f]=el.value;const sv=document.getElementById('ltsave');if(sv)sv.disabled=!validLt(x);return}
   const g=ui.sheet.g;
   if(f==='name'||f==='cat'||f==='unit')g[f]=el.value;
+  if(f==='name'&&!catOk(g)&&g.act!=='none'){const ab=document.getElementById('actbox');if(ab)ab.innerHTML=actBox(g)}
+  if(f==='target'||f==='unit')ui.sheet.typed=true;
   else if(f==='variants')g.variants=el.value.split('\n').map(x=>x.trim()).filter(Boolean);
   else{const n=parseNum(el.value);g[f]=n==null?0:n}
   const sum=document.getElementById('sum');if(sum)sum.textContent=summary(g);
@@ -1464,7 +1557,7 @@ const Sync=(()=>{
     try{
       const {error}=await sb.from('rytm_state').upsert({user_id:user.id,data:S,updated_at:at});
       if(error)throw error;
-      pending=false;remoteAt=at;cacheWrite();setStatus('Zapisano','ok');
+      pending=false;remoteAt=at;cacheWrite();setStatus('Zapisano','ok');Social.queueShares();
     }catch(e){
       pending=true;cacheWrite();setStatus('Nie zapisano, ponowię','bad');
       clearTimeout(timer);timer=setTimeout(push,15000);
@@ -1474,7 +1567,8 @@ const Sync=(()=>{
   function save(){if(!S||!user)return;pending=true;cacheWrite();setStatus('Zapisywanie…');clearTimeout(timer);timer=setTimeout(push,800)}
   async function pull(){const {data,error}=await sb.from('rytm_state').select('data,updated_at').eq('user_id',user.id).maybeSingle();if(error)throw error;return data}
   async function afterLogin(){
-    if(location.hash==='#week'){ui.tab='week';history.replaceState(null,'',location.pathname+location.search)}
+    if(location.hash==='#week'||location.hash==='#friends'){ui.tab=location.hash.slice(1);history.replaceState(null,'',location.pathname+location.search)}
+    if(Social.pendingJoin)ui.tab='friends';
     const c=cacheRead();
     if(c&&c.data){S=fixState(c.data);remoteAt=c.at;pending=!!c.pending;render()}
     else page('<p class="sub" style="text-align:center;margin-top:40px">Wczytuję Twoje dane…</p>');
@@ -1484,6 +1578,7 @@ const Sync=(()=>{
       if(S&&pending){if(T(r.updated_at)>T(remoteAt))toast('Na innym urządzeniu były nowsze zmiany. Zostawiam te z tego urządzenia.');await push()}
       else if(!S||T(r.updated_at)!==T(remoteAt)){S=fixState(r.data);remoteAt=r.updated_at;cacheWrite();ui.tab=ui.tab==='welcome'?'today':ui.tab;render()}
       setStatus('Zapisano','ok');
+      Social.load();
     }catch(e){
       if(!S)page('<div class="card"><p>'+esc(errText(e))+'</p><button class="btn main" data-auth="retry">Spróbuj ponownie</button></div>');
       else setStatus('Offline','warn');
@@ -1502,7 +1597,7 @@ const Sync=(()=>{
       '<button class="opt" data-act="start" data-k="zero"><b>Od zera</b><span>Pusta aplikacja. Sam dodajesz kategorie i cele.</span></button>'+
       '<button class="opt" data-act="start" data-k="sample"><b>Najpierw rozejrzę się na przykładowych danych</b><span>110 wymyślonych dni. Potem jednym kliknięciem wyczyścisz wpisy i zostaną same cele.</span></button></div>');
   }
-  function start(k){S=fixState(k==='sample'?seed():k==='template'?templateState():emptyState());ui.tab=k==='zero'?'goals':'today';save();render()}
+  function start(k){S=fixState(k==='sample'?seed():k==='template'?templateState():emptyState());ui.tab=Social.pendingJoin?'friends':k==='zero'?'goals':'today';save();render();Social.load()}
   function authPage(){
     const m=authMode,f=(id,type,lab,ac,ph)=>'<label class="fl" for="'+id+'">'+lab+'</label><input class="inp" id="'+id+'" type="'+type+'" autocomplete="'+ac+'"'+(ph?' placeholder="'+ph+'"':'')+(type==='email'?' value="'+esc(lastEmail)+'"':'')+' required>';
     let h='<div class="authwrap"><p class="sub" style="margin-bottom:16px">Twoje cele i nawyki w jednym miejscu, na telefonie i laptopie.</p><form class="card" id="authform" novalidate>';
@@ -1553,7 +1648,7 @@ const Sync=(()=>{
     try{if(pending)await push()}catch(e){}
     try{localStorage.removeItem(ck())}catch(e){}
     try{await sb.auth.signOut()}catch(e){}
-    user=null;S=null;remoteAt=null;pending=false;authMsg={t:'Wylogowano.',ok:true};renderAuth('login');
+    Social.reset();user=null;S=null;remoteAt=null;pending=false;authMsg={t:'Wylogowano.',ok:true};renderAuth('login');
   }
   document.addEventListener('submit',e=>{if(e.target.id==='authform'){e.preventDefault();submit()}});
   document.addEventListener('click',e=>{
@@ -1566,6 +1661,151 @@ const Sync=(()=>{
   });
   return{boot,save,start,client:()=>sb,uid:()=>user&&user.id,badge:()=>'<span class="sync '+status.c+'" id="sync">'+esc(status.t)+'</span>',email:()=>user?user.email:''};
 })();
+
+/* ---------- znajomi: grupy, udostępnianie, ranking, wyzwania, piątki ---------- */
+const Social=(()=>{
+  let D=fresh(),lastSig='',timer=null,pendingJoin=null,busy=false;
+  function fresh(){return{loaded:false,loading:false,err:null,profile:null,groups:[],members:[],profiles:{},shares:[],challenges:[],kudos:[]}}
+  function readHash(){const m=/^#join-([A-Za-z0-9]{4,10})$/.exec(location.hash);if(m){pendingJoin=m[1].toUpperCase();history.replaceState(null,'',location.pathname+location.search);return true}return false}
+  readHash();
+  window.addEventListener('hashchange',()=>{if(readHash()&&S){ui.tab='friends';render()}});
+  const sb=()=>Sync.client(),me=()=>Sync.uid();
+  function errText(e){
+    const m=String((e&&e.message)||e||'');
+    if(/rytm_(profile|group|member|share|challenge|kudos)|PGRST205|42P01/.test(m))return'Baza nie ma jeszcze tabel dla znajomych.';
+    if(/Failed to fetch|NetworkError/i.test(m))return'Brak połączenia z internetem.';
+    return m||'Coś poszło nie tak.';
+  }
+  async function load(){
+    if(!me()||D.loading)return;
+    D.loading=true;
+    try{
+      const q=[sb().from('rytm_profile').select('user_id,name').eq('user_id',me()).maybeSingle(),sb().from('rytm_group').select('id,name,code,created_by'),sb().from('rytm_member').select('group_id,user_id,role'),sb().from('rytm_share').select('user_id,goal_id,act,name,groups,data,updated_at'),sb().from('rytm_challenge').select('id,group_id,name,act,target,start_day,end_day,created_by').order('start_day',{ascending:false}),sb().from('rytm_kudos').select('from_user,to_user,act,day,created_at').order('created_at',{ascending:false}).limit(60)];
+      const [p,g,m,sh,ch,kd]=await Promise.all(q);
+      for(const r of [p,g,m,sh,ch,kd])if(r.error)throw r.error;
+      D.profile=p.data;D.groups=g.data||[];D.members=m.data||[];D.shares=sh.data||[];D.challenges=ch.data||[];D.kudos=kd.data||[];
+      const ids=[...new Set(D.members.map(x=>x.user_id))];D.profiles={};
+      if(ids.length){const pr=await sb().from('rytm_profile').select('user_id,name').in('user_id',ids);if(pr.error)throw pr.error;(pr.data||[]).forEach(x=>{D.profiles[x.user_id]=x.name})}
+      D.loaded=true;D.err=null;
+    }catch(e){D.err=e}
+    D.loading=false;
+    if(ui.tab==='friends')render();
+    syncShares();
+  }
+  function doneDay(g,d){const r=val(g.id,d);if(g.type==='qty')return r!=null&&r>=g.target;if(g.type==='range')return r!=null&&evalRange(g,r).status==='ok';return num(r)>0}
+  function targetLabel(g){if(g.type==='qty')return'min. '+fmt(g.target)+' '+(g.unit||'')+' dziennie';if(g.type==='do'){if(g.period==='day')return'codziennie';if(!hasTarget(g))return'bez celu';return g.target+'×/'+(g.period==='week'?'tydz.':'mies.')}return''}
+  function shareData(g){
+    const t=todayS(),days=range(addDays(t,-119),t).filter(d=>!pausedAt(g,d)&&doneDay(g,d)),weeks={};
+    for(let i=25;i>=0;i--){const w=addDays(wstart(t),-7*i),c=goalCompletion(g,w,addDays(w,6));if(c!=null)weeks[w]=c>=1?1:0}
+    return{days,weeks,target:targetLabel(g)};
+  }
+  function queueShares(){clearTimeout(timer);timer=setTimeout(syncShares,1500)}
+  async function syncShares(){
+    if(!D.loaded||!me()||!S)return;
+    const mine=D.groups.map(x=>x.id);
+    const rows=S.goals.filter(g=>catOk(g)&&CAT_BY[g.act].share&&!isPaused(g)).map(g=>({user_id:me(),goal_id:g.id,act:g.act,name:g.name,groups:(g.groups||[]).filter(id=>mine.includes(id)),data:shareData(g)})).filter(r=>r.groups.length);
+    const sig=JSON.stringify(rows);if(sig===lastSig)return;
+    try{
+      const now=new Date().toISOString();rows.forEach(r=>{r.updated_at=now});
+      if(rows.length){const r=await sb().from('rytm_share').upsert(rows,{onConflict:'user_id,goal_id'});if(r.error)throw r.error}
+      let del=sb().from('rytm_share').delete().eq('user_id',me());
+      if(rows.length)del=del.not('goal_id','in','('+rows.map(r=>'"'+r.goal_id.replace(/"/g,'')+'"').join(',')+')');
+      const d=await del;if(d.error)throw d.error;
+      lastSig=sig;D.shares=D.shares.filter(x=>x.user_id!==me()).concat(rows);
+      if(ui.tab==='friends')render();
+    }catch(e){console.warn('share sync',e)}
+  }
+  const name=uid=>uid===me()?'Ty':(D.profiles[uid]||'Ktoś');
+  function weekStreak(sh){const W=(sh.data&&sh.data.weeks)||{};let w=wstart(todayS()),n=0;if(W[w]===1)n++;w=addDays(w,-7);while(W[w]===1){n++;w=addDays(w,-7)}return n}
+  const daysIn=(sh,a,b)=>((sh.data&&sh.data.days)||[]).filter(d=>d>=a&&d<=b).length;
+  const sentToday=(to,act)=>D.kudos.some(k=>k.from_user===me()&&k.to_user===to&&k.act===act&&k.day===todayS());
+  function groupShares(gid){const mem=D.members.filter(m=>m.group_id===gid).map(m=>m.user_id);return D.shares.filter(x=>(x.groups||[]).includes(gid)&&mem.includes(x.user_id))}
+  function rankingCard(g){
+    const sh=groupShares(g.id),acts=[...new Set(sh.map(x=>x.act))].filter(a=>CAT_BY[a]);
+    if(!acts.length)return'<div class="card"><h3>Ranking</h3><p class="sub" style="margin:0">Nikt jeszcze nic nie udostępnił tej grupie. Udostępnij swój cel: <b>Cele → wybierz cel → Widoczne dla grup znajomych</b>.</p></div>';
+    const act=acts.includes(ui.grpAct)?ui.grpAct:acts[0],mt=ui.grpMetric||'streak',t=todayS(),ws=wstart(t),ms=mstart(t);
+    const rows=D.members.filter(m=>m.group_id===g.id).map(m=>{const x=sh.find(y=>y.user_id===m.user_id&&y.act===act);if(!x)return null;
+      const v=mt==='streak'?weekStreak(x):mt==='week'?daysIn(x,ws,t):daysIn(x,ms,t);return{uid:m.user_id,x,v}}).filter(Boolean).sort((a,b)=>b.v-a.v||name(a.uid).localeCompare(name(b.uid),'pl'));
+    const missing=D.members.filter(m=>m.group_id===g.id).length-rows.length;
+    const unit=v=>mt==='streak'?(v===1?'tydzień':(v%10>=2&&v%10<=4&&(v%100<12||v%100>14))?'tygodnie':'tygodni'):(v===1?'dzień':'dni');
+    let h='<div class="card"><h3>Ranking</h3><div class="chips" style="margin:8px 0 10px">'+acts.map(a=>'<button class="pill'+(a===act?' on':'')+'" data-soc="act" data-a="'+a+'">'+esc(CAT_BY[a].n)+'</button>').join('')+'</div>';
+    h+='<div class="seg">'+[['streak','Seria tygodni'],['week','Ten tydzień'],['month','Ten miesiąc']].map(o=>'<button class="'+(mt===o[0]?'on':'')+'" data-soc="metric" data-m="'+o[0]+'">'+o[1]+'</button>').join('')+'</div>';
+    h+='<p class="sub">'+(mt==='streak'?'Tygodnie z rzędu z wykonanym własnym celem. Uczciwe przy różnych celach, bo liczy się regularność. Obok widać cel każdej osoby.':'Liczba dni z aktywnością.')+'</p>';
+    let pos=0,prev=null;
+    h+=rows.map((r,i)=>{if(r.v!==prev){pos=i+1;prev=r.v}const stale=r.x.updated_at&&diffDays(String(r.x.updated_at).slice(0,10),t)>=3;
+      return'<div class="rk'+(r.uid===me()?' me':'')+'"><span class="rkn">'+pos+'</span><div class="rkm"><b>'+esc(name(r.uid))+'</b><small>cel: '+esc(r.x.data.target||'?')+(stale?' · dane sprzed '+diffDays(String(r.x.updated_at).slice(0,10),t)+' dni':'')+'</small></div><span class="rkv">'+r.v+' <small>'+unit(r.v)+'</small></span>'+(r.uid===me()?'<span class="rkk"></span>':'<button class="btn rkk" data-soc="kudos" data-to="'+r.uid+'" data-a="'+act+'"'+(sentToday(r.uid,act)?' disabled':'')+'>'+(sentToday(r.uid,act)?'Wysłano':'Piątka')+'</button>')+'</div>'}).join('');
+    if(missing>0)h+='<p class="gs" style="margin:8px 0 0">'+missing+' '+(missing===1?'osoba nie udostępnia':'osoby nie udostępniają')+' tej aktywności.</p>';
+    return h+'</div>';
+  }
+  function challengesCard(g){
+    const list=D.challenges.filter(c=>c.group_id===g.id),sh=groupShares(g.id),t=todayS();
+    let h='<div class="card"><div class="cath" style="margin:0 0 6px"><h3>Wspólne wyzwania</h3><button class="caltog" data-soc="newch" data-g="'+g.id+'">+ Nowe</button></div>';
+    if(!list.length)h+='<p class="sub" style="margin:0">Np. „W grudniu razem 40 treningów”. Liczą się cele udostępnione tej grupie.</p>';
+    h+=list.map(c=>{const e=c.end_day<t?c.end_day:t,per=D.members.filter(m=>m.group_id===g.id).map(m=>{const x=sh.find(y=>y.user_id===m.user_id&&y.act===c.act);return{uid:m.user_id,n:x&&c.start_day<=t?daysIn(x,c.start_day,e):0}}).filter(x=>x.n>0).sort((a,b)=>b.n-a.n);
+      const tot=per.reduce((a,b)=>a+b.n,0),pr=Math.min(1,tot/c.target),left=diffDays(t,c.end_day),total=diffDays(c.start_day,c.end_day)+1,el=c.start_day>t?0:Math.min(total,diffDays(c.start_day,t)+1);
+      const st=tot>=c.target?'<span class="chip ok">Udało się!</span>':c.end_day<t?'<span class="chip bad">Zakończone</span>':c.start_day>t?'<span class="chip">Startuje '+shortDate(c.start_day)+'</span>':(tot>=c.target*el/total?'<span class="chip ok">Zgodnie z planem</span>':'<span class="chip warn">Za planem</span>');
+      return'<div class="lt"><div class="ltt"><b>'+esc(c.name)+'</b>'+(c.created_by===me()?'<button class="link" data-soc="delch" data-id="'+c.id+'">'+(ui.confirm==='ch'+c.id?'Na pewno usuń?':'Usuń')+'</button>':'')+'</div><div class="gs">'+esc((CAT_BY[c.act]||{n:c.act}).n)+' · razem '+tot+' / '+c.target+' dni · '+shortDate(c.start_day)+' – '+shortDate(c.end_day)+(left>=0&&c.start_day<=t?' · zostało '+left+' '+(left===1?'dzień':'dni'):'')+'</div><div class="bar-o ltbar"><div class="bar-i" style="width:'+pr*100+'%"></div>'+(c.start_day<=t&&c.end_day>=t?'<span class="ltmark" style="left:'+(el/total*100)+'%"></span>':'')+'</div>'+st+(per.length?'<div class="gs" style="margin-top:6px">'+per.map(x=>esc(name(x.uid))+' <b style="color:var(--fg)">'+x.n+'</b>').join(' · ')+'</div>':'')+'</div>'}).join('');
+    return h+'</div>';
+  }
+  function view(){
+    let h='<div class="datebar"><div class="d">Znajomi<small>Grupy, porównania i wspólne wyzwania</small></div></div>';
+    if(D.err)return h+'<div class="card"><p>'+esc(errText(D.err))+'</p><button class="btn" data-soc="reload">Spróbuj ponownie</button></div>';
+    if(!D.loaded){if(!D.loading)setTimeout(load,0);return h+'<p class="gs">Wczytuję…</p>'}
+    if(!D.profile||ui.socEditName)return h+'<div class="card"><h3>Jak mają Cię widzieć znajomi?</h3><p class="sub">Wpisz imię albo ksywkę. Zobaczą ją tylko osoby z Twoich grup.</p><input class="inp" id="soc-name" maxlength="40" value="'+esc(D.profile?D.profile.name:'')+'" placeholder="np. Kuba"><div class="actions"><button class="btn main" data-soc="saveprofile">Zapisz</button>'+(D.profile?'<button class="btn" data-soc="cancelname">Anuluj</button>':'')+'</div></div><div class="card"><h3>Jak działa prywatność</h3><p class="sub" style="margin:0">Domyślnie nikt nic nie widzi. Sam wybierasz, który cel udostępnić i której grupie. Znajomi widzą tylko podsumowanie: dni z aktywnością, Twój cel i zaliczone tygodnie. Nastroju, notatek, wagi, używek i relacji nie da się udostępnić.</p></div>';
+    h+='<p class="gs" style="margin:-4px 0 12px">Widzą Cię jako <b style="color:var(--fg)">'+esc(D.profile.name)+'</b> · <button class="link" data-soc="editname">zmień</button></p>';
+    if(pendingJoin)h+='<div class="note"><p><b>Zaproszenie do grupy.</b> Dołączasz kodem <b>'+esc(pendingJoin)+'</b>.</p><div class="actions" style="margin:0"><button class="btn main" data-soc="joinpending">Dołącz</button><button class="btn" data-soc="dropjoin">Nie teraz</button></div></div>';
+    const rec=D.kudos.filter(k=>k.to_user===me()&&diffDays(k.day,todayS())<=7);
+    if(rec.length)h+='<div class="card"><h3>Piątki dla Ciebie</h3>'+rec.slice(0,6).map(k=>'<div class="gs" style="padding:4px 0"><b style="color:var(--fg)">'+esc(D.profiles[k.from_user]||'Znajomy')+'</b> · '+esc((CAT_BY[k.act]||{n:k.act}).n)+' · '+ago(k.day)+'</div>').join('')+'</div>';
+    if(D.groups.length){
+      const g=D.groups.find(x=>x.id===ui.grp)||D.groups[0];ui.grp=g.id;
+      if(D.groups.length>1)h+='<div class="chips" style="margin-bottom:12px">'+D.groups.map(x=>'<button class="pill'+(x.id===g.id?' on':'')+'" data-soc="grp" data-id="'+x.id+'">'+esc(x.name)+'</button>').join('')+'</div>';
+      const mem=D.members.filter(m=>m.group_id===g.id),owner=g.created_by===me();
+      h+='<div class="card"><h3>'+esc(g.name)+'</h3><p class="sub">'+mem.length+' '+plOs(mem.length)+': '+mem.map(m=>esc(name(m.user_id))+(m.role==='owner'?' (założyciel)':'')).join(', ')+'</p><div class="invite"><span>Kod zaproszenia: <b>'+esc(g.code)+'</b></span><button class="btn" data-soc="invite" data-code="'+esc(g.code)+'" data-n="'+esc(g.name)+'">Zaproś</button></div></div>';
+      h+=rankingCard(g)+challengesCard(g);
+      h+='<div class="card"><h3>Co udostępniasz tej grupie</h3>'+(()=>{const mine=S.goals.filter(x=>(x.groups||[]).includes(g.id));return mine.length?'<p class="sub" style="margin:0">'+mine.map(x=>esc(x.name)).join(', ')+'. Zmienisz to w edytorze celu.</p>':'<p class="sub" style="margin:0">Nic. Udostępnisz cel w <b>Cele → wybierz cel → Widoczne dla grup znajomych</b>.</p>'})()+'</div>';
+      h+='<p style="text-align:center;margin:4px 0 16px"><button class="link" style="color:var(--bad)" data-soc="'+(ui.confirm==='leave'+g.id?(owner?'delgroup':'leave'):'askleave')+'" data-id="'+g.id+'">'+(ui.confirm==='leave'+g.id?(owner?'Na pewno usunąć grupę dla wszystkich?':'Na pewno opuścić grupę?'):(owner?'Usuń grupę':'Opuść grupę'))+'</button></p>';
+    }else h+='<div class="card"><h3>Zacznij od grupy</h3><p class="sub" style="margin:0">Utwórz grupę, np. „Ekipa ze ścianki”, i wyślij znajomym kod. Albo dołącz do grupy kodem, który od kogoś dostałeś. Możesz należeć do kilku grup.</p></div>';
+    h+='<div class="card"><h3>Nowa grupa albo dołączenie</h3><label class="fl" for="soc-gname">Utwórz grupę</label><div class="row2"><input class="inp" id="soc-gname" maxlength="60" placeholder="np. Ekipa ze ścianki"><button class="btn" style="flex:none" data-soc="create">Utwórz</button></div><label class="fl" for="soc-code">Dołącz kodem</label><div class="row2"><input class="inp" id="soc-code" maxlength="10" autocomplete="off" autocapitalize="characters" placeholder="np. K7PQ2M"><button class="btn" style="flex:none" data-soc="join">Dołącz</button></div></div>';
+    return h;
+  }
+  async function act(a,ds){
+    if(busy)return;busy=true;
+    try{
+      if(a==='reload'){D=fresh();await load()}
+      if(a==='editname'){ui.socEditName=true;render()}
+      if(a==='cancelname'){ui.socEditName=false;render()}
+      if(a==='saveprofile'){const n=(document.getElementById('soc-name').value||'').trim();if(!n){toast('Wpisz imię albo ksywkę.');return}const r=await sb().from('rytm_profile').upsert({user_id:me(),name:n.slice(0,40)});if(r.error)throw r.error;D.profile={user_id:me(),name:n};D.profiles[me()]=n;ui.socEditName=false;render();toast('Zapisano.')}
+      if(a==='grp'){ui.grp=ds.id;render()}
+      if(a==='act'){ui.grpAct=ds.a;render()}
+      if(a==='metric'){ui.grpMetric=ds.m;render()}
+      if(a==='create'){const n=(document.getElementById('soc-gname').value||'').trim();if(!n){toast('Wpisz nazwę grupy.');return}const r=await sb().rpc('rytm_create_group',{p_name:n});if(r.error)throw r.error;ui.grp=r.data;D.loading=false;await load();toast('Grupa utworzona. Kliknij „Zaproś”, żeby wysłać kod znajomym.')}
+      if(a==='join'||a==='joinpending'){const c=a==='joinpending'?pendingJoin:(document.getElementById('soc-code').value||'').trim().toUpperCase();if(!c){toast('Wpisz kod.');return}const r=await sb().rpc('rytm_join_group',{p_code:c});if(r.error)throw r.error;pendingJoin=null;ui.grp=r.data;await load();toast('Dołączono do grupy. Udostępnij swoje cele w zakładce Cele.')}
+      if(a==='dropjoin'){pendingJoin=null;render()}
+      if(a==='invite'){const link=location.origin+location.pathname+'#join-'+ds.code,txt='Dołącz do mojej grupy „'+ds.n+'” w Rytmie: '+link+' (kod: '+ds.code+')';
+        if(navigator.share){try{await navigator.share({title:'Rytm',text:txt})}catch(e){}}
+        else{try{await navigator.clipboard.writeText(txt);toast('Skopiowano zaproszenie. Wklej je znajomym.')}catch(e){toast('Kod zaproszenia: '+ds.code)}}}
+      if(a==='askleave'){ui.confirm='leave'+ds.id;render()}
+      if(a==='leave'||a==='delgroup'){const r=a==='leave'?await sb().from('rytm_member').delete().eq('group_id',ds.id).eq('user_id',me()):await sb().from('rytm_group').delete().eq('id',ds.id);if(r.error)throw r.error;
+        S.goals.forEach(g=>{g.groups=(g.groups||[]).filter(x=>x!==ds.id)});ui.confirm=null;ui.grp=null;save();await load();toast(a==='leave'?'Opuszczono grupę.':'Usunięto grupę.')}
+      if(a==='kudos'){const r=await sb().functions.invoke('rytm-push',{body:{action:'kudos',to:ds.to,act:ds.a,label:(CAT_BY[ds.a]||{n:ds.a}).n}});if(r.error)throw r.error;
+        D.kudos.unshift({from_user:me(),to_user:ds.to,act:ds.a,day:todayS()});render();toast(r.data&&r.data.already?'Dziś już przybiłeś piątkę za tę aktywność.':'Piątka wysłana!')}
+      if(a==='newch'){const sh=groupShares(ds.g),acts=[...new Set(sh.map(x=>x.act))].filter(k=>CAT_BY[k]),t=todayS();
+        ui.sheet={kind:'challenge',x:{group_id:ds.g,name:'',act:acts.includes(ui.grpAct)?ui.grpAct:(acts[0]||'gym'),target:20,start_day:t,end_day:addDays(t,29)}};renderSheet()}
+      if(a==='savech'){const x=ui.sheet.x;if(!chOk(x))return;const r=await sb().from('rytm_challenge').insert({group_id:x.group_id,name:x.name.trim(),act:x.act,target:x.target,start_day:x.start_day,end_day:x.end_day,created_by:me()});if(r.error)throw r.error;ui.sheet=null;renderSheet();await load();toast('Wyzwanie dodane.')}
+      if(a==='delch'){if(ui.confirm!=='ch'+ds.id){ui.confirm='ch'+ds.id;render();return}const r=await sb().from('rytm_challenge').delete().eq('id',ds.id);if(r.error)throw r.error;ui.confirm=null;await load()}
+    }catch(e){toast(errText(e))}
+    finally{busy=false}
+  }
+  const chOk=x=>x.name.trim()&&x.target>0&&x.start_day&&x.end_day&&x.end_day>=x.start_day&&diffDays(x.start_day,x.end_day)<=92;
+  function chSheet(){
+    const x=ui.sheet.x,acts=CAT.filter(c=>c.share);
+    return'<div class="scrim" data-act="close"></div><div class="sheet" role="dialog" aria-modal="true"><h2>Nowe wyzwanie</h2><label class="fl" for="ch-name">Nazwa</label><input class="inp" id="ch-name" data-chi="name" maxlength="60" value="'+esc(x.name)+'" placeholder="np. Grudzień: razem 40 treningów"><label class="fl" for="ch-act">Aktywność</label><select id="ch-act" data-chi="act" style="margin:0">'+acts.map(c=>'<option value="'+c.k+'"'+(c.k===x.act?' selected':'')+'>'+esc(c.n)+'</option>').join('')+'</select><div class="row2" style="margin-top:12px"><div><label class="fl" style="margin-top:0" for="ch-target"><small>Razem dni z aktywnością</small></label><input class="inp" id="ch-target" inputmode="numeric" data-chi="target" value="'+x.target+'"></div></div><div class="row2" style="margin-top:8px"><div><label class="fl" style="margin-top:0" for="ch-start"><small>Od</small></label><input class="inp" type="date" id="ch-start" data-chi="start_day" value="'+x.start_day+'"></div><div><label class="fl" style="margin-top:0" for="ch-end"><small>Do (maks. 3 miesiące)</small></label><input class="inp" type="date" id="ch-end" data-chi="end_day" value="'+x.end_day+'"></div></div><p class="gs" style="margin:10px 0 0">Do wyzwania liczą się dni z aktywnością wszystkich osób, które udostępniają ją tej grupie.</p><div class="actions"><button class="btn" data-act="close">Anuluj</button><button class="btn main" id="chsave" data-soc="savech"'+(chOk(x)?'':' disabled')+'>Dodaj wyzwanie</button></div></div>';
+  }
+  document.addEventListener('click',e=>{const el=e.target.closest('[data-soc]');if(!el||el.disabled)return;act(el.dataset.soc,el.dataset)});
+  ['input','change'].forEach(ev=>document.addEventListener(ev,e=>{const el=e.target,f=el.dataset&&el.dataset.chi;if(!f||!ui.sheet||ui.sheet.kind!=='challenge')return;const x=ui.sheet.x;x[f]=f==='target'?(parseInt(el.value,10)||0):el.value;const b=document.getElementById('chsave');if(b)b.disabled=!chOk(x)}));
+  return{load,queueShares,view,chSheet,groups:()=>D.loaded?D.groups:[],reset:()=>{D=fresh();lastSig=''},get pendingJoin(){return pendingJoin},data:()=>D};
+})();
+function viewFriends(){return Social.view()}
 
 const Push=(()=>{
   let st='checking',msg=null;

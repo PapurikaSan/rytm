@@ -16,6 +16,11 @@ Aplikacja to jedna strona (`index.html`), hostowana na GitHub Pages. Logowanie i
 - `supabase/functions/rytm-push/index.ts`: funkcja wysyłająca powiadomienia. Wdrożona w Supabase z wyłączonym „Verify JWT”, bo wywołuje ją harmonogram.
 - Klucze do powiadomień (VAPID) funkcja tworzy sama przy pierwszym użyciu i trzyma w tabeli `rytm_config`, dostępnej tylko z serwera.
 
+## Znajomi
+
+- `supabase/sql/03_znajomi.sql`: profile, grupy z kodem zaproszenia, udostępnianie podsumowań celów, wspólne wyzwania i piątki
+- Domyślnie nic nie jest udostępniane. Każdy cel udostępnia się wybranym grupom, a znajomi widzą tylko podsumowanie (dni z aktywnością, cel, zaliczone tygodnie).
+
 ## Baza danych (Supabase)
 
 Tabela z danymi użytkownika (`supabase/sql/01_dane.sql`). Kod do uruchomienia w SQL Editor:
