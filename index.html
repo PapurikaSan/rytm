@@ -429,43 +429,70 @@ const isMeasure=g=>g.type==='measure';
 const MOODS=['Bardzo źle','Słabo','OK','Dobrze','Świetnie'];
 /* Katalog aktywności: wspólne nazwy, dzięki którym cele różnych osób da się porównać. share=1: można udostępnić znajomym. */
 const CAT=[
+ {k:'any',n:'Trening (dowolny)',g:'Ruch',share:1,d:['do','week',3],syn:['trening dowolny','dowolny trening','treningi','sport','aktywnosc fizyczna','ruch']},
  {k:'gym',n:'Siłownia',g:'Ruch',share:1,d:['do','week',3],syn:['silownia','silka','gym','trening silowy','trening na silowni','cwiczenia silowe','ciezary','workout','fitness']},
+ {k:'home',n:'Trening w domu',g:'Ruch',share:1,d:['do','week',3],syn:['trening w domu','cwiczenia w domu','domowy trening','home workout']},
+ {k:'cali',n:'Kalistenika',g:'Ruch',share:1,d:['do','week',3],syn:['kalistenika','calisthenics','street workout','drazek','podciaganie','pompki']},
+ {k:'crossfit',n:'Crossfit',g:'Ruch',share:1,d:['do','week',3],syn:['crossfit','cross fit','wod']},
  {k:'run',n:'Bieganie',g:'Ruch',share:1,d:['do','week',3],syn:['bieganie','bieg','jogging','trening biegowy','running']},
+ {k:'steps',n:'Kroki',g:'Ruch',share:1,d:['qty',8000,'kroków'],syn:['kroki','liczba krokow','krokomierz','steps']},
+ {k:'walk',n:'Spacer',g:'Ruch',share:1,d:['do','day',1],syn:['spacer','spacery','chodzenie','walking']},
+ {k:'mountains',n:'Góry',g:'Ruch',share:1,d:['do','month',2],syn:['gory','trekking','hiking','wedrowka','wedrowki','wycieczka w gory','szlak']},
  {k:'climb',n:'Wspinaczka',g:'Ruch',share:1,d:['do','week',2],syn:['wspinaczka','scianka','scianka wspinaczkowa','bouldering','boulder','wspin','climbing']},
- {k:'bike',n:'Rower',g:'Ruch',share:1,d:['do','week',2],syn:['rower','jazda na rowerze','kolarstwo','rowerek','cycling']},
+ {k:'bike',n:'Rower',g:'Ruch',share:1,d:['do','week',2],syn:['rower','jazda na rowerze','kolarstwo','rowerek','cycling','spinning','rower stacjonarny']},
  {k:'swim',n:'Pływanie',g:'Ruch',share:1,d:['do','week',2],syn:['plywanie','basen','swimming']},
  {k:'yoga',n:'Joga',g:'Ruch',share:1,d:['do','week',2],syn:['joga','yoga']},
- {k:'walk',n:'Spacer',g:'Ruch',share:1,d:['do','day',1],syn:['spacer','spacery','chodzenie','kroki','walking']},
+ {k:'pilates',n:'Pilates',g:'Ruch',share:1,d:['do','week',2],syn:['pilates']},
  {k:'stretch',n:'Rozciąganie',g:'Ruch',share:1,d:['do','week',3],syn:['rozciaganie','stretching','mobilnosc','mobility']},
  {k:'fight',n:'Sporty walki',g:'Ruch',share:1,d:['do','week',2],syn:['sporty walki','sztuki walki','boks','bjj','mma','karate','judo','kickboxing','muay thai','zapasy']},
  {k:'team',n:'Sport zespołowy',g:'Ruch',share:1,d:['do','week',1],syn:['sport zespolowy','pilka nozna','nogal','siatkowka','koszykowka','pilka reczna','hokej']},
  {k:'racket',n:'Tenis, squash, padel',g:'Ruch',share:1,d:['do','week',1],syn:['tenis','squash','padel','badminton','ping pong','tenis stolowy']},
  {k:'dance',n:'Taniec',g:'Ruch',share:1,d:['do','week',1],syn:['taniec','tance','salsa','bachata','zumba']},
- {k:'read',n:'Czytanie',g:'Umysł',share:1,d:['qty',20,'stron'],syn:['czytanie','czytanie ksiazki','czytanie ksiazek','ksiazka','ksiazki','lektura','strony']},
+ {k:'winter',n:'Sporty zimowe',g:'Ruch',share:1,d:['do','month',2],syn:['sporty zimowe','narty','snowboard','lyzwy','lyzwiarstwo','skitury','biegowki']},
+ {k:'skate',n:'Rolki, deskorolka',g:'Ruch',share:1,d:['do','week',1],syn:['rolki','deskorolka','wrotki','longboard','hulajnoga']},
+ {k:'read',n:'Czytanie',g:'Umysł',share:1,d:['qty',20,'stron'],syn:['czytanie','czytanie ksiazki','czytanie ksiazek','ksiazka','ksiazki','lektura']},
  {k:'learn',n:'Nauka',g:'Umysł',share:1,d:['qty',30,'min'],syn:['nauka','uczenie sie','kurs','studia','nauka do egzaminu']},
  {k:'lang',n:'Nauka języka',g:'Umysł',share:1,d:['qty',15,'min'],syn:['nauka jezyka','jezyk','angielski','niemiecki','hiszpanski','francuski','wloski','duolingo']},
+ {k:'instrument',n:'Instrument',g:'Umysł',share:1,d:['qty',20,'min'],syn:['instrument','gra na gitarze','gitara','pianino','fortepian','keyboard','perkusja','skrzypce','ukulele','cwiczenie gry']},
+ {k:'create',n:'Twórczość',g:'Umysł',share:1,d:['do','week',3],syn:['tworczosc','rysowanie','malowanie','szkicowanie','pisanie','fotografia','tworzenie']},
+ {k:'project',n:'Projekt poboczny',g:'Umysł',share:1,d:['qty',30,'min'],syn:['projekt poboczny','side project','wlasny projekt','projekt']},
  {k:'meditate',n:'Medytacja',g:'Umysł',share:1,d:['qty',10,'min'],syn:['medytacja','mindfulness','oddech','cwiczenia oddechowe']},
  {k:'journal',n:'Dziennik',g:'Umysł',share:1,d:['do','day',1],syn:['dziennik','journaling','pisanie dziennika','pamietnik']},
- {k:'sleep',n:'Sen',g:'Prywatne',d:['range',7.5,'h',.5,1.5],syn:['sen','spanie','godziny snu']},
- {k:'kcal',n:'Kalorie',g:'Prywatne',d:['range',2000,'kcal',150,400],syn:['kalorie','kcal','bilans kaloryczny']},
- {k:'eat',n:'Zdrowe jedzenie',g:'Prywatne',d:['do','day',1],syn:['zdrowe jedzenie','zdrowe odzywianie','dieta']},
- {k:'water',n:'Woda',g:'Prywatne',d:['qty',2,'l'],syn:['woda','picie wody','nawodnienie']},
- {k:'out',n:'Jedzenie na mieście',g:'Prywatne',d:['limit',2],syn:['jedzenie na miescie','fast food','jedzenie poza domem','restauracja','zamawianie jedzenia']},
- {k:'sweets',n:'Słodycze',g:'Prywatne',d:['limit',2],syn:['slodycze','cukier','slodkie']},
- {k:'alc',n:'Alkohol',g:'Prywatne',d:['limit',2],syn:['alkohol','piwo','wino','wodka','picie alkoholu']},
- {k:'smoke',n:'Palenie',g:'Prywatne',d:['limit',2],syn:['palenie','papierosy','fajki','e papieros','vape']},
- {k:'weight',n:'Waga',g:'Prywatne',d:['measure'],syn:['waga','wazenie','masa ciala']},
- {k:'screen',n:'Czas przed ekranem',g:'Prywatne',d:['limit',3],syn:['czas przed ekranem','social media','scrollowanie','media spolecznosciowe']},
- {k:'social',n:'Spotkania ze znajomymi',g:'Prywatne',d:['contact','meeting'],syn:['spotkania','spotkania ze znajomymi','znajomi']},
- {k:'family',n:'Rodzina',g:'Prywatne',d:['contact','call'],syn:['rodzina','rozmowy z mama','rozmowa z mama','telefon do mamy','wizyta w domu','wizyta w domu rodzinnym','dom rodzinny']}
+ {k:'plan',n:'Planowanie dnia',g:'Umysł',share:1,d:['do','day',1],syn:['planowanie dnia','planowanie','plan dnia','lista zadan','to do']},
+ {k:'nophone',n:'Bez telefonu rano',g:'Umysł',share:1,d:['do','day',1],syn:['bez telefonu rano','bez telefonu','poranek bez telefonu','detoks cyfrowy']},
+ {k:'sleep',n:'Sen',g:'Zdrowie',d:['range',7.5,'h',.5,1.5],syn:['sen','spanie','godziny snu']},
+ {k:'wake',n:'Stała pora pobudki',g:'Zdrowie',d:['do','day',1],syn:['stala pora pobudki','pobudka','wstawanie','wczesne wstawanie']},
+ {k:'kcal',n:'Kalorie',g:'Zdrowie',d:['range',2000,'kcal',150,400],syn:['kalorie','kcal','bilans kaloryczny']},
+ {k:'eat',n:'Zdrowe jedzenie',g:'Zdrowie',d:['do','day',1],syn:['zdrowe jedzenie','zdrowe odzywianie','dieta']},
+ {k:'water',n:'Woda',g:'Zdrowie',d:['qty',2,'l'],syn:['woda','picie wody','nawodnienie']},
+ {k:'supps',n:'Suplementy',g:'Zdrowie',d:['do','day',1],syn:['suplementy','witaminy','witamina d','magnez','omega 3','kreatyna']},
+ {k:'meds',n:'Leki',g:'Zdrowie',d:['do','day',1],syn:['leki','tabletki','lekarstwa']},
+ {k:'cold',n:'Zimny prysznic',g:'Zdrowie',d:['do','day',1],syn:['zimny prysznic','morsowanie','kapiel w zimnej wodzie']},
+ {k:'weight',n:'Waga',g:'Zdrowie',d:['measure'],syn:['waga','wazenie','masa ciala']},
+ {k:'out',n:'Jedzenie na mieście',g:'Ograniczenia',d:['limit',2],syn:['jedzenie na miescie','fast food','jedzenie poza domem','restauracja','zamawianie jedzenia']},
+ {k:'sweets',n:'Słodycze',g:'Ograniczenia',d:['limit',2],syn:['slodycze','cukier','slodkie']},
+ {k:'coffee',n:'Kawa',g:'Ograniczenia',d:['qty',2,'kaw','max'],syn:['kawa','kawy','kofeina']},
+ {k:'energy',n:'Energetyki',g:'Ograniczenia',d:['limit',1],syn:['energetyki','energetyk','napoje energetyczne','red bull','monster']},
+ {k:'alc',n:'Alkohol',g:'Ograniczenia',d:['limit',2],syn:['alkohol','piwo','wino','wodka','picie alkoholu']},
+ {k:'smoke',n:'Palenie',g:'Ograniczenia',d:['limit',2],syn:['palenie','papierosy','fajki','e papieros','vape']},
+ {k:'screen',n:'Czas przed ekranem',g:'Ograniczenia',d:['qty',2,'h','max'],syn:['czas przed ekranem','social media','scrollowanie','media spolecznosciowe','ekran']},
+ {k:'games',n:'Gry komputerowe',g:'Ograniczenia',d:['qty',60,'min','max'],syn:['gry komputerowe','gry','granie','konsola','playstation','xbox']},
+ {k:'shopping',n:'Zakupy impulsywne',g:'Ograniczenia',d:['limit',2],syn:['zakupy impulsywne','zakupy','zakupy online','shopping']},
+ {k:'gambling',n:'Hazard',g:'Ograniczenia',d:['limit',1],syn:['hazard','zaklady','bukmacher','kasyno','zdrapki']},
+ {k:'social',n:'Spotkania ze znajomymi',g:'Relacje',d:['contact','meeting'],syn:['spotkania','spotkania ze znajomymi','spotkanie z przyjaciolmi']},
+ {k:'family',n:'Rodzina',g:'Relacje',d:['contact','call'],syn:['rodzina','rozmowy z mama','rozmowa z mama','telefon do mamy','wizyta w domu','wizyta w domu rodzinnym','dom rodzinny']}
 ];
 const CAT_BY={};CAT.forEach(c=>{CAT_BY[c.k]=c});
+const isMax=g=>g.type==='qty'&&g.dir==='max';
+const qtyOk=(g,v)=>isMax(g)?v<=g.target:v>=g.target;
 const catOk=g=>!!(g&&g.act&&CAT_BY[g.act]);
 const nz=s=>s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/ł/g,'l');
 function lev(a,b){if(Math.abs(a.length-b.length)>2)return 9;let p=Array.from({length:b.length+1},(_,j)=>j);for(let i=1;i<=a.length;i++){const c=[i];for(let j=1;j<=b.length;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));p=c}return p[b.length]}
 function matchAct(name){
   const n=nz(name||'').replace(/[^a-z ]/g,' ').replace(/\b(x|razy|raz|min|minut|dziennie|tygodniowo|w tygodniu)\b/g,' ').replace(/\s+/g,' ').trim();
   if(n.length<2)return[];
+  const AMB={trening:['any','gym','run','home'],cwiczenia:['any','home','gym'],sport:['any','team']};
+  if(AMB[n])return AMB[n].map(k=>({c:CAT_BY[k],s:70}));
   const words=n.split(' ').filter(w=>w.length>=4),out=[];
   CAT.forEach(c=>{
     let best=0;
@@ -540,7 +567,7 @@ function habitStrength(g){
 function insights(){
   const t=todayS(),ds=Object.keys(S.log).concat(Object.keys(S.mood)).sort();if(!ds.length)return[];
   const days=range(ds[0],t).filter(d=>!S.off[d]),out=[];
-  const doneDay=(g,d)=>{const r=val(g.id,d);if(g.type==='qty')return r!=null?r>=g.target:null;if(g.type==='range')return r!=null?evalRange(g,r).status==='ok':null;return num(r)>0};
+  const doneDay=(g,d)=>{const r=val(g.id,d);if(g.type==='qty')return r!=null?qtyOk(g,r):null;if(g.type==='range')return r!=null?evalRange(g,r).status==='ok':null;return num(r)>0};
   S.goals.forEach(g=>{
     if(isMeasure(g))return;const A=[],B=[];
     days.forEach(d=>{const m=S.mood[d];if(m==null)return;const x=doneDay(g,d);if(x==null)return;(x?A:B).push(m)});
@@ -584,7 +611,7 @@ function serHit(s,d){
   const g=s.g,r=val(g.id,d);
   if(s.len)return Array.isArray(r)&&r.some(e=>e.l===s.len)?1:0;
   if(g.type==='range'){if(r==null)return 0;return evalRange(g,r).status==='ok'?1:.5}
-  if(g.type==='qty'){if(!r)return 0;return r>=g.target?1:.5}
+  if(g.type==='qty'){if(r==null||(!isMax(g)&&!r))return 0;return qtyOk(g,r)?1:.5}
   if(isMeasure(g))return r!=null?1:0;
   return num(r)>0?1:0;
 }
@@ -708,6 +735,10 @@ function goalState(g,d){
     if(raw==null)return{sub:'Cel: '+fmt(g.target)+' '+g.unit};
     const e=evalRange(g,raw);return{sub:'Cel: '+fmt(g.target)+' '+g.unit+' (±'+fmt(g.ok)+' w normie)',chip:{s:e.status,t:e.text}};
   }
+  if(isMax(g)){
+    if(raw==null)return{sub:'Najwyżej '+fmt(g.target)+' '+g.unit+' dziennie'};
+    return{sub:fmt(v)+' z maks. '+fmt(g.target)+' '+g.unit,chip:v<=g.target?{s:'ok',t:'W limicie'}:{s:'bad',t:'Ponad limit o '+fmt(v-g.target)+' '+g.unit}};
+  }
   if(g.type==='qty'){
     const c=v>=g.target?{s:'ok',t:'Cel osiągnięty'+(v>g.target?' (+'+fmt(v-g.target)+')':'')}:v>0?{s:'warn',t:'Brakuje '+fmt(g.target-v)+' '+g.unit}:null;
     return{sub:fmt(v)+'/'+fmt(g.target)+' '+g.unit,chip:c};
@@ -730,7 +761,7 @@ function goalState(g,d){
 function goalDayScore(g,d){
   const raw=val(g.id,d);
   if(g.type==='do'&&g.period==='day')return num(raw)?1:0;
-  if(g.type==='qty')return Math.min(1,num(raw)/g.target);
+  if(g.type==='qty')return isMax(g)?(raw==null?0:raw<=g.target?1:0):Math.min(1,num(raw)/g.target);
   if(g.type==='range'){if(raw==null)return 0;const s=evalRange(g,raw).status;return s==='ok'?1:s==='warn'?.5:0}
   if(g.type==='limit'){const b=periodBounds(g,d);return sumRange(g.id,b[0],d)<=g.target?1:0}
   return null;
@@ -831,6 +862,7 @@ function summary(g){
     if(t==null)return n+': bez celu, tylko zapisujesz dni, w które to robisz. Zobaczysz, ile razy '+PER[g.period]+'.'+vs;
     return n+': co najmniej '+fmt(t)+' '+dni(t)+' '+PER[g.period]+'. Jeden dzień liczy się raz. Więcej jest w porządku, nadmiar zobaczysz na wykresie.'+vs;
   }
+  if(isMax(g))return n+': najwyżej '+fmt(t)+' '+(g.unit||'')+' dziennie. Wpisujesz, ile było, a aplikacja pokaże, czy zmieściłeś się w limicie. Zero też się liczy.';
   if(g.type==='qty')return n+': co najmniej '+fmt(t)+' '+(g.unit||'')+' dziennie. Zaliczone, gdy dojdziesz do tej liczby.';
   if(g.type==='range')return n+': celujesz w '+fmt(t)+' '+(g.unit||'')+'. W normie do ±'+fmt(g.ok)+', trochę za mało lub za dużo do ±'+fmt(g.warn)+', dalej to już mocno za mało lub za dużo.';
   if(g.type==='limit'){const wl=Object.keys(g.w||{}).filter(k=>g.w[k]>1&&(g.variants||[]).includes(k)).map(k=>k.replace(/\s*\(.*?\)/,'')+' liczy się jak '+g.w[k]+' dni');return n+': do '+fmt(t)+' '+dni(t)+' '+PER[g.period]+' jest w porządku. Powyżej zaznaczę, że przegiąłeś.'+vs+(wl.length?' '+wl.join(', ')+'.':'')}
@@ -889,7 +921,7 @@ function cellHtml(g,d,label){
   const raw=val(g.id,d);let cls='',txt='';
   if(g.type==='do'){if(num(raw)){cls='on';txt=typeof raw==='string'?abbr(raw):'✓'}else if(g.period==='day')cls='miss'}
   else if(g.type==='limit'){if(num(raw)){const b=periodBounds(g,d);cls=sumRange(g.id,b[0],d)>g.target?'bad':'lim';txt=typeof raw==='string'?abbr(raw):'✓'}}
-  else if(g.type==='qty'){if(raw!=null){cls=raw>=g.target?'ok':'warn';txt=fmt(raw)}else cls='miss'}
+  else if(g.type==='qty'){if(raw!=null){cls=qtyOk(g,raw)?'ok':isMax(g)?'bad':'warn';txt=fmt(raw)}else cls='miss'}
   else if(g.type==='range'){if(raw!=null){cls=evalRange(g,raw).status;txt=fmt(raw)}else cls='miss'}
   else if(isMeasure(g)){if(raw!=null){cls='on';txt=fmt(raw)}}
   else{const n=num(raw);if(n){cls='on';txt=String(n)}}
@@ -959,7 +991,7 @@ function monthBlock(g,a,b){
     L('<b>'+rd+'</b> '+dni(rd)+(rd!==tot?' (liczone jako '+tot+')':'')+(over!=null?' · tygodnie ponad limit: <b class="'+(over?'st-bad':'st-ok')+'">'+over+'/'+ws.length+'</b>':''));
   }
   else if(g.type==='qty'){
-    const v=days.map(d=>val(g.id,d)).filter(x=>x!=null),tot=v.reduce((s,x)=>s+x,0),hit=v.filter(x=>x>=g.target).length;
+    const v=days.map(d=>val(g.id,d)).filter(x=>x!=null),tot=v.reduce((s,x)=>s+x,0),hit=v.filter(x=>qtyOk(g,x)).length;
     L('Razem <b>'+fmt(tot)+' '+esc(g.unit)+'</b> · średnio '+fmt(tot/Math.max(1,days.length))+' dziennie · cel w <b>'+hit+'</b> '+dni(hit));
   }
   else if(g.type==='range'){
@@ -998,7 +1030,7 @@ function goalLine(g,d){
   const raw=val(g.id,d);
   if(isMeasure(g))return raw==null?null:{t:g.name+': '+fmt(raw)+' '+g.unit};
   if(g.type==='range')return raw==null?null:{t:g.name+': '+fmt(raw)+' '+g.unit+' ('+evalRange(g,raw).text.toLowerCase()+')',s:evalRange(g,raw).status};
-  if(g.type==='qty')return raw==null?null:{t:g.name+': '+fmt(raw)+' '+g.unit,s:raw>=g.target?'ok':'warn'};
+  if(g.type==='qty')return raw==null?null:{t:g.name+': '+fmt(raw)+' '+g.unit,s:qtyOk(g,raw)?'ok':isMax(g)?'bad':'warn'};
   if(g.type==='contact'){if(!Array.isArray(raw)||!raw.length)return null;return{t:g.name+' ('+raw.length+'): '+raw.map(e=>(e.p.length?e.p.join(', ')+': ':'')+lenWord[e.l]+' ('+S.settings.len[g.kind][e.l]+')').join('; ')}}
   if(!num(raw))return null;
   return{t:g.name+(typeof raw==='string'?': '+raw:''),s:g.type==='limit'?'warn':''};
@@ -1170,7 +1202,7 @@ function viewCharts(){
       const o={kind:g.type,tl:'cel'},bl=bk[0].len;
       if(g.type==='range'){o.target=g.target;o.band=g.ok;o.ok=g.ok;o.warn=g.warn}
       else if(isMeasure(g)){if(g.target!=null)o.target=g.target}
-      else if(g.type==='qty')o.target=g.target;
+      else if(g.type==='qty'){o.target=g.target;if(isMax(g)){o.kind='limit';o.tl='limit'}}
       else if(hasTarget(g)){const pd=g.period==='day'?1:g.period==='week'?7:30.4;if(bl>=pd-.5){o.target=Math.round(g.target/pd*bl*10)/10;if(g.type==='limit')o.tl='limit'}}
       const what=g.type==='qty'||g.type==='range'||isMeasure(g)?'Średnia wartość w każdym okresie.':g.type==='contact'?'Liczba wpisów w każdym okresie.':'Liczba dni w każdym okresie, także ponad cel.';
       body='<p class="sub">'+what+(o.target!=null?(g.type==='limit'?' Czerwona kropka: ponad limit.':isMeasure(g)?' Przerywana linia: cel.':' Zielona kropka: cel spełniony.'):'')+'</p>'+svgLine(pts,o);
@@ -1209,7 +1241,7 @@ function goalDesc(g){const r=goalRuns(g),pl=scorable(g)?PRL[g.prio||'imp']+' · 
 function goalDesc0(g){
   if(isMeasure(g))return'pomiar '+PER[g.period]+(g.target!=null?' · cel '+fmt(g.target)+' '+esc(g.unit):'');
   if(g.type==='range')return'wartość: '+fmt(g.target)+' '+esc(g.unit)+' ±'+fmt(g.ok);
-  if(g.type==='qty')return'min. '+fmt(g.target)+' '+esc(g.unit)+' dziennie';
+  if(g.type==='qty')return(isMax(g)?'maks. ':'min. ')+fmt(g.target)+' '+esc(g.unit)+' dziennie';
   if(g.type==='limit')return'limit: max '+fmt(g.target)+' '+dni(g.target)+' '+PER[g.period]+(g.variants.length?' · '+g.variants.length+' poziomy':'');
   if(g.type==='contact')return(g.kind==='call'?'rozmowy':'spotkania')+(hasTarget(g)?': min. '+g.target+' '+PER[g.period]:', bez celu');
   if(g.period==='day')return'codziennie'+(g.variants.length?' · '+g.variants.length+' rodzajów':'');
@@ -1234,7 +1266,7 @@ function actBox(g){
   const m=matchAct(g.name);
   if(m.length)h+='<div class="gs">'+(m[0].s>=90&&(!m[1]||m[1].s<m[0].s)?'To wygląda na:':'Czy chodzi o:')+'</div><div class="chips" style="margin-top:4px">'+m.map(x=>'<button class="pill" data-act="gact" data-k="'+x.c.k+'">'+esc(x.c.n)+'</button>').join('')+'<button class="pill" data-act="gact" data-k="none">Inna aktywność</button></div>';
   else if(g.name.trim().length>=3)h+='<div class="gs">Nie rozpoznaję tej aktywności. Wybierz z listy albo <button class="link" data-act="gact" data-k="none">zostaw jako własną</button>.</div>';
-  h+=ui.sheet&&ui.sheet.catOpen?'<div class="catlist">'+['Ruch','Umysł','Prywatne'].map(gr=>'<div class="gs" style="margin:8px 0 4px">'+gr+'</div><div class="chips">'+CAT.filter(c=>c.g===gr).map(c=>'<button class="pill" data-act="gact" data-k="'+c.k+'">'+esc(c.n)+'</button>').join('')+'</div>').join('')+'</div>':'<button class="link" style="margin-top:6px" data-act="gactlist">Wybierz z listy aktywności</button>';
+  h+=ui.sheet&&ui.sheet.catOpen?'<div class="catlist">'+['Ruch','Umysł','Zdrowie','Ograniczenia','Relacje'].map(gr=>'<div class="gs" style="margin:8px 0 4px">'+gr+'</div><div class="chips">'+CAT.filter(c=>c.g===gr).map(c=>'<button class="pill" data-act="gact" data-k="'+c.k+'">'+esc(c.n)+'</button>').join('')+'</div>').join('')+'</div>':'<button class="link" style="margin-top:6px" data-act="gactlist">Wybierz z listy aktywności</button>';
   return h+'</div>';
 }
 function shareBox(g){
@@ -1304,7 +1336,7 @@ function sheetHtml(){
   h+='<span class="fl">2. W jakiej kategorii?</span><div class="chips">'+ex.map(c=>'<button class="pill'+(g.cat===c?' on':'')+'" data-act="gcat" data-c="'+esc(c)+'">'+esc(c)+'</button>').join('')+'</div><input class="inp" id="gcat" style="margin-top:8px" data-inp="cat" value="'+(ex.includes(g.cat)?'':esc(g.cat))+'" placeholder="albo wpisz nową kategorię">';
   h+='<span class="fl">3. Jaki to rodzaj celu?</span>'+[
     ['do','Chcę to robić','Zaznaczasz dni, w które to zrobiłeś. Np. siłownia 3 dni w tygodniu, zdrowe jedzenie codziennie.'],
-    ['qty','Chcę zrobić określoną ilość','Wpisujesz liczbę. Np. min. 20 stron albo 30 minut nauki dziennie.'],
+    ['qty','Chcę zrobić określoną ilość','Wpisujesz liczbę. Np. min. 20 stron dziennie albo najwyżej 2 h przed ekranem.'],
     ['range','Chcę trzymać się wartości','Wpisujesz liczbę, a aplikacja ocenia odchylenie. Np. sen 7,5 h, 2400 kcal.'],
     ['limit','Chcę to ograniczyć','Zaznaczasz dni. Do limitu jest w porządku, powyżej widzisz, że przegiąłeś.'],
     ['contact','Kontakt z ludźmi','Spotkania lub rozmowy, z długością: krótko, średnio, długo.'],
@@ -1319,7 +1351,7 @@ function sheetHtml(){
     else h+='<div class="row2">'+perSel(['day','week','month'])+(g.target==null?'':tin('Minimum dni','target',g.target))+'</div>'+noT();
   }
   if(g.type==='limit')h+='<div class="row2">'+perSel(['week','month'])+tin('Maksymalnie dni','target',g.target)+'</div>';
-  if(g.type==='qty')h+='<div class="row2">'+tin('Minimum dziennie','target',g.target)+'<div><label class="fl" style="margin-top:0" for="f-unit"><small>Jednostka</small></label><input class="inp" id="f-unit" data-inp="unit" value="'+esc(g.unit||'')+'" placeholder="stron, min"></div></div>';
+  if(g.type==='qty')h+='<div class="chips" style="margin-bottom:8px"><button class="pill'+(g.dir!=='max'?' on':'')+'" data-act="gdir" data-k="min">Co najmniej</button><button class="pill'+(g.dir==='max'?' on':'')+'" data-act="gdir" data-k="max">Najwyżej (limit)</button></div><div class="row2">'+tin(g.dir==='max'?'Maksymalnie dziennie':'Minimum dziennie','target',g.target)+'<div><label class="fl" style="margin-top:0" for="f-unit"><small>Jednostka</small></label><input class="inp" id="f-unit" data-inp="unit" value="'+esc(g.unit||'')+'" placeholder="stron, min"></div></div>';
   if(g.type==='range')h+='<div class="row2">'+tin('Cel','target',g.target)+'<div><label class="fl" style="margin-top:0" for="f-unit"><small>Jednostka</small></label><input class="inp" id="f-unit" data-inp="unit" value="'+esc(g.unit||'')+'" placeholder="h, kcal"></div></div><div class="row2" style="margin-top:8px">'+tin('W normie do ±','ok',g.ok)+tin('Trochę obok do ±','warn',g.warn)+'</div>';
   if(g.type==='contact')h+='<div class="chips" style="margin-bottom:10px"><button class="pill'+(g.kind!=='call'?' on':'')+'" data-act="gkind" data-k="meeting">Spotkania</button><button class="pill'+(g.kind==='call'?' on':'')+'" data-act="gkind" data-k="call">Rozmowy telefoniczne</button></div><div class="row2">'+perSel(['week','month'])+(g.target==null?'':tin('Minimum razy','target',g.target))+'</div>'+noT();
   if(isMeasure(g))h+='<div class="row2">'+perSel(['day','week','month'])+'<div><label class="fl" style="margin-top:0" for="f-unit"><small>Jednostka</small></label><input class="inp" id="f-unit" data-inp="unit" value="'+esc(g.unit||'')+'" placeholder="kg, cm"></div></div>'+(g.target==null?'':'<div class="row2" style="margin-top:8px">'+tin('Cel, np. docelowa waga','target',g.target)+'</div>')+'<div class="chips" style="margin-top:8px"><button class="pill'+(g.target==null?' on':'')+'" data-act="gnotarget">Bez celu</button></div>';
@@ -1357,7 +1389,7 @@ function defaults(g,type){
   if(type==='do'||type==='limit')g.variants=g.variants||[];
   if(type==='do'){g.period=['day','week','month'].includes(g.period)?g.period:'week';if(g.period==='day')g.target=1;else if(prev!=='do')g.target=3}
   if(type==='limit'){g.period=g.period==='month'?'month':'week';g.w=g.w||{};if(!(g.target>0)||prev!=='limit')g.target=2}
-  if(type==='qty'){g.period='day';if(prev!=='qty'){g.target=20;g.unit='stron'}}
+  if(type==='qty'){g.period='day';if(prev!=='qty'){g.target=20;g.unit='stron';g.dir=undefined}}
   if(type==='range'){g.period='day';if(prev!=='range'){g.target=7.5;g.unit='h';g.ok=.5;g.warn=1.5}}
   if(type==='measure'){g.period=['day','week','month'].includes(g.period)?g.period:'week';if(prev!=='measure'){g.unit='kg';g.target=null}}
   if(type==='contact'){g.period=g.period==='month'?'month':'week';g.kind=g.kind||'meeting';if(prev!=='contact')g.target=null}
@@ -1426,11 +1458,12 @@ function act(a,ds){
     case'serclr':ui.ser[ds.c]=[];render();break;
     case'gact':{const g=ui.sheet.g,k=ds.k;g.act=k===''?undefined:k;ui.sheet.catOpen=false;
       if(k&&k!=='none'&&CAT_BY[k]){const c=CAT_BY[k];if(!g.name.trim())g.name=c.n;
-        if(ui.sheet.isNew&&!ui.sheet.typed){const d=c.d;defaults(g,d[0]);if(d[0]==='do'){g.period=d[1];g.target=d[1]==='day'?1:d[2]}if(d[0]==='qty'){g.target=d[1];g.unit=d[2]}if(d[0]==='range'){g.target=d[1];g.unit=d[2];g.ok=d[3];g.warn=d[4]}if(d[0]==='limit')g.target=d[1];if(d[0]==='contact'){g.kind=d[1];g.target=null}if(d[0]==='measure'){g.unit='kg'}}
+        if(ui.sheet.isNew&&!ui.sheet.typed){const d=c.d;defaults(g,d[0]);if(d[0]==='do'){g.period=d[1];g.target=d[1]==='day'?1:d[2]}if(d[0]==='qty'){g.target=d[1];g.unit=d[2];g.dir=d[3]==='max'?'max':undefined}if(d[0]==='range'){g.target=d[1];g.unit=d[2];g.ok=d[3];g.warn=d[4]}if(d[0]==='limit')g.target=d[1];if(d[0]==='contact'){g.kind=d[1];g.target=null}if(d[0]==='measure'){g.unit='kg'}}
         if(!c.share)g.groups=[]}
       renderSheet();break}
     case'gactlist':ui.sheet.catOpen=true;renderSheet();break;
     case'gshare':{const g=ui.sheet.g,id=ds.id;g.groups=g.groups||[];if(g.groups.includes(id))g.groups=g.groups.filter(x=>x!==id);else g.groups.push(id);renderSheet();break}
+    case'gdir':ui.sheet.g.dir=ds.k==='max'?'max':undefined;ui.sheet.typed=true;renderSheet();break;
     case'gprio':ui.sheet.g.prio=ds.p;renderSheet();break;
     case'ssoft':S.settings.mainSoft=!S.settings.mainSoft;save();render();break;
     case'smain':S.settings.mainReq=!S.settings.mainReq;save();render();break;
@@ -1481,7 +1514,7 @@ function act(a,ds){
 document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(!el||el.disabled)return;act(el.dataset.act,el.dataset)});
 document.addEventListener('change',e=>{
   const el=e.target,c=el.dataset&&el.dataset.chg;if(!c)return;
-  if(c==='set'){setVal(el.dataset.g,ui.date,parseNum(el.value));render()}
+  if(c==='set'){const g=S.goals.find(x=>x.id===el.dataset.g),v=parseNum(el.value);if(v===0&&isMax(g)){S.log[ui.date]=S.log[ui.date]||{};S.log[ui.date][g.id]=0;save()}else setVal(el.dataset.g,ui.date,v);render()}
   if(c==='cg'){ui.cg=el.value;render()}
   if(c==='gper'){const g=ui.sheet.g;g.period=el.value;if(g.type==='do'){if(g.period==='day')g.target=1;else if(g.target===1&&!(g.target>1))g.target=3}renderSheet()}
   if(c==='gw'){const g=ui.sheet.g;g.w=g.w||{};g.w[g.variants[+el.dataset.i]]=+el.value;const sum=document.getElementById('sum');if(sum)sum.textContent=summary(g)}
@@ -1698,8 +1731,8 @@ const Social=(()=>{
     if(ui.tab==='friends')render();
     syncShares();
   }
-  function doneDay(g,d){const r=val(g.id,d);if(g.type==='qty')return r!=null&&r>=g.target;if(g.type==='range')return r!=null&&evalRange(g,r).status==='ok';return num(r)>0}
-  function targetLabel(g){if(g.type==='qty')return'min. '+fmt(g.target)+' '+(g.unit||'')+' dziennie';if(g.type==='do'){if(g.period==='day')return'codziennie';if(!hasTarget(g))return'bez celu';return g.target+'×/'+(g.period==='week'?'tydz.':'mies.')}return''}
+  function doneDay(g,d){const r=val(g.id,d);if(g.type==='qty')return r!=null&&qtyOk(g,r);if(g.type==='range')return r!=null&&evalRange(g,r).status==='ok';return num(r)>0}
+  function targetLabel(g){if(g.type==='qty')return(isMax(g)?'maks. ':'min. ')+fmt(g.target)+' '+(g.unit||'')+' dziennie';if(g.type==='do'){if(g.period==='day')return'codziennie';if(!hasTarget(g))return'bez celu';return g.target+'×/'+(g.period==='week'?'tydz.':'mies.')}return''}
   function shareData(g){
     const t=todayS(),days=range(addDays(t,-119),t).filter(d=>!pausedAt(g,d)&&doneDay(g,d)),weeks={};
     for(let i=25;i>=0;i--){const w=addDays(wstart(t),-7*i),c=goalCompletion(g,w,addDays(w,6));if(c!=null)weeks[w]=c>=1?1:0}
