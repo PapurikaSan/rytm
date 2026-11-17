@@ -94,5 +94,10 @@ const fake=fs.readFileSync(path.join(__dirname,'fake-supabase.js'),'utf8');
 
   // 7) wszystkie pozy rysują się bez błędów
   console.log('7 pozy:',await p.evaluate(()=>{const c=document.createElement('canvas');c.width=88;c.height=126;let n=0;Object.keys(PixaArt.POSES).forEach(k=>{for(let f=0;f<40;f++)PixaArt.draw(c,f,k,null,'holo');n++});return n}));
+  // 8) kolor soczewki z palety, neonowa zieleń, tematy Pixy, animacje
+  const r8=await p.evaluate(()=>{const out={};S.settings.pixaPal='neon';render();out.pxc=getComputedStyle(document.documentElement).getPropertyValue('--pxc').trim();out.neon=!!PixaArt.PALETTES.neon;
+    ui.tab='settings';ui.setSec='pixa';render();out.stage=!!document.getElementById('pxstage');document.querySelector('[data-act=pxkind][data-k=insight]').click();out.offInsight=!!S.asst.off.insight;
+    ui.setSec='look';render();document.querySelector('[data-act=animt]').click();out.animOff=S.settings.anim===false;document.querySelector('[data-act=animt]').click();out.animOn=S.settings.anim!==false;return out});
+  console.log('8 soczewka/paleta/tematy/animacje:',JSON.stringify(r8));
   console.log('errors',errs);await b.close();
 })();

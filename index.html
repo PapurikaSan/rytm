@@ -405,7 +405,7 @@ body{background:radial-gradient(var(--dot) 1px,transparent 1.3px) 0 0/16px 16px,
 .pix{width:18px;height:18px;shape-rendering:crispEdges;display:block;flex:none}
 .card{border-radius:18px;box-shadow:var(--shadow)}
 .brand{font:400 30px/1 var(--font-pixel);letter-spacing:.02em;display:flex;align-items:center;gap:8px}
-.brand .bdot{width:10px;height:10px;background:#ff2d1c;box-shadow:0 0 10px #ff2d1c;flex:none}
+.brand .bdot{width:10px;height:10px;background:var(--pxc,#ff2d1c);box-shadow:0 0 10px var(--pxc,#ff2d1c);flex:none}
 .top .iconbtn .pix{width:16px;height:16px}
 .datebar .d{text-align:center;font-weight:700}
 .tile{border-radius:16px;box-shadow:var(--shadow)}
@@ -443,6 +443,37 @@ body{background:radial-gradient(var(--dot) 1px,transparent 1.3px) 0 0/16px 16px,
 .prio.x{color:var(--muted);border-color:var(--line)}
 .todo{background:none;border:0;padding:2px 4px 6px}.todo b{font:400 19px var(--font-pixel)}
 .bar-i{background:var(--c,var(--accent))}
+/* kolor Pixy (soczewka, kropka w logo, imię) */
+.brand .bdot{background:var(--pxc,#ff2d1c);box-shadow:0 0 10px var(--pxc,#ff2d1c)}
+.pxname,.pxsayt b{color:color-mix(in srgb,var(--pxc,#ff2d1c) 78%,var(--fg))}
+.hal .lens{filter:drop-shadow(0 0 4px color-mix(in srgb,var(--pxc,#ff2d1c) 60%,transparent))}
+@keyframes halpix{0%,100%{filter:drop-shadow(0 0 4px color-mix(in srgb,var(--pxc,#ff2d1c) 60%,transparent)) brightness(1)}50%{filter:drop-shadow(0 0 12px var(--pxc,#ff2d1c)) brightness(1.3)}}
+.tourhl{outline-color:var(--pxc,#e0362f)!important}
+/* scena Pixy w Ustawieniach */
+.pxstage{position:relative;height:270px;margin:-14px -14px 12px;border-radius:18px 18px 0 0;overflow:hidden;cursor:pointer;
+  background:radial-gradient(circle at 50% 85%,color-mix(in srgb,var(--pxc,#ff2d1c) 22%,transparent),transparent 60%),radial-gradient(var(--dot) 1px,transparent 1.3px) 0 0/12px 12px,color-mix(in srgb,var(--bg) 70%,var(--surface))}
+.pxstage canvas{position:absolute;left:50%;bottom:6px;width:176px;height:252px;margin-left:-88px;image-rendering:pixelated;image-rendering:crisp-edges}
+.pxst-i{position:absolute;left:14px;top:12px;display:flex;align-items:center;gap:8px}.pxst-i .pxname{font-size:20px}
+.pxst-l svg{width:22px;height:22px;display:block;shape-rendering:crispEdges;filter:drop-shadow(0 0 5px var(--pxc,#ff2d1c))}
+/* animacje */
+@keyframes viewIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+#app.enter>*{animation:viewIn .34s cubic-bezier(.2,.8,.2,1) both}
+#app.enter>*:nth-child(2){animation-delay:.03s}#app.enter>*:nth-child(3){animation-delay:.06s}#app.enter>*:nth-child(4){animation-delay:.09s}#app.enter>*:nth-child(5){animation-delay:.12s}#app.enter>*:nth-child(6){animation-delay:.15s}#app.enter>*:nth-child(n+7){animation-delay:.18s}
+#app.enter>.nav{animation:none}
+@keyframes ringDraw{from{stroke-dasharray:0 400}}
+.ring.anim .rfg{animation:ringDraw 1s cubic-bezier(.2,.8,.2,1) both}
+@keyframes ringNum{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+.ring.anim .v b{animation:ringNum .5s .35s cubic-bezier(.3,1.6,.5,1) both}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.22)}100%{transform:scale(1)}}
+.pop{animation:pop .36s ease-out}
+.fxb{position:fixed;width:6px;height:6px;pointer-events:none;z-index:40;animation:fxb .65s cubic-bezier(.2,.8,.3,1) forwards}
+@keyframes fxb{to{transform:translate(var(--dx),var(--dy)) scale(.3);opacity:0}}
+.cf{position:fixed;top:-12px;width:7px;height:7px;pointer-events:none;z-index:40;animation:cf var(--t) linear forwards}
+@keyframes cf{to{transform:translate(var(--dx),110vh) rotate(var(--r))}}
+.hst .pix{animation:flick 2.6s ease-in-out infinite}.hst.hot .pix{animation-duration:1.4s}
+.chk,.mb,.btn,.pill,.nav button{transition:transform .12s ease}
+.chk:active,.mb:active,.btn:active,.pill:active{transform:scale(.94)}
+@media (prefers-reduced-motion:reduce){#app.enter>*,.ring.anim .rfg,.ring.anim .v b,.pop,.hst .pix{animation:none}}
 /* minimalizm: mniej ramek i tekstu */
 .card,.tile{border-color:transparent}
 .sync.ok{display:none}
@@ -460,14 +491,14 @@ body{background:radial-gradient(var(--dot) 1px,transparent 1.3px) 0 0/16px 16px,
 .nav button.on .pix{filter:drop-shadow(0 0 5px color-mix(in srgb,var(--accent) 60%,transparent))}
 /* pikselowa soczewka Pixy */
 .hal{border-radius:14px;background:var(--surface);border:1px solid var(--line);box-shadow:0 6px 18px rgba(0,0,0,.25);bottom:calc(72px + env(safe-area-inset-bottom,0px))}
-.hal .lens{width:30px;height:30px;border-radius:0;background:none;box-shadow:none;filter:drop-shadow(0 0 4px rgba(255,45,28,.55))}
+.hal .lens{width:30px;height:30px;border-radius:0;background:none;box-shadow:none;filter:drop-shadow(0 0 4px color-mix(in srgb,var(--pxc,#ff2d1c) 60%,transparent))}
 .hal .lens::after{display:none}
 .hal .lens svg{width:30px;height:30px;display:block;shape-rendering:crispEdges}
 .hal.on .lens{animation:halpix 2.4s ease-in-out infinite}
-@keyframes halpix{0%,100%{filter:drop-shadow(0 0 4px rgba(255,45,28,.55)) brightness(1)}50%{filter:drop-shadow(0 0 12px rgba(255,45,28,.95)) brightness(1.3)}}
+@keyframes halpix{0%,100%{filter:drop-shadow(0 0 4px color-mix(in srgb,var(--pxc,#ff2d1c) 60%,transparent)) brightness(1)}50%{filter:drop-shadow(0 0 12px var(--pxc,#ff2d1c)) brightness(1.3)}}
 .hal.talk .lens{animation:halpix 1.1s ease-in-out infinite}
-.pxname{font:400 15px/1 var(--font-pixel);color:#ff4a3d;letter-spacing:.06em}
-.pxsayt b{font:400 14px var(--font-pixel);color:#ff4a3d}
+.pxname{font:400 15px/1 var(--font-pixel);color:color-mix(in srgb,var(--pxc,#ff2d1c) 78%,var(--fg));letter-spacing:.06em}
+.pxsayt b{font:400 14px var(--font-pixel);color:color-mix(in srgb,var(--pxc,#ff2d1c) 78%,var(--fg))}
 .pxpanel{border-radius:18px;bottom:calc(68px + env(safe-area-inset-bottom,0px))}
 .pxsay{bottom:calc(78px + env(safe-area-inset-bottom,0px))}
 .toast{bottom:calc(76px + env(safe-area-inset-bottom,0px))}
@@ -1110,7 +1141,11 @@ function heroHtml(d,sc,st,wk){
   const days=range(ws,addDays(ws,6)).map(x=>'<i class="'+(x>t?'fut':(!S.off[x]&&goodDay(x)?'on':''))+(x===d?' tod':'')+'"></i>').join('');
   return'<div class="card hero"><div class="ring"><svg viewBox="0 0 132 132" aria-hidden="true"><defs><linearGradient id="rgrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--ring1)"/><stop offset="1" style="stop-color:var(--ring2)"/></linearGradient><filter id="rglow" x="-25%" y="-25%" width="150%" height="150%"><feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><circle class="rbg" cx="66" cy="66" r="'+R+'"/>'+(p>0?'<circle class="rfg" cx="66" cy="66" r="'+R+'" stroke-dasharray="'+(C*p).toFixed(1)+' '+C.toFixed(1)+'" transform="rotate(-90 66 66)"/>':'')+'</svg><div class="v"><b>'+(sc==null?'–':Math.round(sc*100)+'%')+'</b><span>wynik dnia</span></div></div><div class="hs"><div class="hst'+(st>=7?' hot':'')+'">'+pix('flame')+'<div><b>'+st+'</b><span>'+(st===1?'dzień':'dni')+' z rzędu</span></div></div><div class="hwk"><span>Tydzień <b>'+(wk==null?'–':Math.round(wk*100)+'%')+'</b></span><div class="wseg" aria-label="Dobre dni w tym tygodniu">'+days+'</div></div></div></div>';
 }
-const LENS_SVG=(()=>{const G=["....oooo....","..oorrrroo..",".orhrRRrrro.",".orrRRRRrro.","orrRRyyRRrro","orRRywwyRRro","orRRywwyRRro","orrRRyyRRrro",".orrRRRRrro.",".orrrRRrrro.","..oorrrroo..","....oooo...."],C={o:'#3a0505',r:'#b5120a',R:'#ff2d1c',y:'#ffb04a',w:'#fff4c2',h:'#ff9a8a'};let r='';G.forEach((row,y)=>[...row].forEach((ch,x)=>{if(C[ch])r+='<rect x="'+x+'" y="'+y+'" width="1" height="1" fill="'+C[ch]+'"/>'}));return'<svg viewBox="0 0 12 12" aria-hidden="true">'+r+'</svg>'})();
+// Kolory soczewki (oka) dla każdej palety Pixy: [obwódka, ciemny, główny, jasny, środek].
+const PX_LENS={turkus:['#063b39','#0f8f86','#3ee6d6','#9ffcf2','#f0fffd'],neon:['#053d1c','#14a84f','#39ff88','#c8ff9e','#f2fff0'],ultra:['#2a1060','#6d3fd0','#b794ff','#e3d4ff','#f6efff'],bursztyn:['#4a1d02','#b85a0a','#ffb347','#ffe0a6','#fff7e6'],sygnal:['#3a0505','#b5120a','#ff2d1c','#ffb04a','#fff4c2'],lod:['#0d3a4a','#2a8db0','#9ff0fb','#dff9ff','#ffffff'],holo:['#34558c','#7f8cff','#c4f1ff','#ffd1f7','#ffffff']};
+const lensCol=k=>(PX_LENS[k]||PX_LENS.sygnal);
+const LENS_C={};
+function lensSvg(k){if(LENS_C[k])return LENS_C[k];const L=lensCol(k),G=["....oooo....","..oorrrroo..",".orhrRRrrro.",".orrRRRRrro.","orrRRyyRRrro","orRRywwyRRro","orRRywwyRRro","orrRRyyRRrro",".orrRRRRrro.",".orrrRRrrro.","..oorrrroo..","....oooo...."],C={o:L[0],r:L[1],R:L[2],y:L[3],w:L[4],h:L[3]};let r='';G.forEach((row,y)=>[...row].forEach((ch,x)=>{if(C[ch])r+='<rect x="'+x+'" y="'+y+'" width="1" height="1" fill="'+C[ch]+'"/>'}));return LENS_C[k]='<svg viewBox="0 0 12 12" aria-hidden="true">'+r+'</svg>'}
 const CHECK_SVG='<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4 8-9"/></svg>';
 function rowHtml(g,d){
   const raw=val(g.id,d),st=goalState(g,d);let ctl='',extra='';
@@ -1137,7 +1172,7 @@ function viewToday(){
   const sc=dayScore(d),wk=groupCompletion(S.goals,wstart(d),addDays(wstart(d),6));
   let h='<div class="datebar"><button class="iconbtn" data-act="prev" aria-label="Poprzedni dzień">‹</button><div class="d">'+dt.toLocaleDateString('pl-PL',{weekday:'long'})+'<small>'+dt.toLocaleDateString('pl-PL',{day:'numeric',month:'long',year:'numeric'})+'</small></div>'+(isT?'':'<button class="iconbtn" data-act="goto-today">Dziś</button>')+'<button class="iconbtn" data-act="next" aria-label="Następny dzień"'+(isT?' disabled':'')+'>›</button></div>';
   if(S.sample)h+='<div class="note"><p><b>Dane przykładowe.</b> Tak będzie wyglądać aplikacja po kilku miesiącach używania. Ludzie i wpisy są wymyśleni.</p><button class="link" data-act="clear">Zacznij od zera</button></div>';
-  h+=heroHtml(d,sc,streak(),wk);
+  h+=heroHtml(d,sc,streak(),wk);if(ui.ringAnim!==d+'|'+ui.tab){ui.ringAnim=d+'|'+ui.tab;h=h.replace('<div class="ring">','<div class="ring anim">')}
   h+='<div class="offmini"><span>'+(S.off[d]?'Dzień wolny: seria jest bezpieczna'+(monthOff>1?' · w tym miesiącu: '+monthOff:''):'Dzień wolny (choroba)')+'</span><button class="sw'+(S.off[d]?' on':'')+'" data-act="off" role="switch" aria-checked="'+(!!S.off[d])+'" aria-label="Dzień wolny (choroba, siła wyższa). Nie przerywa serii."></button></div>';
   h+='<div class="card" id="row-mood"><div class="gn">Nastrój</div><div class="mrow">'+[1,2,3,4,5].map(n=>'<button class="mb'+(S.mood[d]===n?' on md'+n:'')+'" data-act="mood" data-v="'+n+'" aria-pressed="'+(S.mood[d]===n)+'"><b>'+n+'</b><small>'+MOODS[n-1]+'</small></button>').join('')+'</div></div>';
   if(!S.off[d]){
@@ -1501,7 +1536,7 @@ const Ms=(()=>{
     if(!ch)return;
     nw.sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:0).slice(3).forEach(m=>{m.q=1});
     Sync.save();if(ui.tab==='charts'&&!ui.sheet)render();
-    if(nw.length){toast('Kamień milowy: '+nw.sort((a,b)=>a.d<b.d?1:-1)[0].t+'!');Asst.paint()}
+    if(nw.length){FX.confetti(50);toast('Kamień milowy: '+nw.sort((a,b)=>a.d<b.d?1:-1)[0].t+'!');Asst.paint()}
   }
   const short=k=>{const n=+k.split('-').pop();return n>=1e6?String(n/1e6).replace('.',',')+' mln':n>=1e4?String(n/1e3).replace('.',',')+'k':String(n)};
   function card(){
@@ -1633,9 +1668,10 @@ const Bk={list:null,loading:false,
 function viewSettings(){
   const st=S.settings;
   let h='<div class="datebar"><div class="d">Ustawienia</div></div>';
-  const cPixa='<div class="card"><h3>Asystentka Pixa</h3><p class="sub">Niczego nie zmienia bez Twojej zgody.</p><div class="offbar" style="margin:0"><button class="sw'+(S.settings.asst?' on':'')+'" data-act="sasst" role="switch" aria-checked="'+!!S.settings.asst+'" aria-label="Asystentka"></button><span><b style="color:var(--fg)">Pokazuj asystentkę</b>'+(Object.keys(S.asst.off).length?' · <button class="link" data-act="asstreset">przywróć ukryte rodzaje podpowiedzi</button>':'')+'</span></div><span class="fl">Kolory Pixy</span><div class="pxpick"><canvas id="pxprev" width="88" height="126" aria-label="Podgląd Pixy"></canvas><div class="chips">'+Object.keys(PixaArt.PALETTES).map(k=>'<button class="pill'+(S.settings.pixaPal===k?' on':'')+'" data-act="pxpal" data-k="'+k+'"><i class="pxsw" style="background:'+PixaArt.PALETTES[k].body+'"></i>'+PixaArt.PALETTES[k].n+'</button>').join('')+'</div></div><span class="fl">Charakter</span><div class="seg" style="margin-bottom:6px">'+[['soft','Łagodna'],['hard','Twarda']].map(x=>'<button class="'+(S.settings.pixaTone===x[0]?'on':'')+'" data-act="pxtone" data-k="'+x[0]+'">'+x[1]+'</button>').join('')+'</div><p class="gs" style="margin:0 0 12px">'+(S.settings.pixaTone==='hard'?'Np. „Seria 12 dni wisi na włosku. Zrób: Siłownia. Bez wymówek.”':'Np. „Seria 12 dni jest zagrożona. Do dobrego dnia brakuje: Siłownia.”')+'</p><div class="offbar" style="margin:0"><button class="sw'+(S.settings.pixaChat?' on':'')+'" data-act="pxchat" role="switch" aria-checked="'+!!S.settings.pixaChat+'" aria-label="Dymki przy zakładkach"></button><span><b style="color:var(--fg)">Dymki przy zakładkach</b></span></div></div>';
+  const KINDS=[['mood','Nastrój'],['yesterday','Pytanie o wczoraj'],['missing','Braki wieczorem'],['streak','Ochrona serii'],['weekly','Podsumowanie tygodnia'],['monthly','Podsumowanie miesiąca'],['review','Wnioski na koniec tygodnia'],['adjust','Propozycje zmian celów'],['limit','Limity'],['record','Rekordy'],['milestone','Kamienie milowe'],['insight','Wnioski z danych'],['paused','Wstrzymane cele']];
+  const cPixa='<div class="card"><div class="pxstage" aria-hidden="true"><canvas id="pxstage" width="88" height="126"></canvas><div class="pxst-i"><span class="pxname">Pixa</span><span class="pxst-l">'+lensSvg(S.settings.pixaPal)+'</span></div></div><h3>Asystentka Pixa</h3><p class="sub">Niczego nie zmienia bez Twojej zgody. Dotknij Pixy, żeby zareagowała.</p><div class="offbar" style="margin:0"><button class="sw'+(S.settings.asst?' on':'')+'" data-act="sasst" role="switch" aria-checked="'+!!S.settings.asst+'" aria-label="Asystentka"></button><span><b style="color:var(--fg)">Pokazuj asystentkę</b>'+''+'</span></div><span class="fl">Kolory Pixy</span><div class="chips">'+Object.keys(PixaArt.PALETTES).map(k=>'<button class="pill'+(S.settings.pixaPal===k?' on':'')+'" data-act="pxpal" data-k="'+k+'"><i class="pxsw" style="background:'+PixaArt.PALETTES[k].body+'"></i>'+PixaArt.PALETTES[k].n+'</button>').join('')+'</div><span class="fl">Charakter</span><div class="seg" style="margin-bottom:6px">'+[['soft','Łagodna'],['hard','Twarda']].map(x=>'<button class="'+(S.settings.pixaTone===x[0]?'on':'')+'" data-act="pxtone" data-k="'+x[0]+'">'+x[1]+'</button>').join('')+'</div><p class="gs" style="margin:0 0 12px">'+(S.settings.pixaTone==='hard'?'Np. „Seria 12 dni wisi na włosku. Zrób: Siłownia. Bez wymówek.”':'Np. „Seria 12 dni jest zagrożona. Do dobrego dnia brakuje: Siłownia.”')+'</p><div class="offbar" style="margin:0"><button class="sw'+(S.settings.pixaChat?' on':'')+'" data-act="pxchat" role="switch" aria-checked="'+!!S.settings.pixaChat+'" aria-label="Dymki przy zakładkach"></button><span><b style="color:var(--fg)">Dymki przy zakładkach</b></span></div><span class="fl">O czym mówi</span><div class="chips">'+KINDS.map(x=>'<button class="pill'+(S.asst.off[x[0]]?'':' on')+'" data-act="pxkind" data-k="'+x[0]+'" aria-pressed="'+!S.asst.off[x[0]]+'">'+x[1]+'</button>').join('')+'</div></div>';
   const cRem=remindersCard();
-  const cLook='<div class="card"><h3>Wygląd</h3><div class="seg" style="margin:0">'+[['auto','Auto'],['light','Jasny'],['dark','Ciemny']].map(x=>'<button class="'+(ui.theme===x[0]?'on':'')+'" data-act="theme" data-v="'+x[0]+'">'+x[1]+'</button>').join('')+'</div></div>';
+  const cLook='<div class="card"><h3>Wygląd</h3><div class="seg" style="margin:0">'+[['auto','Auto'],['light','Jasny'],['dark','Ciemny']].map(x=>'<button class="'+(ui.theme===x[0]?'on':'')+'" data-act="theme" data-v="'+x[0]+'">'+x[1]+'</button>').join('')+'</div><div class="offbar" style="margin:12px 0 0"><button class="sw'+(S.settings.anim!==false?' on':'')+'" data-act="animt" role="switch" aria-checked="'+(S.settings.anim!==false)+'" aria-label="Animacje"></button><span><b style="color:var(--fg)">Animacje</b></span></div></div>';
   const cScore='<div class="card"><h3>Seria i wynik dnia</h3><p class="sub">Główne cele liczą się ×3, ważne ×1, dodatkowe wcale. Dobry dzień od:</p><div class="seg" style="margin:0">'+[.5,.6,.7,.8,.9,1].map(v=>'<button class="'+(Math.abs(st.streak-v)<.01?'on':'')+'" data-act="sstreak" data-v="'+v+'">'+Math.round(v*100)+'%</button>').join('')+'</div><div class="offbar" style="margin:12px 0 0"><button class="sw'+(st.mainReq?' on':'')+'" data-act="smain" role="switch" aria-checked="'+!!st.mainReq+'" aria-label="Wymagaj głównych celów"></button><span><b style="color:var(--fg)">Wszystkie główne cele muszą być zaliczone.</b></span></div><div class="offbar" style="margin:8px 0 0'+(st.mainReq?'':';opacity:.5')+'"><button class="sw'+(st.mainSoft?' on':'')+'" data-act="ssoft" role="switch" aria-checked="'+!!st.mainSoft+'" aria-label="Złagodzenie dla głównych celów"'+(st.mainReq?'':' disabled')+'></button><span><b style="color:var(--fg)">Złagodzenie:</b> główny cel „trochę obok” albo zrobiony w połowie też się liczy.'+(st.mainReq?'':' Działa przy włączonym przełączniku wyżej.')+'</span></div></div>';
   const lenInputs=(kind,title)=>'<span class="fl">'+title+'</span>'+['s','m','l'].map(k=>'<div class="srow"><span style="width:70px;font-size:13px">'+lenL(k)+'</span><input class="inp" id="len-'+kind+'-'+k+'" value="'+esc(st.len[kind][k])+'" data-chg="slen" data-kind="'+kind+'" data-k="'+k+'"></div>').join('');
   const cLen='<div class="card"><h3>Długość spotkań i rozmów</h3>'+lenInputs('meeting','Spotkania')+lenInputs('call','Rozmowy telefoniczne')+'</div>';
@@ -1734,8 +1770,22 @@ function renderSheet(){
   if(typeof Tour!=='undefined')Tour.paint();
 }
 const GEAR='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
+// Animacje: krótkie, z sensem, wyłączane w Ustawieniach i przy systemowym „ogranicz ruch”.
+const FX={
+  on:()=>!!S&&S.settings.anim!==false&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches),
+  burst(el,color){if(!FX.on()||!el)return;const r=el.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+    for(let i=0;i<12;i++){const a=i/12*Math.PI*2+Math.random()*.4,d=24+Math.random()*24,p=document.createElement('i');p.className='fxb';
+      p.style.cssText='left:'+(cx-3)+'px;top:'+(cy-3)+'px;--dx:'+(Math.cos(a)*d).toFixed(1)+'px;--dy:'+(Math.sin(a)*d).toFixed(1)+'px;background:'+(color||'var(--accent)');document.body.appendChild(p);setTimeout(()=>p.remove(),750)}},
+  confetti(n){if(!FX.on())return;const C=['var(--c-ruch)','var(--c-zdr)','var(--c-um)','var(--c-ogr)','var(--c-rel)','var(--pxc)'];
+    for(let i=0;i<(n||60);i++){const p=document.createElement('i'),t=1.6+Math.random()*1.4;p.className='cf';
+      p.style.cssText='left:'+(Math.random()*100).toFixed(1)+'vw;background:'+C[i%C.length]+';--dx:'+((Math.random()-.5)*140).toFixed(0)+'px;--r:'+(Math.random()*720-360).toFixed(0)+'deg;--t:'+t.toFixed(2)+'s;animation-delay:'+(Math.random()*.5).toFixed(2)+'s';
+      document.body.appendChild(p);setTimeout(()=>p.remove(),(t+.7)*1000)}},
+  pop(el){if(!FX.on()||!el)return;el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop')},
+  col(el){const c=el&&el.closest('[style*="--c"]');return c?getComputedStyle(c).getPropertyValue('--c').trim():''}
+};
 function render(){
   if(!S)return;
+  document.documentElement.style.setProperty('--pxc',lensCol(S.settings.pixaPal)[2]);
   if(S.tour==='new'&&ui.tour==null&&!ui.sheet&&ui.tab==='today'&&!Social.pendingJoin){ui.tour=0;ui.tourLens=false;ui.asstOpen=false}
   if(!render.chatted){render.chatted=true;setTimeout(()=>Asst.chat(ui.tab),1500)}
   if(!render.msc){render.msc=true;setTimeout(()=>Ms.check(),1200)}
@@ -1746,6 +1796,11 @@ function render(){
   Asst.paint();
   Tour.paint();
   Bk.paint();
+  PxStage.start();
+  const app=document.getElementById('app');
+  if(ui.enter&&FX.on()){ui.enter=false;app.classList.remove('enter');void app.offsetWidth;app.classList.add('enter');clearTimeout(render.et);render.et=setTimeout(()=>app.classList.remove('enter'),700);const nb=document.querySelector('.nav button.on .pix');if(nb)FX.pop(nb)}else ui.enter=false;
+  // dobry dzień właśnie zaliczony: konfetti
+  if(ui.tab==='today'){const gd=goodDay(ui.date);if(gd&&ui.prevGood===false&&ui.prevDate===ui.date&&ui.date===todayS()){FX.confetti(70);toast('Dobry dzień zaliczony!')}ui.prevGood=gd;ui.prevDate=ui.date}
 }
 
 /* ---------- zdarzenia ---------- */
@@ -1768,7 +1823,7 @@ function act(a,ds){
   switch(a){
     case'tour':Tour.go(0);break;
     case'msall':ui.msAll=!ui.msAll;render();break;
-    case'tab':ui.tab=ds.t==='cal'?(ui.calLast||'week'):ds.t;ui.confirm=null;render();window.scrollTo(0,0);setTimeout(()=>Asst.chat(ui.tab),350);break;
+    case'tab':ui.tab=ds.t==='cal'?(ui.calLast||'week'):ds.t;ui.confirm=null;ui.enter=true;ui.ringAnim=null;render();window.scrollTo(0,0);setTimeout(()=>Asst.chat(ui.tab),350);break;
     case'theme':ui.theme=ds.v;try{localStorage.setItem('rytm-theme',ui.theme)}catch(e){}applyTheme();render();break;
     case'sstreak':S.settings.streak=+ds.v;save();render();break;
     case'prev':ui.date=addDays(d,-1);render();break;
@@ -1783,7 +1838,7 @@ function act(a,ds){
     case'mode':ui.mode=ds.m;render();break;
     case'goday':ui.date=ds.d;ui.tab='today';render();window.scrollTo(0,0);break;
     case'off':if(S.off[d])delete S.off[d];else S.off[d]=true;save();render();break;
-    case'toggle':{const g=S.goals.find(x=>x.id===ds.g);if(num(val(g.id,d))){setVal(g.id,d,0);ui.open[g.id]=false}else{setVal(g.id,d,1);ui.open[g.id]=true}render();break}
+    case'toggle':{const g=S.goals.find(x=>x.id===ds.g),was=num(val(g.id,d))>0;if(was){setVal(g.id,d,0);ui.open[g.id]=false}else{setVal(g.id,d,1);ui.open[g.id]=true}render();if(!was){const b=document.querySelector('#row-'+g.id+' .chk');FX.pop(b);FX.burst(b,FX.col(b))}break}
     case'vpick':{const g=S.goals.find(x=>x.id===ds.g);setVal(g.id,d,g.variants[+ds.i]);ui.open[g.id]=false;render();break}
     case'vopen':ui.open[ds.g]=true;render();break;
     case'addc':ui.sheet={kind:'contact',gid:ds.g,l:'m',p:[],np:''};renderSheet();break;
@@ -1803,7 +1858,7 @@ function act(a,ds){
       if(isPaused(g)){const l=g.pauses[g.pauses.length-1];if(l.from===t)g.pauses.pop();else l.to=t;toast('Wznowiono: '+g.name+'.')}
       else{g.pauses.push({from:t,to:null});toast('Wstrzymano: '+g.name+'. Historia zostaje.')}
       ui.sheet=null;save();render();break}
-    case'mood':{const v=+ds.v;if(S.mood[d]===v)delete S.mood[d];else S.mood[d]=v;save();render();break}
+    case'mood':{const v=+ds.v;if(S.mood[d]===v)delete S.mood[d];else S.mood[d]=v;save();render();if(S.mood[d]===v)FX.pop(document.querySelector('[data-act=mood][data-v="'+v+'"]'));break}
     case'cpick':{if(!ui.sheet.p.includes(ds.n))ui.sheet.p.push(ds.n);ui.sheet.q='';renderSheet();break}
     case'cunpick':ui.sheet.p=ui.sheet.p.filter(x=>x!==ds.n);renderSheet();break;
     case'cadd':{const n=(ui.sheet.q||'').trim();if(!n)break;if(!S.people.includes(n))S.people.push(n);if(!ui.sheet.p.includes(n))ui.sheet.p.push(n);ui.sheet.q='';save();renderSheet();toast('Dodano: '+n+'.');break}
@@ -1842,8 +1897,10 @@ function act(a,ds){
     case'rday':{const r=S.settings.reminders[+ds.i],j=+ds.j;r.days=r.days||[];if(r.days.includes(j))r.days=r.days.filter(x=>x!==j);else r.days.push(j);r.days.sort();save();render();break}
     case'radd':S.settings.reminders.push({id:'r'+Date.now(),kind:'custom',time:'09:00',days:[0,1,2,3,4,5,6],on:true,text:''});save();render();break;
     case'rdel':S.settings.reminders.splice(+ds.i,1);save();render();break;
-    case'pxpal':S.settings.pixaPal=ds.k;save();render();break;
-    case'pxtone':S.settings.pixaTone=ds.k==='hard'?'hard':'soft';save();render();break;
+    case'pxpal':S.settings.pixaPal=ds.k;save();render();PxStage.react('spin');break;
+    case'pxkind':if(S.asst.off[ds.k])delete S.asst.off[ds.k];else S.asst.off[ds.k]=true;save();render();PxStage.react(S.asst.off[ds.k]?'shrug':'thumbs');break;
+    case'animt':S.settings.anim=S.settings.anim===false;save();render();break;
+    case'pxtone':S.settings.pixaTone=ds.k==='hard'?'hard':'soft';save();render();PxStage.react(S.settings.pixaTone==='hard'?'flex':'love');break;
     case'pxchat':S.settings.pixaChat=!S.settings.pixaChat;save();render();break;
     case'sasst':S.settings.asst=!S.settings.asst;ui.asstOpen=false;save();render();break;
     case'asstreset':S.asst.off={};S.asst.snooze={};save();render();toast('Przywrócono wszystkie podpowiedzi.');break;
@@ -2343,6 +2400,7 @@ const PixaArt=(()=>{
   const W=88,H=126,K=2.5,OY=24,CX=44;
   const PALETTES={
     turkus:{n:'Turkus',body:'#3ee6d6',edge:'#0f6e6b',core:'#f0fffd',hairA:'#8f7bff',hairM:'#7fb2ff',hairB:'#5eead4',acc:'#ff6fb5',spark:'#ffe58a'},
+    neon:{n:'Neonowa zieleń',body:'#4dff9a',edge:'#0a6b3a',core:'#eafff2',hairA:'#c6ff3d',hairM:'#39ff88',hairB:'#00e5ff',acc:'#ff3df2',spark:'#f4ff9a'},
     ultra:{n:'Ultrafiolet',body:'#b794ff',edge:'#4a2399',core:'#f6efff',hairA:'#ff6fcf',hairM:'#c084fc',hairB:'#7dd3fc',acc:'#4ff0ff',spark:'#ffe58a'},
     bursztyn:{n:'Bursztyn',body:'#ffb347',edge:'#8a3c07',core:'#fff7e6',hairA:'#ff4f6e',hairM:'#ff8a5c',hairB:'#ffd166',acc:'#ff3b5c',spark:'#fff1a8'},
     sygnal:{n:'Czerwony sygnał',body:'#ff5a4e',edge:'#85110a',core:'#ffecea',hairA:'#ff9f43',hairM:'#ff7b6b',hairB:'#ffd6a5',acc:'#ffd166',spark:'#fff1a8'},
@@ -2499,6 +2557,19 @@ const PixaArt=(()=>{
     if(f%37<2){const y0=16+((f*13)%70),img=c.getImageData(0,y0,W,5);c.clearRect(0,y0,W,5);c.putImageData(img,(f%2?3:-3),y0)}
   }
   return{draw,POSES,PALETTES,flat,KEYS,W,H};
+})();
+
+/* Żywa Pixa w Ustawieniach: tańczy, zmienia pozy i reaguje na zmiany kolorów, charakteru i podpowiedzi. */
+const PxStage=(()=>{
+  const P=['wave','stand','dance','groove','thumbs','float','idea','orb','cheer','stretch','spin','love','perch','clap','salute','meditate'];
+  let f=0,pose='wave',until=0,next=0,tm=null;
+  function tick(){const c=document.getElementById('pxstage');if(!c||!S){clearInterval(tm);tm=null;return}const n=Date.now();
+    if(n>until&&n>next){let q=pose;while(q===pose)q=P[Math.floor(Math.random()*P.length)];pose=q;next=n+3200}
+    PixaArt.draw(c,f++,pose,null,S.settings.pixaPal)}
+  document.addEventListener('click',e=>{if(e.target.id==='pxstage'||e.target.closest('.pxstage')){const R=['jump','spin','love','clap','wow','facepalm','flex','groove'];react(R[Math.floor(Math.random()*R.length)])}});
+  function react(p){pose=p;until=Date.now()+2600;next=until;const c=document.getElementById('pxstage');if(c&&!tm)PixaArt.draw(c,f++,pose,null,S.settings.pixaPal)}
+  function start(){const c=document.getElementById('pxstage');if(!c)return;const still=!FX.on();if(still){clearInterval(tm);tm=null;PixaArt.draw(c,8,pose,null,S.settings.pixaPal);return}if(!tm){tick();tm=setInterval(tick,110)}else tick()}
+  return{start,react};
 })();
 
 /* ---------- asystentka Pixa (podpowiedzi oparte na regułach, bez AI) ---------- */
@@ -2688,7 +2759,7 @@ const Asst=(()=>{
     if(ui.asstKind){const j=tipsCache.findIndex(x=>x.kind===ui.asstKind);if(j>=0)idx=j;ui.asstKind=null}
     const has=tipsCache.length>0||!!ui.fdone,fresh=(has&&!openedToday())||!!ui.fdone||tipsCache.some(x=>x.kind==='milestone');
     if(!ui.asstOpen){
-      root.innerHTML=(ui.say?sayHtml(ui.say):'')+'<button class="hal'+(fresh?' on':'')+(ui.say?' talk':'')+'" data-asst="open" aria-label="'+(has?'Pixa ma dla Ciebie '+tipsCache.length+' '+(tipsCache.length===1?'wiadomość':'wiadomości'):'Otwórz asystentkę Pixę')+'"><span class="lens">'+LENS_SVG+'</span></button>';
+      root.innerHTML=(ui.say?sayHtml(ui.say):'')+'<button class="hal'+(fresh?' on':'')+(ui.say?' talk':'')+'" data-asst="open" aria-label="'+(has?'Pixa ma dla Ciebie '+tipsCache.length+' '+(tipsCache.length===1?'wiadomość':'wiadomości'):'Otwórz asystentkę Pixę')+'"><span class="lens">'+lensSvg(S.settings.pixaPal)+'</span></button>';
       return;
     }
     const mode=ui.ck?'ck':(ui.fset||focus||ui.fdone)?'focus':ui.breath?'breath':null;
