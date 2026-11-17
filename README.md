@@ -10,9 +10,15 @@ Aplikacja to jedna strona (`index.html`), hostowana na GitHub Pages. Logowanie i
 - `manifest.webmanifest`, ikony: instalacja na ekranie głównym telefonu
 - `sw.js`: działanie bez internetu (bez zapisywania odpowiedzi z bazy)
 
+## Przypomnienia
+
+- `supabase/sql/02_przypomnienia.sql`: tabele urządzeń i dziennika oraz harmonogram (co 5 minut)
+- `supabase/functions/rytm-push/index.ts`: funkcja wysyłająca powiadomienia. Wdrożona w Supabase z wyłączonym „Verify JWT”, bo wywołuje ją harmonogram.
+- Klucze do powiadomień (VAPID) funkcja tworzy sama przy pierwszym użyciu i trzyma w tabeli `rytm_config`, dostępnej tylko z serwera.
+
 ## Baza danych (Supabase)
 
-Tabela z danymi użytkownika. Kod do uruchomienia w SQL Editor:
+Tabela z danymi użytkownika (`supabase/sql/01_dane.sql`). Kod do uruchomienia w SQL Editor:
 
 ```sql
 create table public.rytm_state (

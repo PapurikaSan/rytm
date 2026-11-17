@@ -287,6 +287,14 @@ input,select,textarea{font-size:16px}
 .authlinks{display:flex;flex-direction:column;align-items:flex-start;gap:10px;margin-top:16px}
 .authmsg{margin:14px 0 0;font-size:13.5px;padding:10px 12px;border-radius:10px;background:var(--bad-soft);color:var(--bad)}
 .authmsg.ok{background:var(--good-soft);color:var(--good)}
+.pushbox{margin-bottom:6px}
+.rrow{padding:10px 0;border-top:1px solid var(--line);margin-top:6px}
+.rtop{display:flex;align-items:center;gap:10px}
+.rm{flex:1;min-width:0}
+.rm small{display:block;color:var(--muted);font-size:12px}
+.rtime{width:auto;flex:none;height:38px;padding:0 8px}
+.rdays{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;align-items:center}
+.rdays .pill{padding:4px 9px;font-size:12px}
 </style>
 </head>
 <body>
@@ -389,6 +397,8 @@ function fixState(o){
   o.people=o.people||[];o.notes=o.notes||{};o.reviews=o.reviews||{};o.mood=o.mood||{};o.lt=o.lt||[];o.log=o.log||{};o.off=o.off||{};
   o.goals.forEach(g=>{if((g.type==='do'||g.type==='limit')&&!Array.isArray(g.variants))g.variants=[];if(g.type==='limit'&&!g.w)g.w={};if(!g.prio)g.prio='imp'});
   if(typeof o.settings.mainReq!=='boolean')o.settings.mainReq=true;if(typeof o.settings.mainSoft!=='boolean')o.settings.mainSoft=false;
+  if(!Array.isArray(o.settings.reminders))o.settings.reminders=[{id:'r1',kind:'missing',time:'21:00',days:[0,1,2,3,4,5,6],on:true},{id:'r2',kind:'review',time:'20:00',days:[6],on:true}];
+  try{o.settings.tz=Intl.DateTimeFormat().resolvedOptions().timeZone||'Europe/Warsaw'}catch(e){}
   return o;
 }
 let S=null;
@@ -1154,9 +1164,16 @@ function viewGoals(){
 }
 
 /* ---------- widok: Ustawienia ---------- */
+function remindersCard(){
+  const R=S.settings.reminders,KL={missing:['Uzupełnij dzień','Przychodzi tylko wtedy, gdy czegoś brakuje, i wymienia czego.'],review:['Podsumuj tydzień','Tylko jeśli ten tydzień nie ma jeszcze podsumowania.'],custom:['Własne','']};
+  let h='<div class="card"><h3>Przypomnienia</h3><p class="sub">Przychodzą nawet przy zamkniętej aplikacji. Każde urządzenie włączasz osobno, a godziny poniżej są wspólne dla wszystkich.</p><div id="pushbox" class="pushbox">'+Push.boxHtml()+'</div>';
+  h+=R.map((r,i)=>'<div class="rrow"><div class="rtop"><button class="sw'+(r.on?' on':'')+'" data-act="ron" data-i="'+i+'" role="switch" aria-checked="'+!!r.on+'" aria-label="Włącz: '+KL[r.kind][0]+'"></button><div class="rm"><b>'+KL[r.kind][0]+'</b>'+(KL[r.kind][1]?'<small>'+KL[r.kind][1]+'</small>':'')+'</div><input class="inp rtime" type="time" id="rt-'+r.id+'" value="'+esc(r.time)+'" data-chg="rtime" data-i="'+i+'" aria-label="Godzina"></div>'+(r.kind==='custom'?'<input class="inp" style="margin-top:8px" id="rx-'+r.id+'" value="'+esc(r.text||'')+'" placeholder="Treść, np. Wpisz wagę" data-chg="rtext" data-i="'+i+'">':'')+'<div class="rdays">'+DOW.map((x,j)=>'<button class="pill'+((r.days||[]).includes(j)?' on':'')+'" data-act="rday" data-i="'+i+'" data-j="'+j+'" aria-pressed="'+(r.days||[]).includes(j)+'">'+x+'</button>').join('')+(r.kind==='custom'?'<button class="link" style="margin-left:auto" data-act="rdel" data-i="'+i+'">Usuń</button>':'')+'</div></div>').join('');
+  return h+'<button class="btn" style="margin-top:10px" data-act="radd">+ Dodaj własne przypomnienie</button></div>';
+}
 function viewSettings(){
   const st=S.settings;
   let h='<div class="datebar"><div class="d">Ustawienia</div></div>';
+  h+=remindersCard();
   h+='<div class="card"><h3>Wygląd</h3><p class="sub">Auto dopasowuje się do ustawień telefonu.</p><div class="seg" style="margin:0">'+[['auto','Auto'],['light','Jasny'],['dark','Ciemny']].map(x=>'<button class="'+(ui.theme===x[0]?'on':'')+'" data-act="theme" data-v="'+x[0]+'">'+x[1]+'</button>').join('')+'</div></div>';
   h+='<div class="card"><h3>Seria i wynik dnia</h3><p class="sub">Wynik dnia to średnia z celów ważona priorytetem: główne liczą się potrójnie, ważne pojedynczo, dodatkowe wcale. Cel tygodniowy liczy się jako zaliczony, dopóki da się go jeszcze w tym tygodniu zrobić. Dni wolne nie przerywają serii. Dobry dzień to wynik co najmniej:</p><div class="seg" style="margin:0">'+[.5,.6,.7,.8,.9,1].map(v=>'<button class="'+(Math.abs(st.streak-v)<.01?'on':'')+'" data-act="sstreak" data-v="'+v+'">'+Math.round(v*100)+'%</button>').join('')+'</div><div class="offbar" style="margin:12px 0 0"><button class="sw'+(st.mainReq?' on':'')+'" data-act="smain" role="switch" aria-checked="'+!!st.mainReq+'" aria-label="Wymagaj głównych celów"></button><span><b style="color:var(--fg)">Wszystkie główne cele muszą być zaliczone.</b> Bez tego nawet wysoki wynik nie da dobrego dnia.</span></div><div class="offbar" style="margin:8px 0 0'+(st.mainReq?'':';opacity:.5')+'"><button class="sw'+(st.mainSoft?' on':'')+'" data-act="ssoft" role="switch" aria-checked="'+!!st.mainSoft+'" aria-label="Złagodzenie dla głównych celów"'+(st.mainReq?'':' disabled')+'></button><span><b style="color:var(--fg)">Złagodzenie:</b> główny cel „trochę obok” (np. sen 6,5 h przy celu 7,5 h) albo zrobiony co najmniej w połowie (np. 10 z 20 stron) też się liczy. Dzień psuje dopiero „mocno obok” albo brak wpisu.'+(st.mainReq?'':' Działa tylko przy włączonym przełączniku wyżej.')+'</span></div></div>';
   const lenInputs=(kind,title)=>'<span class="fl">'+title+'</span>'+['s','m','l'].map(k=>'<div class="srow"><span style="width:70px;font-size:13px">'+lenL(k)+'</span><input class="inp" id="len-'+kind+'-'+k+'" value="'+esc(st.len[kind][k])+'" data-chg="slen" data-kind="'+kind+'" data-k="'+k+'"></div>').join('');
@@ -1326,6 +1343,10 @@ function act(a,ds){
     case'gprio':ui.sheet.g.prio=ds.p;renderSheet();break;
     case'ssoft':S.settings.mainSoft=!S.settings.mainSoft;save();render();break;
     case'smain':S.settings.mainReq=!S.settings.mainReq;save();render();break;
+    case'ron':{const r=S.settings.reminders[+ds.i];r.on=!r.on;save();render();break}
+    case'rday':{const r=S.settings.reminders[+ds.i],j=+ds.j;r.days=r.days||[];if(r.days.includes(j))r.days=r.days.filter(x=>x!==j);else r.days.push(j);r.days.sort();save();render();break}
+    case'radd':S.settings.reminders.push({id:'r'+Date.now(),kind:'custom',time:'09:00',days:[0,1,2,3,4,5,6],on:true,text:''});save();render();break;
+    case'rdel':S.settings.reminders.splice(+ds.i,1);save();render();break;
     case'csel':ui.catSel[ds.c]=ds.d;render();break;
     case'newgoal':openGoal(null);break;
     case'editgoal':openGoal(ds.g);break;
@@ -1377,6 +1398,8 @@ document.addEventListener('change',e=>{
   if(c==='note'){const v=el.value.trim(),dd=ui.date;if(v)S.notes[dd]=v;else delete S.notes[dd];save();toast('Zapisano notatkę.')}
   if(c==='rv'){const w=el.dataset.w,k=el.dataset.k,v=el.value.trim();S.reviews[w]=S.reviews[w]||{};if(v)S.reviews[w][k]=v;else delete S.reviews[w][k];if(!Object.keys(S.reviews[w]).length)delete S.reviews[w];save();toast('Zapisano podsumowanie.')}
   if(c==='ltg'){ui.sheet.x.goal=el.value;const sv=document.getElementById('ltsave');if(sv)sv.disabled=!validLt(ui.sheet.x)}
+  if(c==='rtime'&&el.value){S.settings.reminders[+el.dataset.i].time=el.value;save();toast('Zapisano godzinę.')}
+  if(c==='rtext'){S.settings.reminders[+el.dataset.i].text=el.value.trim();save()}
   if(c==='slen'){const v=el.value.trim();if(v){S.settings.len[el.dataset.kind][el.dataset.k]=v;save()}}
   if(c==='renp'){
     const i=+el.dataset.i,old=S.people[i],n=el.value.trim();
@@ -1451,8 +1474,9 @@ const Sync=(()=>{
   function save(){if(!S||!user)return;pending=true;cacheWrite();setStatus('Zapisywanie…');clearTimeout(timer);timer=setTimeout(push,800)}
   async function pull(){const {data,error}=await sb.from('rytm_state').select('data,updated_at').eq('user_id',user.id).maybeSingle();if(error)throw error;return data}
   async function afterLogin(){
+    if(location.hash==='#week'){ui.tab='week';history.replaceState(null,'',location.pathname+location.search)}
     const c=cacheRead();
-    if(c&&c.data){S=fixState(c.data);remoteAt=c.at;pending=!!c.pending;ui.tab='today';render()}
+    if(c&&c.data){S=fixState(c.data);remoteAt=c.at;pending=!!c.pending;render()}
     else page('<p class="sub" style="text-align:center;margin-top:40px">Wczytuję Twoje dane…</p>');
     try{
       const r=await pull();
@@ -1478,7 +1502,7 @@ const Sync=(()=>{
       '<button class="opt" data-act="start" data-k="zero"><b>Od zera</b><span>Pusta aplikacja. Sam dodajesz kategorie i cele.</span></button>'+
       '<button class="opt" data-act="start" data-k="sample"><b>Najpierw rozejrzę się na przykładowych danych</b><span>110 wymyślonych dni. Potem jednym kliknięciem wyczyścisz wpisy i zostaną same cele.</span></button></div>');
   }
-  function start(k){S=k==='sample'?seed():k==='template'?templateState():emptyState();ui.tab=k==='zero'?'goals':'today';save();render()}
+  function start(k){S=fixState(k==='sample'?seed():k==='template'?templateState():emptyState());ui.tab=k==='zero'?'goals':'today';save();render()}
   function authPage(){
     const m=authMode,f=(id,type,lab,ac,ph)=>'<label class="fl" for="'+id+'">'+lab+'</label><input class="inp" id="'+id+'" type="'+type+'" autocomplete="'+ac+'"'+(ph?' placeholder="'+ph+'"':'')+(type==='email'?' value="'+esc(lastEmail)+'"':'')+' required>';
     let h='<div class="authwrap"><p class="sub" style="margin-bottom:16px">Twoje cele i nawyki w jednym miejscu, na telefonie i laptopie.</p><form class="card" id="authform" novalidate>';
@@ -1540,9 +1564,71 @@ const Sync=(()=>{
     if(a==='back'){authMsg=null;render()}
     if(a==='retry')afterLogin();
   });
-  return{boot,save,start,badge:()=>'<span class="sync '+status.c+'" id="sync">'+esc(status.t)+'</span>',email:()=>user?user.email:''};
+  return{boot,save,start,client:()=>sb,uid:()=>user&&user.id,badge:()=>'<span class="sync '+status.c+'" id="sync">'+esc(status.t)+'</span>',email:()=>user?user.email:''};
 })();
 
+const Push=(()=>{
+  let st='checking',msg=null;
+  const ios=/iPhone|iPad|iPod/.test(navigator.userAgent),standalone=window.navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches;
+  const supported=()=>'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window;
+  const b64=s=>{const r=atob((s+'='.repeat((4-s.length%4)%4)).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from([...r].map(c=>c.charCodeAt(0)))};
+  function err(e){
+    const m=String((e&&(e.message||e.name))||e||'');
+    if(/rytm_push|PGRST205|42P01/.test(m))return'Brakuje tabel przypomnień w bazie. Uruchom kod SQL z instrukcji (SQL Editor w Supabase).';
+    if(/func|Functions|non-2xx|Failed to send/i.test(m))return'Usługa przypomnień nie odpowiada. Sprawdź, czy funkcja rytm-push jest wdrożona w Supabase i ma wyłączone „Verify JWT”.';
+    if(/NotAllowed|denied/i.test(m))return'Urządzenie nie pozwoliło na powiadomienia.';
+    return'Coś poszło nie tak: '+m;
+  }
+  async function check(){
+    if(ios&&!standalone)st='ios-browser';
+    else if(!supported())st='unsupported';
+    else if(Notification.permission==='denied')st='denied';
+    else{try{const reg=await navigator.serviceWorker.ready;st=(await reg.pushManager.getSubscription())?'on':'off'}catch(e){st='off'}}
+    paint();
+  }
+  function paint(){const el=document.getElementById('pushbox');if(el)el.innerHTML=boxHtml()}
+  function boxHtml(){
+    if(st==='checking'){setTimeout(check,0);return'<p class="gs">Sprawdzam to urządzenie…</p>'}
+    const M={
+      'ios-browser':'<p class="gs" style="margin:0">Na iPhonie przypomnienia działają tylko w aplikacji dodanej do ekranu początkowego. W Safari kliknij <b>Udostępnij → Do ekranu początkowego</b>, otwórz Rytm z ikony i włącz przypomnienia tutaj.</p>',
+      'unsupported':'<p class="gs" style="margin:0">Ta przeglądarka nie obsługuje powiadomień.</p>',
+      'denied':'<p class="gs" style="margin:0">Powiadomienia są zablokowane. Na iPhonie: <b>Ustawienia → Powiadomienia → Rytm</b> i włącz. W przeglądarce: kłódka obok adresu → Powiadomienia → Zezwalaj.</p>',
+      'on':'<p class="gs st-ok" style="margin:0 0 8px">Na tym urządzeniu przypomnienia są włączone.</p><div class="actions" style="margin-top:0"><button class="btn" data-push="test">Wyślij próbne</button><button class="btn" data-push="off">Wyłącz tutaj</button></div>',
+      'off':'<button class="btn main" style="width:100%" data-push="on">Włącz przypomnienia na tym urządzeniu</button>'
+    };
+    return(M[st]||'')+(msg?'<p class="authmsg'+(msg.ok?' ok':'')+'" role="status">'+esc(msg.t)+'</p>':'');
+  }
+  async function on(){
+    msg=null;
+    try{
+      const perm=await Notification.requestPermission();
+      if(perm!=='granted'){st=perm==='denied'?'denied':'off';msg={t:'Bez zgody na powiadomienia przypomnienia nie przyjdą.'};return paint()}
+      msg={t:'Włączam…',ok:true};paint();
+      const sb=Sync.client(),{data,error}=await sb.functions.invoke('rytm-push',{body:{action:'public-key'}});
+      if(error||!data||!data.publicKey)throw error||new Error('func');
+      const reg=await navigator.serviceWorker.ready;
+      let sub=await reg.pushManager.getSubscription();
+      if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64(data.publicKey)});
+      const j=sub.toJSON(),r=await sb.from('rytm_push').upsert({user_id:Sync.uid(),endpoint:j.endpoint,sub:j},{onConflict:'endpoint'});
+      if(r.error)throw r.error;
+      st='on';msg={t:'Gotowe. Kliknij „Wyślij próbne”, żeby sprawdzić.',ok:true};
+    }catch(e){msg={t:err(e)}}
+    paint();
+  }
+  async function off(){
+    try{const reg=await navigator.serviceWorker.ready,sub=await reg.pushManager.getSubscription();if(sub){await Sync.client().from('rytm_push').delete().eq('endpoint',sub.endpoint);await sub.unsubscribe()}st='off';msg={t:'Wyłączono na tym urządzeniu.',ok:true}}
+    catch(e){msg={t:err(e)}}
+    paint();
+  }
+  async function test(){
+    msg={t:'Wysyłam…',ok:true};paint();
+    try{const {data,error}=await Sync.client().functions.invoke('rytm-push',{body:{action:'test'}});if(error)throw error;msg=data&&data.sent?{t:'Wysłane, powinno przyjść za kilka sekund.',ok:true}:{t:'Nie udało się wysłać. Wyłącz i włącz przypomnienia ponownie.'}}
+    catch(e){msg={t:err(e)}}
+    paint();
+  }
+  document.addEventListener('click',e=>{const el=e.target.closest('[data-push]');if(!el)return;const a=el.dataset.push;if(a==='on')on();if(a==='off')off();if(a==='test')test()});
+  return{boxHtml};
+})();
 Sync.boot();
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script>
