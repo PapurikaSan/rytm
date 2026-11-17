@@ -331,6 +331,16 @@ input,select,textarea{font-size:16px}
 .pxpick{display:flex;gap:12px;align-items:center}
 .pxpick canvas{flex:none;width:88px;height:126px;image-rendering:pixelated;background:var(--bg);border-radius:10px}
 .pxsw{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px;box-shadow:0 0 0 1px rgba(0,0,0,.15)}
+.toastbtn{margin-left:12px;font-weight:700;color:var(--bg);text-decoration:underline;text-underline-offset:3px}
+.toast{display:flex;align-items:center;gap:4px}
+.toast[hidden]{display:none!important}
+.bkrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:13.5px}
+.bkrow:first-child{border-top:0}
+.bkrow .btn{height:34px;font-size:13px;padding:0 12px}
+.pxstep{font:600 11px var(--font-body);color:var(--muted);margin-top:2px}
+.pxin{display:flex;gap:6px;margin-top:8px}
+.pxin .inp{height:36px;flex:1;min-width:0}
+.pxin .btn{height:36px;padding:0 12px;flex:none}
 </style>
 </head>
 <body>
@@ -436,7 +446,7 @@ function fixState(o){
   if(typeof o.settings.mainReq!=='boolean')o.settings.mainReq=true;if(typeof o.settings.mainSoft!=='boolean')o.settings.mainSoft=false;
   if(typeof o.settings.asst!=='boolean')o.settings.asst=true;
   if(!o.settings.pixaPal)o.settings.pixaPal='turkus';
-  o.asst=o.asst||{};o.asst.snooze=o.asst.snooze||{};o.asst.off=o.asst.off||{};
+  o.asst=o.asst||{};o.asst.snooze=o.asst.snooze||{};o.asst.off=o.asst.off||{};o.asst.ck=o.asst.ck||{};{const lim=addDays(todayS(),-14);Object.keys(o.asst.ck).forEach(k=>{if(k<lim)delete o.asst.ck[k]})}
   if(!Array.isArray(o.settings.reminders))o.settings.reminders=[{id:'r1',kind:'missing',time:'21:00',days:[0,1,2,3,4,5,6],on:true},{id:'r2',kind:'review',time:'20:00',days:[6],on:true}];
   try{o.settings.tz=Intl.DateTimeFormat().resolvedOptions().timeZone||'Europe/Warsaw'}catch(e){}
   return o;
@@ -446,7 +456,11 @@ function save(){Sync.save()}
 let ui={tab:'today',date:todayS(),wk:0,mo:0,mode:'w',cg:null,sheet:null,open:{},confirm:null,oc:{},selDay:null,catSel:{},personSel:null,pq:'',ser:{}};
 try{ui.theme=localStorage.getItem('rytm-theme')||'auto'}catch(e){ui.theme='auto'}
 function applyTheme(){const r=document.documentElement;if(ui.theme==='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',ui.theme)}
-function toast(m){const el=document.getElementById('toast');el.textContent=m;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>{el.hidden=true},2600)}
+function toast(m){const el=document.getElementById('toast');el.textContent=m;el.hidden=false;toast.fn=null;clearTimeout(toast.t);toast.t=setTimeout(()=>{el.hidden=true},2600)}
+// Powiadomienie z przyciskiem „Cofnij” (przywraca stan sprzed zmiany).
+function toastUndo(m,fn){const el=document.getElementById('toast');el.innerHTML=esc(m)+'<button class="toastbtn" data-undo>Cofnij</button>';el.hidden=false;toast.fn=fn;clearTimeout(toast.t);toast.t=setTimeout(()=>{el.hidden=true;toast.fn=null},6500)}
+function withUndo(m){const s0=JSON.stringify(S);return()=>toastUndo(m,()=>{S=fixState(JSON.parse(s0));save();render();toast('Cofnięto.')})}
+document.addEventListener('click',e=>{if(!e.target.closest('[data-undo]'))return;const f=toast.fn;document.getElementById('toast').hidden=true;toast.fn=null;if(f)f()});
 
 /* ---------- logika ---------- */
 const thr=()=>S.settings.streak;
@@ -1313,6 +1327,12 @@ function remindersCard(){
   h+=R.map((r,i)=>'<div class="rrow"><div class="rtop"><button class="sw'+(r.on?' on':'')+'" data-act="ron" data-i="'+i+'" role="switch" aria-checked="'+!!r.on+'" aria-label="Włącz: '+KL[r.kind][0]+'"></button><div class="rm"><b>'+KL[r.kind][0]+'</b>'+(KL[r.kind][1]?'<small>'+KL[r.kind][1]+'</small>':'')+'</div><input class="inp rtime" type="time" id="rt-'+r.id+'" value="'+esc(r.time)+'" data-chg="rtime" data-i="'+i+'" aria-label="Godzina"></div>'+(r.kind==='custom'?'<input class="inp" style="margin-top:8px" id="rx-'+r.id+'" value="'+esc(r.text||'')+'" placeholder="Treść, np. Wpisz wagę" data-chg="rtext" data-i="'+i+'">':'')+'<div class="rdays">'+DOW.map((x,j)=>'<button class="pill'+((r.days||[]).includes(j)?' on':'')+'" data-act="rday" data-i="'+i+'" data-j="'+j+'" aria-pressed="'+(r.days||[]).includes(j)+'">'+x+'</button>').join('')+(r.kind==='custom'?'<button class="link" style="margin-left:auto" data-act="rdel" data-i="'+i+'">Usuń</button>':'')+'</div></div>').join('');
   return h+'<button class="btn" style="margin-top:10px" data-act="radd">+ Dodaj własne przypomnienie</button></div>';
 }
+const Bk={list:null,loading:false,
+  paint(){const el=document.getElementById('bkbox');if(!el)return;
+    if(Bk.list===null){if(!Bk.loading){Bk.loading=true;Sync.backups().then(l=>{Bk.list=l}).catch(()=>{Bk.list=false}).finally(()=>{Bk.loading=false;Bk.paint()})}return}
+    if(Bk.list===false){el.innerHTML='<p class="gs" style="margin:0">Nie udało się wczytać listy kopii. Sprawdź internet.</p>';return}
+    if(!Bk.list.length){el.innerHTML='<p class="gs" style="margin:0">Pierwsza kopia pojawi się w nocy.</p>';return}
+    el.innerHTML=Bk.list.map(b=>'<div class="bkrow"><span>'+parse(b.day).toLocaleDateString('pl-PL',{weekday:'short',day:'numeric',month:'long',year:'numeric'})+'</span><button class="btn" data-act="'+(ui.confirm==='bk'+b.day?'bkrestore':'bkask')+'" data-day="'+b.day+'">'+(ui.confirm==='bk'+b.day?'Na pewno przywrócić?':'Przywróć')+'</button></div>').join('')}};
 function viewSettings(){
   const st=S.settings;
   let h='<div class="datebar"><div class="d">Ustawienia</div></div>';
@@ -1325,6 +1345,7 @@ function viewSettings(){
   h+='<div class="card"><h3>Znajomi</h3><p class="sub">Na liście: '+S.people.length+' '+plOs(S.people.length)+'. Dodawaj, zmieniaj i usuwaj osoby.</p><button class="btn" data-act="people">Zarządzaj znajomymi</button></div>';
   h+='<div class="card"><h3>Kategorie</h3><p class="sub">Zmień nazwę albo kolejność. Nowe kategorie tworzysz przy dodawaniu celu.</p>'+cats().map((c,i)=>'<div class="srow"><input class="inp" id="cat-'+i+'" value="'+esc(c)+'" data-chg="renc" data-c="'+esc(c)+'" aria-label="Nazwa kategorii"><div class="mv"><button data-act="cmove" data-i="'+i+'" data-dir="-1" aria-label="Wyżej">↑</button><button data-act="cmove" data-i="'+i+'" data-dir="1" aria-label="Niżej">↓</button></div></div>').join('')+'</div>';
   h+='<div class="card"><h3>Konto</h3><p class="sub">Zalogowano jako <b style="color:var(--fg)">'+esc(Sync.email())+'</b>. Dane zapisują się automatycznie i są takie same na każdym urządzeniu, na którym się zalogujesz.</p><div class="actions" style="margin-top:0"><button class="btn" data-auth="changepw">Zmień hasło</button><button class="btn" data-auth="logout">Wyloguj</button></div></div>';
+  h+='<div class="card"><h3>Kopie automatyczne</h3><p class="sub">Raz w tygodniu serwer sam zapisuje kopię Twoich danych. Trzyma ok. 10 ostatnich. Przywrócenie podmienia obecne dane, ale zawsze możesz to cofnąć.</p><div id="bkbox"><p class="gs" style="margin:0">Wczytuję…</p></div></div>';
   h+='<div class="card"><h3>Dane</h3><p class="sub">Dane są w Twoim koncie. Dodatkowo możesz zrobić kopię: skopiuj dane i zachowaj je np. w notatkach. Żeby je przywrócić, wklej je w pole i kliknij „Wczytaj”.</p><div class="actions" style="margin-top:0"><button class="btn" data-act="copy">Kopiuj dane</button><button class="btn" data-act="'+(ui.confirm==='reseed'?'reseed':'askreseed')+'">'+(ui.confirm==='reseed'?'Na pewno? Zastąpi wszystkie Twoje dane':'Wczytaj dane przykładowe')+'</button></div><textarea class="inp" id="imp" style="margin-top:10px" placeholder="Wklej tu kopię danych"></textarea><div class="actions"><button class="btn" data-act="import">Wczytaj z pola</button><button class="btn danger" data-act="'+(ui.confirm==='wipe'?'wipe':'askwipe')+'">'+(ui.confirm==='wipe'?'Na pewno usuń wszystko':'Usuń wszystkie dane')+'</button></div></div>';
   return h;
 }
@@ -1409,6 +1430,7 @@ function render(){
   document.getElementById('app').innerHTML='<div class="top"><div class="brand">Rytm'+Sync.badge()+'</div><button class="iconbtn'+(ui.tab==='settings'?' on':'')+'" data-act="tab" data-t="settings">'+GEAR+'Ustawienia</button></div>'+body+'<nav class="nav" aria-label="Widoki"><div>'+tabs.map(t=>'<button class="'+(ui.tab===t[0]?'on':'')+'" data-act="tab" data-t="'+t[0]+'">'+t[1]+'</button>').join('')+'</div></nav>';
   renderSheet();
   Asst.paint();
+  Bk.paint();
 }
 
 /* ---------- zdarzenia ---------- */
@@ -1448,7 +1470,7 @@ function act(a,ds){
     case'vpick':{const g=S.goals.find(x=>x.id===ds.g);setVal(g.id,d,g.variants[+ds.i]);ui.open[g.id]=false;render();break}
     case'vopen':ui.open[ds.g]=true;render();break;
     case'addc':ui.sheet={kind:'contact',gid:ds.g,l:'m',p:[],np:''};renderSheet();break;
-    case'delc':{const a2=(val(ds.g,d)||[]).slice();a2.splice(+ds.i,1);setVal(ds.g,d,a2);render();break}
+    case'delc':{const u=withUndo('Usunięto wpis.');const a2=(val(ds.g,d)||[]).slice();a2.splice(+ds.i,1);setVal(ds.g,d,a2);render();u();break}
     case'clen':ui.sheet.l=ds.k;renderSheet();break;
     case'cperson':{const p=S.people[+ds.i],i=ui.sheet.p.indexOf(p);if(i<0)ui.sheet.p.push(p);else ui.sheet.p.splice(i,1);renderSheet();break}
     case'addperson':{const n=(ui.sheet.np||'').trim();if(n){if(!S.people.includes(n))S.people.push(n);if(!ui.sheet.p.includes(n))ui.sheet.p.push(n);ui.sheet.np='';save()}renderSheet();break}
@@ -1476,7 +1498,7 @@ function act(a,ds){
     case'ltkind':{const x=ui.sheet.x;x.kind=ds.k;const o=ltOpts(x.kind);if(!o.some(g=>g.id===x.goal))x.goal=o.length?o[0].id:null;renderSheet();break}
     case'ltinc':case'ltdec':{const x=S.lt.find(y=>y.id===ds.id);x.count=Math.max(0,(x.count||0)+(a==='ltinc'?1:-1));save();render();break}
     case'askdellt':ui.sheet.del=true;renderSheet();break;
-    case'dellt':S.lt=S.lt.filter(y=>y.id!==ui.sheet.x.id);ui.sheet=null;save();render();toast('Usunięto cel długoterminowy.');break;
+    case'dellt':{const u=withUndo('Usunięto cel długoterminowy.');S.lt=S.lt.filter(y=>y.id!==ui.sheet.x.id);ui.sheet=null;save();render();u();break}
     case'savelt':{
       const x=ui.sheet.x;if(!validLt(x))break;x.name=x.name.trim();
       if(x.kind==='value'){const g=S.goals.find(y=>y.id===x.goal);let l=lastMeasure(g,x.from);if(!l){const f=Object.keys(S.log).sort().find(d=>d>=x.from&&S.log[d][g.id]!=null);if(f)l={v:S.log[f][g.id]}}x.start=l?l.v:x.target}
@@ -1506,6 +1528,8 @@ function act(a,ds){
     case'pxpal':S.settings.pixaPal=ds.k;save();render();break;
     case'sasst':S.settings.asst=!S.settings.asst;ui.asstOpen=false;save();render();break;
     case'asstreset':S.asst.off={};S.asst.snooze={};save();render();toast('Przywrócono wszystkie podpowiedzi.');break;
+    case'bkask':ui.confirm='bk'+ds.day;render();break;
+    case'bkrestore':{ui.confirm=null;Sync.backupData(ds.day).then(dt=>{if(!dt){toast('Nie znaleziono tej kopii.');return}const u=withUndo('Przywrócono kopię z '+shortDate(ds.day)+'.');S=fixState(dt);save();render();u()}).catch(()=>toast('Nie udało się wczytać kopii. Sprawdź internet.'));break}
     case'csel':ui.catSel[ds.c]=ds.d;render();break;
     case'newgoal':openGoal(null);break;
     case'editgoal':openGoal(ds.g);break;
@@ -1514,7 +1538,7 @@ function act(a,ds){
     case'gkind':ui.sheet.g.kind=ds.k;renderSheet();break;
     case'gnotarget':{const g=ui.sheet.g;g.target=g.target==null?(g.type==='do'?3:g.type==='measure'?70:2):null;renderSheet();break}
     case'askdel':ui.sheet.del=true;renderSheet();break;
-    case'delgoal':S.goals=S.goals.filter(x=>x.id!==ui.sheet.g.id);ui.sheet=null;save();render();toast('Usunięto cel.');break;
+    case'delgoal':{const u=withUndo('Usunięto cel.');S.goals=S.goals.filter(x=>x.id!==ui.sheet.g.id);ui.sheet=null;save();render();u();break}
     case'savegoal':{
       const g=ui.sheet.g;if(!validGoal(g))break;
       g.name=g.name.trim();g.cat=g.cat.trim();
@@ -1525,13 +1549,13 @@ function act(a,ds){
       if(i>=0)S.goals[i]=g;else S.goals.push(g);
       ui.sheet=null;save();render();toast('Zapisano cel.');break;
     }
-    case'delp':{const p=S.people[+ds.i];S.people.splice(+ds.i,1);if(ui.sheet&&ui.sheet.kind==='people'){ui.sheet.del=null;if(ui.sheet.back)ui.sheet.back.p=ui.sheet.back.p.filter(x=>x!==p)}save();render();break}
-    case'clear':S.log={};S.off={};S.people=[];S.notes={};S.reviews={};S.mood={};S.lt.forEach(x=>{if(x.kind==='manual')x.count=0});S.sample=false;save();render();toast('Wyczyszczono wpisy. Cele zostały.');break;
+    case'delp':{const u=withUndo('Usunięto osobę z listy.');setTimeout(u,0);const p=S.people[+ds.i];S.people.splice(+ds.i,1);if(ui.sheet&&ui.sheet.kind==='people'){ui.sheet.del=null;if(ui.sheet.back)ui.sheet.back.p=ui.sheet.back.p.filter(x=>x!==p)}save();render();break}
+    case'clear':{const u=withUndo('Wyczyszczono wpisy. Cele zostały.');S.log={};S.off={};S.people=[];S.notes={};S.reviews={};S.mood={};S.lt.forEach(x=>{if(x.kind==='manual')x.count=0});S.sample=false;save();render();u();break}
     case'askreseed':ui.confirm='reseed';render();break;
     case'start':Sync.start(ds.k);window.scrollTo(0,0);break;
-    case'reseed':ui.confirm=null;S=seed();save();render();toast('Wczytano dane przykładowe.');break;
+    case'reseed':{const u=withUndo('Wczytano dane przykładowe.');ui.confirm=null;S=seed();save();render();u();break}
     case'askwipe':ui.confirm='wipe';render();break;
-    case'wipe':S={goals:[],people:[],log:{},off:{},notes:{},reviews:{},mood:{},lt:[],sample:false,settings:JSON.parse(JSON.stringify(DEF_SET))};ui.confirm=null;save();render();toast('Usunięto wszystkie dane.');break;
+    case'wipe':{const u=withUndo('Usunięto wszystkie dane.');S={goals:[],people:[],log:{},off:{},notes:{},reviews:{},mood:{},lt:[],sample:false,settings:JSON.parse(JSON.stringify(DEF_SET))};ui.confirm=null;save();render();u();break}
     case'copy':{
       const txt=JSON.stringify(S);
       const fb=()=>{const ta=document.getElementById('imp');ta.value=txt;ta.focus();ta.select();toast('Dane są zaznaczone w polu poniżej. Skopiuj je ręcznie.')};
@@ -1603,13 +1627,26 @@ const templateState=()=>Object.assign(emptyState(),{goals:[
   {id:'g-eat',name:'Zdrowe jedzenie',cat:'Zdrowie',type:'do',period:'day',target:1,variants:[],prio:'imp',act:'eat',groups:[]},
   {id:'g-read',name:'Czytanie',cat:'Umysł',type:'qty',period:'day',target:10,unit:'stron',prio:'imp',act:'read',groups:[]}
 ]});
+// Łączenie zmian: base = ostatnio zsynchronizowany stan, l = to urządzenie, r = baza.
+// Dla każdego wpisu: jeśli tu się nie zmienił, bierzemy wersję z bazy; jeśli zmienił się tylko tu, bierzemy tutejszą.
+// Gdy zmienił się w obu miejscach, wygrywa to urządzenie.
+function mergeState(base,l,r){
+  base=base||{};const J=x=>JSON.stringify(x===undefined?null:x),pick=(b,a,c)=>J(a)===J(b)?c:a;
+  const map=(b,a,c,deep)=>{b=b||{};a=a||{};c=c||{};const o={};new Set([...Object.keys(a),...Object.keys(c),...Object.keys(b)]).forEach(k=>{const v=deep?map(b[k],a[k],c[k],false):pick(b[k],a[k],c[k]);if(v===undefined||v===null)return;if(deep&&!Object.keys(v).length)return;o[k]=v});return o};
+  const byId=(b,a,c)=>{const ix=x=>{const m={};(x||[]).forEach(e=>{m[e.id]=e});return m},B=ix(b),A=ix(a),C=ix(c),ids=(a||[]).map(e=>e.id).concat((c||[]).map(e=>e.id).filter(id=>!A[id]));return[...new Set(ids)].map(id=>pick(B[id],A[id],C[id])).filter(Boolean)};
+  const set=(b,a,c)=>{b=b||[];a=a||[];c=c||[];const out=[];a.concat(c).forEach(x=>{if(out.includes(x))return;const inA=a.includes(x),inC=c.includes(x),inB=b.includes(x);if(inB&&(!inA||!inC))return;out.push(x)});return out};
+  const asst=(b,a,c)=>{b=b||{};a=a||{};c=c||{};return{snooze:map(b.snooze,a.snooze,c.snooze),off:map(b.off,a.off,c.off),ck:map(b.ck,a.ck,c.ck)}};
+  return Object.assign({},r,l,{log:map(base.log,l.log,r.log,true),mood:map(base.mood,l.mood,r.mood),notes:map(base.notes,l.notes,r.notes),off:map(base.off,l.off,r.off),reviews:map(base.reviews,l.reviews,r.reviews),
+    goals:byId(base.goals,l.goals,r.goals),lt:byId(base.lt,l.lt,r.lt),people:set(base.people,l.people,r.people),settings:map(base.settings,l.settings,r.settings),asst:asst(base.asst,l.asst,r.asst)});
+}
 const Sync=(()=>{
-  let sb=null,user=null,timer=null,pending=false,remoteAt=null,status={t:'',c:''},authMode='login',authMsg=null,lastEmail='',recovery=false,busy=false;
+  let sb=null,user=null,timer=null,pending=false,remoteAt=null,base=null,status={t:'',c:''},authMode='login',authMsg=null,lastEmail='',recovery=false,busy=false;
   const ck=()=>'rytm-cache-'+(user?user.id:'');
   const T=x=>x?Date.parse(x):0;
   function paint(){const el=document.getElementById('sync');if(el){el.textContent=status.t;el.className='sync '+status.c}}
   function setStatus(t,c){status={t,c:c||''};paint()}
-  function cacheWrite(){try{localStorage.setItem(ck(),JSON.stringify({data:S,at:remoteAt,pending}))}catch(e){}}
+  function cacheWrite(){try{localStorage.setItem(ck(),JSON.stringify({data:S,at:remoteAt,pending,base}))}catch(e){}}
+  const copy=x=>JSON.parse(JSON.stringify(x));
   function cacheRead(){try{return JSON.parse(localStorage.getItem(ck())||'null')}catch(e){return null}}
   function errText(e){
     const m=String((e&&e.message)||e||'');
@@ -1627,11 +1664,15 @@ const Sync=(()=>{
     if(!user||!S)return;
     if(!navigator.onLine){setStatus('Offline, zapiszę później','warn');return}
     setStatus('Zapisywanie…');
-    const at=new Date().toISOString();
     try{
+      let merged=false;
+      const head=await sb.from('rytm_state').select('updated_at').eq('user_id',user.id).maybeSingle();if(head.error)throw head.error;
+      if(head.data&&T(head.data.updated_at)>T(remoteAt)){const r=await pull();if(r){S=fixState(mergeState(base,S,r.data));merged=true}}
+      const at=new Date().toISOString();
       const {error}=await sb.from('rytm_state').upsert({user_id:user.id,data:S,updated_at:at});
       if(error)throw error;
-      pending=false;remoteAt=at;cacheWrite();setStatus('Zapisano','ok');Social.queueShares();
+      pending=false;remoteAt=at;base=copy(S);cacheWrite();setStatus('Zapisano','ok');Social.queueShares();
+      if(merged){render();toast('Połączono zmiany z innego urządzenia.')}
     }catch(e){
       pending=true;cacheWrite();setStatus('Nie zapisano, ponowię','bad');
       clearTimeout(timer);timer=setTimeout(push,15000);
@@ -1644,13 +1685,13 @@ const Sync=(()=>{
     if(location.hash==='#week'||location.hash==='#friends'){ui.tab=location.hash.slice(1);history.replaceState(null,'',location.pathname+location.search)}
     if(Social.pendingJoin)ui.tab='friends';
     const c=cacheRead();
-    if(c&&c.data){S=fixState(c.data);remoteAt=c.at;pending=!!c.pending;render()}
+    if(c&&c.data){S=fixState(c.data);remoteAt=c.at;pending=!!c.pending;base=c.base||null;render()}
     else page('<p class="sub" style="text-align:center;margin-top:40px">Wczytuję Twoje dane…</p>');
     try{
       const r=await pull();
       if(!r){if(S)await push();else welcome();return}
-      if(S&&pending){if(T(r.updated_at)>T(remoteAt))toast('Na innym urządzeniu były nowsze zmiany. Zostawiam te z tego urządzenia.');await push()}
-      else if(!S||T(r.updated_at)!==T(remoteAt)){S=fixState(r.data);remoteAt=r.updated_at;cacheWrite();ui.tab=ui.tab==='welcome'?'today':ui.tab;render()}
+      if(S&&pending){await push()}
+      else if(!S||T(r.updated_at)!==T(remoteAt)){S=fixState(r.data);remoteAt=r.updated_at;base=copy(r.data);cacheWrite();ui.tab=ui.tab==='welcome'?'today':ui.tab;render()}
       setStatus('Zapisano','ok');
       Social.load();
     }catch(e){
@@ -1661,7 +1702,7 @@ const Sync=(()=>{
   async function refresh(){
     if(!user||!S||busy)return;
     if(pending){push();return}
-    try{const r=await pull();if(r&&T(r.updated_at)>T(remoteAt)){S=fixState(r.data);remoteAt=r.updated_at;cacheWrite();render();toast('Wczytano zmiany z innego urządzenia.')}}catch(e){}
+    try{const r=await pull();if(r&&T(r.updated_at)>T(remoteAt)){S=fixState(r.data);remoteAt=r.updated_at;base=copy(r.data);cacheWrite();render();toast('Wczytano zmiany z innego urządzenia.')}}catch(e){}
   }
   function page(inner){document.getElementById('sheet').innerHTML='';document.getElementById('app').innerHTML='<div class="top"><div class="brand">Rytm</div></div>'+inner}
   function welcome(){
@@ -1722,7 +1763,7 @@ const Sync=(()=>{
     try{if(pending)await push()}catch(e){}
     try{localStorage.removeItem(ck())}catch(e){}
     try{await sb.auth.signOut()}catch(e){}
-    Social.reset();user=null;S=null;remoteAt=null;pending=false;authMsg={t:'Wylogowano.',ok:true};renderAuth('login');
+    Social.reset();user=null;S=null;remoteAt=null;base=null;pending=false;authMsg={t:'Wylogowano.',ok:true};renderAuth('login');
   }
   document.addEventListener('submit',e=>{if(e.target.id==='authform'){e.preventDefault();submit()}});
   document.addEventListener('click',e=>{
@@ -1733,7 +1774,9 @@ const Sync=(()=>{
     if(a==='back'){authMsg=null;render()}
     if(a==='retry')afterLogin();
   });
-  return{boot,save,start,client:()=>sb,uid:()=>user&&user.id,badge:()=>'<span class="sync '+status.c+'" id="sync">'+esc(status.t)+'</span>',email:()=>user?user.email:''};
+  async function backups(){const {data,error}=await sb.from('rytm_backup').select('day').eq('user_id',user.id).order('day',{ascending:false});if(error)throw error;return data||[]}
+  async function backupData(day){const {data,error}=await sb.from('rytm_backup').select('data').eq('user_id',user.id).eq('day',day).maybeSingle();if(error)throw error;return data&&data.data}
+  return{boot,save,start,backups,backupData,client:()=>sb,uid:()=>user&&user.id,badge:()=>'<span class="sync '+status.c+'" id="sync">'+esc(status.t)+'</span>',email:()=>user?user.email:''};
 })();
 
 /* ---------- znajomi: grupy, udostępnianie, ranking, wyzwania, piątki ---------- */
@@ -2033,16 +2076,49 @@ const Asst=(()=>{
   // ---- reguły ----
   const niceRound=x=>x<10?Math.max(1,Math.round(x)):x<100?Math.max(5,Math.round(x/5)*5):Math.round(x/50)*50;
   const firstDay=()=>Object.keys(S.log).sort()[0]||todayS();
+  // ---- uzupełnianie dnia ----
+  const ckTypes=g=>g.type==='qty'||g.type==='range'||(g.type==='do'&&g.period==='day')||(isMeasure(g)&&g.period==='day');
+  function missingFor(d){if(S.off[d])return[];const ans=S.asst.ck[d]||[];return S.goals.filter(g=>!pausedAt(g,d)&&ckTypes(g)&&!ans.includes(g.id)&&(g.type==='do'?!num(val(g.id,d)):val(g.id,d)==null))}
+  function answered(d,id){const a=S.asst.ck[d]=S.asst.ck[d]||[];if(!a.includes(id))a.push(id)}
+  function startCk(d,list){ui.ck={d,q:list.map(g=>g.id),i:0,n:0};ui.asstOpen=true;choose('think')}
+  const dayWord=d=>d===todayS()?'Dziś':d===addDays(todayS(),-1)?'Wczoraj':shortDate(d);
+  const names=l=>l.slice(0,4).map(g=>g.name).join(', ')+(l.length>4?' i '+(l.length-4)+' więcej':'');
+  function ckBubble(){
+    const c=ui.ck;
+    if(c.i>=c.q.length)return'<p class="pxtxt">Gotowe! '+dayWord(c.d)+' uzupełniony'+(c.n?' ('+c.n+' '+(c.n===1?'wpis':'wpisy')+')':'')+'.</p><div class="pxact"><button class="btn main" data-asst="ckend">Dzięki!</button></div>';
+    const g=S.goals.find(x=>x.id===c.q[c.i]);if(!g){c.i++;return ckBubble()}
+    const u=g.unit?' '+g.unit:'',head='<div class="pxstep">'+dayWord(c.d)+' · '+(c.i+1)+'/'+c.q.length+'</div>';
+    const btn=(v,l)=>'<button class="btn" data-asst="ckv" data-v="'+v+'">'+esc(l)+'</button>';
+    let q,body;
+    if(g.type==='do'){q=g.name+': udało się?';body='<div class="pxact"><button class="btn main" data-asst="ckyes">Tak</button><button class="btn" data-asst="ckno">Nie</button></div>'}
+    else{
+      const last=(()=>{for(let k=1;k<=14;k++){const v=val(g.id,addDays(c.d,-k));if(v!=null&&!Array.isArray(v))return v}return null})();
+      let opts=[];
+      if(g.type==='range')opts=[g.target-g.ok,g.target,g.target+g.ok];
+      else if(isMax(g))opts=[0,g.target];
+      else if(g.type==='qty')opts=[g.target];
+      if(last!=null&&!opts.some(v=>Math.abs(v-last)<1e-9))opts.push(last);
+      q=g.type==='range'&&g.unit==='h'?g.name+': ile godzin?':g.name+': ile'+(g.unit?' ('+g.unit+')':'')+'?';
+      body='<div class="pxact">'+opts.slice(0,4).map(v=>btn(v,fmt(v)+u)).join('')+'</div><div class="pxin"><input class="inp ckin" id="ckin" inputmode="decimal" placeholder="Inna wartość" aria-label="'+esc(g.name)+'"><button class="btn main" data-asst="cksave">Zapisz</button></div>';
+    }
+    return head+'<p class="pxtxt">'+esc(q)+'</p>'+body+'<div class="pxfoot"><button class="link" data-asst="ckskip">'+(g.type==='do'?'Pomiń':'Nie pamiętam')+'</button><button class="link" data-asst="ckend">Zakończ</button></div>';
+  }
+  function ckAnswer(v,kind){
+    const c=ui.ck,id=c.q[c.i],g=S.goals.find(x=>x.id===id);
+    if(g&&v!=null){if(v===0&&isMax(g)){S.log[c.d]=S.log[c.d]||{};S.log[c.d][id]=0}else setVal(id,c.d,v);c.n++}
+    answered(c.d,id);react(null,kind==='yes'?{mood:5}:kind==='no'?null:{mood:4});c.i++;save();
+    if(ui.tab==='today'&&ui.date===c.d)render();else paint();
+  }
   function tips(){
     if(!S||!S.settings.asst)return[];
     const t=todayS(),hour=new Date().getHours(),out=[],ws=wstart(t),fd=firstDay();
     const add=(id,kind,pr,text,actions)=>{const sn=S.asst.snooze[id];if(S.asst.off[kind]||(sn&&sn>t))return;out.push({id,kind,pr,text,actions})};
     if(!S.goals.length)add('first','start',100,'Cześć! Jestem Pixa. Zacznijmy od pierwszego celu. Co chcesz robić regularnie?',[{l:'Dodaj cel',f:()=>{ui.asstOpen=false;openGoal(null)}}]);
     if(S.mood[t]==null&&!S.off[t])add('mood-'+t,'mood',80,'Jak się dziś czujesz?',MOODS.map((m,i)=>({l:(i+1)+' '+m.toLowerCase(),mood:i+1,f:()=>{S.mood[t]=i+1;save();toast('Zapisano nastrój.')}})));
+    {const y=addDays(t,-1),my=missingFor(y);if(my.length&&firstDay()<=y)add('yest-'+y,'yesterday',78,'Wczoraj nie było wpisu przy: '+names(my)+'. Nie pominąłeś czegoś?',[{l:'Uzupełnij',f:()=>startCk(y,my)},{l:'Nic więcej nie było',f:()=>{my.forEach(g=>answered(y,g.id));toast('OK, wczoraj zamknięty.')}}])}
     if(hour>=18&&!S.off[t]){
-      const need=S.goals.filter(g=>!pausedAt(g,t)&&(g.type==='qty'||g.type==='range'||(g.type==='do'&&g.period==='day')));
-      const miss=need.filter(g=>g.type==='do'?!num(val(g.id,t)):val(g.id,t)==null);
-      if(miss.length)add('miss-'+t,'missing',70,'Do uzupełnienia na dziś: '+miss.slice(0,4).map(g=>g.name).join(', ')+(miss.length>4?' i '+(miss.length-4)+' więcej':'')+'.',[{l:'Pokaż',f:()=>{ui.asstOpen=false;ui.tab='today';ui.date=t;render();setTimeout(()=>act('jump',{g:miss[0].id}),50)}}]);
+      const miss=missingFor(t);
+      if(miss.length)add('miss-'+t,'missing',70,'Do uzupełnienia na dziś: '+names(miss)+'.',[{l:'Uzupełnij z Pixą',f:()=>startCk(t,miss)},{l:'Pokaż',f:()=>{ui.asstOpen=false;ui.tab='today';ui.date=t;render();setTimeout(()=>act('jump',{g:miss[0].id}),50)}}]);
     }
     if(new Date().getDay()===0&&hour>=17&&!(S.reviews[ws]&&(S.reviews[ws].good||S.reviews[ws].improve)))add('rev-'+ws,'review',60,'Koniec tygodnia. Podsumujesz go w minutę? Co poszło dobrze, co poprawić?',[{l:'Podsumuj',f:()=>{ui.asstOpen=false;ui.tab='week';ui.wk=0;render();setTimeout(()=>{const el=document.getElementById('rv-good');if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.focus({preventScroll:true})}},50)}}]);
     S.goals.forEach(g=>{
@@ -2071,7 +2147,7 @@ const Asst=(()=>{
     try{const ins=insights().find(x=>x.good===true);if(ins)add('ins-'+ins.t,'insight',20,'Zauważyłam coś w Twoich danych. '+ins.t+': średnio '+fmt(ins.a)+ins.u+', a bez tego '+fmt(ins.b)+ins.u+'.',[{l:'Ciekawe',f:()=>{}}])}catch(e){}
     return out.sort((a,b)=>b.pr-a.pr);
   }
-  function snooze(tp){const days=tp.kind==='mood'||tp.kind==='missing'?1:tp.kind==='adjust'||tp.kind==='limit'?7:14;S.asst.snooze[tp.id]=addDays(todayS(),days);save()}
+  function snooze(tp){const days=tp.kind==='mood'||tp.kind==='missing'||tp.kind==='yesterday'?1:tp.kind==='adjust'||tp.kind==='limit'?7:14;S.asst.snooze[tp.id]=addDays(todayS(),days);save()}
   function paint(){
     const pv=document.getElementById('pxprev');if(pv&&S)PixaArt.draw(pv,14,'wave',null,S.settings.pixaPal);
     const root=document.getElementById('asst');if(!root)return;
@@ -2083,29 +2159,39 @@ const Asst=(()=>{
       root.innerHTML='<button class="hal'+(fresh?' on':'')+'" data-asst="open" aria-label="'+(has?'Pixa ma dla Ciebie '+tipsCache.length+' '+(tipsCache.length===1?'wiadomość':'wiadomości'):'Otwórz asystentkę Pixę')+'"><span class="lens"></span></button>';
       return;
     }
-    const tp=tipsCache[idx];
+    const tp=ui.ck?null:tipsCache[idx];
     let bub;
-    if(!tp)bub='<p class="pxtxt">Wszystko gra. Nie mam teraz żadnych pytań. Zajrzę, gdy coś zauważę.</p>';
+    if(ui.ck)bub=ckBubble();
+    else if(!tp)bub='<p class="pxtxt">Wszystko gra. Nie mam teraz żadnych pytań. Zajrzę, gdy coś zauważę.</p>';
     else bub='<p class="pxtxt">'+esc(tp.text)+'</p><div class="pxact">'+(tp.actions[0]&&tp.actions[0].mood?tp.actions.map((a,j)=>'<button class="mb md'+a.mood+'" data-asst="do" data-j="'+j+'" aria-label="'+esc(a.l)+'"><b>'+a.mood+'</b></button>').join(''):tp.actions.map((a,j)=>'<button class="btn main" data-asst="do" data-j="'+j+'">'+esc(a.l)+'</button>').join(''))+'</div><div class="pxfoot"><button class="link" data-asst="later">Nie teraz</button><button class="link" data-asst="never">Nie pokazuj takich</button>'+(tipsCache.length>1?'<button class="link pxnext" data-asst="next">'+(idx+1)+'/'+tipsCache.length+' ›</button>':'')+'</div>';
     root.innerHTML='<div class="pxpanel" role="dialog" aria-label="Pixa, asystentka"><div class="pxavw"><canvas class="pxav" width="88" height="126" data-asst="poke" role="img" aria-label="Pixa"></canvas></div><div class="pxbub"><div class="pxname">Pixa</div>'+bub+'</div><button class="pxclose" data-asst="close" aria-label="Zamknij asystentkę">×</button></div>';
     const cv=root.querySelector('.pxav');
-    setCtx(tp);
+    if(!ui.ck)setCtx(tp);
     if(reduced()){PixaArt.draw(cv,0,ctxPose||'stand',null,S.settings.pixaPal);return}
     let last=0;const loop=ts=>{if(ts-last>100){last=ts;step(cv)}anim=requestAnimationFrame(loop)};anim=requestAnimationFrame(loop);
   }
   document.addEventListener('click',e=>{
     const el=e.target.closest('[data-asst]');if(!el)return;const a=el.dataset.asst,tp=tipsCache[idx];
     if(a==='open'){ui.asstOpen=true;idx=0;try{localStorage.setItem(openedKey,todayS())}catch(x){}paint()}
-    if(a==='close'){ui.asstOpen=false;paint()}
+    if(a==='close'){ui.asstOpen=false;ui.ck=null;paint()}
+    if(ui.ck){
+      if(a==='ckv')ckAnswer(parseNum(el.dataset.v),'val');
+      if(a==='ckyes')ckAnswer(1,'yes');
+      if(a==='ckno'||a==='ckskip')ckAnswer(null,'no');
+      if(a==='cksave'){const v=parseNum((document.getElementById('ckin')||{}).value);if(v==null){toast('Wpisz liczbę.');return}ckAnswer(v,'val')}
+      if(a==='ckend'){ui.ck=null;react(null,{mood:5});if(ui.tab==='today')render();else paint()}
+      return;
+    }
     if(a==='poke'){poke()}
     if(a==='next'){idx=(idx+1)%tipsCache.length;react(null,null);paint()}
     if(a==='later'&&tp){react(tp,null);snooze(tp);paint()}
     if(a==='never'&&tp){react(tp,null);S.asst.off[tp.kind]=true;save();toast('Nie pokażę już takich podpowiedzi. Przywrócisz je w Ustawieniach.');paint()}
-    if(a==='do'&&tp){const ac=tp.actions[+el.dataset.j];react(tp,ac);S.asst.snooze[tp.id]=addDays(todayS(),3650);ac.f();save();if(ui.tab==='today'||ui.tab==='settings'||ui.tab==='goals')render();else paint()}
+    if(a==='do'&&tp){const ac=tp.actions[+el.dataset.j];if(tp.kind==='adjust'||tp.kind==='paused'){const u=withUndo('Zmieniono cel.');setTimeout(u,0)}react(tp,ac);S.asst.snooze[tp.id]=addDays(todayS(),3650);ac.f();save();if(ui.tab==='today'||ui.tab==='settings'||ui.tab==='goals')render();else paint()}
   });
   return{paint,tips};
 })();
 
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target&&e.target.id==='ckin'){const b=document.querySelector('[data-asst=cksave]');if(b)b.click()}});
 const Push=(()=>{
   let st='checking',msg=null;
   const ios=/iPhone|iPad|iPod/.test(navigator.userAgent),standalone=window.navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches;
