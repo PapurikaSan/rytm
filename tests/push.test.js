@@ -11,7 +11,7 @@ const stubPush=`(()=>{let perm='default';Object.defineProperty(Notification,'per
  await p.goto('http://localhost:8765/');await p.evaluate(()=>localStorage.clear());await p.reload();await p.waitForTimeout(300);
  await p.fill('#a-email','jan@example.com');await p.fill('#a-pass','dobrehaslo1');await p.click('#authform button[type=submit]');await p.waitForTimeout(400);
  await p.click('[data-act=start][data-k=template]');await p.waitForTimeout(200);
- await p.click('.top [data-t=settings]');await p.waitForTimeout(500);
+ await p.click('.top [data-t=settings]');await p.click('[data-act=setsec][data-k=pixa]');await p.waitForTimeout(500);
  console.log('1 box:',(await p.textContent('#pushbox')).trim());
  await p.click('[data-push=on]');await p.waitForTimeout(500);
  console.log('2 after on:',(await p.textContent('#pushbox')).trim(),'| key bytes:',await p.evaluate(()=>window.__appKeyLen),'| row:',await p.evaluate(()=>!!(window.__db.t.rytm_push&&window.__db.t.rytm_push[0]&&window.__db.t.rytm_push[0].endpoint)));
@@ -25,7 +25,7 @@ const stubPush=`(()=>{let perm='default';Object.defineProperty(Notification,'per
  const ip=await b.newContext({...devices['iPhone 13']});await ip.route(/supabase-js/,r=>r.fulfill({contentType:'application/javascript',body:fake}));
  const q=await ip.newPage();await q.goto('http://localhost:8765/');await q.fill('#a-email','jan@example.com');await q.fill('#a-pass','dobrehaslo1');await q.click('#authform button[type=submit]');await q.waitForTimeout(400);
  if(await q.isVisible('[data-act=start]'))await q.click('[data-act=start][data-k=template]');
- await q.click('.top [data-t=settings]');await q.waitForTimeout(400);console.log('6 iPhone Safari:',(await q.textContent('#pushbox')).trim().slice(0,90));
+ await q.click('.top [data-t=settings]');await q.click('[data-act=setsec][data-k=pixa]');await q.waitForTimeout(400);console.log('6 iPhone Safari:',(await q.textContent('#pushbox')).trim().slice(0,90));
  console.log('ov',await p.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth));
  console.log('errors',JSON.stringify(errs));await b.close();
 })();

@@ -31,7 +31,7 @@ const {chromium}=require('playwright');const fs=require('fs'),path=require('path
  await p2.fill('#a-email','jan@example.com');await p2.fill('#a-pass','dobrehaslo1');await p2.click('#authform button[type=submit]');await p2.waitForTimeout(500);
  console.log('9 laptop sees mood:',await p2.isVisible('.mb.on'));
  // ustawienia: konto + wylogowanie
- await p.click('.top [data-t=settings]');console.log('10 account:',(await p.textContent('.card:has(h3:text("Konto")) .sub')).trim());
+ await p.click('.top [data-t=settings]');await p.click('[data-act=setsec][data-k=acc]');console.log('10 account:',(await p.textContent('.card:has(h3:text("Konto")) .sub')).trim());
  await p.click('[data-auth=logout]');await p.waitForTimeout(300);console.log('11 logged out:',(await p.textContent('.authmsg')).trim());
  console.log('manifest ok:',(await (await p.request.get('http://localhost:8765/manifest.webmanifest')).json()).name);
  console.log('ov',await p.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth));

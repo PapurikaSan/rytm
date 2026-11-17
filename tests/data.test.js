@@ -31,7 +31,7 @@ const fake=fs.readFileSync(path.join(__dirname,'fake-supabase.js'),'utf8');
   await p.click('[data-undo]');await p.waitForTimeout(100);console.log('  po Cofnij:',await p.evaluate(()=>S.goals.some(g=>g.id==='g-eat')));
   // 3) kopie automatyczne
   await p.evaluate(()=>{const d=JSON.parse(JSON.stringify(S));d.goals=d.goals.slice(0,1);window.__db.t.rytm_backup=[{user_id:'u1',day:addDays(todayS(),-3),data:d},{user_id:'u1',day:addDays(todayS(),-10),data:d}];localStorage.setItem('__fakedb',JSON.stringify(window.__db));Bk.list=null});
-  await p.click('.top [data-t=settings]');await p.waitForTimeout(300);
+  await p.click('.top [data-t=settings]');await p.click('[data-act=setsec][data-k=data]');await p.waitForTimeout(300);
   console.log('3 kopie na liście:',await p.$$eval('#bkbox .bkrow',e=>e.length));
   await p.click('#bkbox .bkrow .btn');await p.click('[data-act=bkrestore]');await p.waitForTimeout(200);
   console.log('  po przywróceniu celów:',await p.evaluate(()=>S.goals.length),'| toast:',(await p.textContent('#toast')).trim());
