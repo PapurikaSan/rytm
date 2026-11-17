@@ -2241,7 +2241,7 @@ const Asst=(()=>{
     const pv=document.getElementById('pxprev');if(pv&&S)PixaArt.draw(pv,14,'wave',null,S.settings.pixaPal);
     const root=document.getElementById('asst');if(!root)return;
     if(anim){cancelAnimationFrame(anim);anim=null}
-    if(!S||!S.settings.asst||ui.sheet){root.innerHTML='';return}
+    if(!S||!S.settings.asst||ui.sheet||ui.tab==='settings'){root.innerHTML='';return}
     tipsCache=tips();if(idx>=tipsCache.length)idx=0;
     const has=tipsCache.length>0||!!ui.fdone,fresh=(has&&!openedToday())||!!ui.fdone;
     if(!ui.asstOpen){
