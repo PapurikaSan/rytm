@@ -1528,7 +1528,13 @@ applyTheme();
 const SB_URL='https://jscxrlwhuwisbpubbedg.supabase.co';
 const SB_KEY='sb_publishable_VMKE9dSxNVeHBOTjclQoSg_aO4taX2z';
 const emptyState=()=>({goals:[],people:[],log:{},off:{},notes:{},reviews:{},mood:{},lt:[],sample:false,settings:JSON.parse(JSON.stringify(DEF_SET))});
-const templateState=()=>Object.assign(emptyState(),{goals:seed().goals});
+// Zestaw startowy: kilka uniwersalnych celów bez osobistych ustawień. Resztę użytkownik dodaje sam w Celach.
+const templateState=()=>Object.assign(emptyState(),{goals:[
+  {id:'g-gym',name:'Siłownia',cat:'Ruch',type:'do',period:'week',target:3,variants:[],prio:'main',act:'gym',groups:[]},
+  {id:'g-sleep',name:'Sen',cat:'Zdrowie',type:'range',period:'day',target:7.5,unit:'h',ok:.5,warn:1.5,prio:'main',act:'sleep',groups:[]},
+  {id:'g-eat',name:'Zdrowe jedzenie',cat:'Zdrowie',type:'do',period:'day',target:1,variants:[],prio:'imp',act:'eat',groups:[]},
+  {id:'g-read',name:'Czytanie',cat:'Umysł',type:'qty',period:'day',target:10,unit:'stron',prio:'imp',act:'read',groups:[]}
+]});
 const Sync=(()=>{
   let sb=null,user=null,timer=null,pending=false,remoteAt=null,status={t:'',c:''},authMode='login',authMsg=null,lastEmail='',recovery=false,busy=false;
   const ck=()=>'rytm-cache-'+(user?user.id:'');
@@ -1593,7 +1599,7 @@ const Sync=(()=>{
   function welcome(){
     ui.tab='welcome';
     page('<div class="card"><h3 style="font-size:20px">Witaj w Rytmie</h3><p class="sub">Jak chcesz zacząć? Później wszystko możesz zmienić.</p>'+
-      '<button class="opt" data-act="start" data-k="template"><b>Gotowy zestaw celów</b><span>15 celów w 5 kategoriach (fizyczne, zdrowie, umysł, relacje, rodzina), bez żadnych wpisów. Zmieniasz, co chcesz. Polecam.</span></button>'+
+      '<button class="opt" data-act="start" data-k="template"><b>Podstawowy zestaw</b><span>4 cele na start: siłownia 3 razy w tygodniu, sen 7,5 h, zdrowe jedzenie i 10 stron czytania dziennie. Resztę dodasz w Celach. Polecam.</span></button>'+
       '<button class="opt" data-act="start" data-k="zero"><b>Od zera</b><span>Pusta aplikacja. Sam dodajesz kategorie i cele.</span></button>'+
       '<button class="opt" data-act="start" data-k="sample"><b>Najpierw rozejrzę się na przykładowych danych</b><span>110 wymyślonych dni. Potem jednym kliknięciem wyczyścisz wpisy i zostaną same cele.</span></button></div>');
   }

@@ -17,13 +17,13 @@ const {chromium}=require('playwright');const fs=require('fs'),path=require('path
  console.log('5 welcome:',await p.isVisible('text=Witaj w Rytmie'));
  await p.click('[data-act=start][data-k=template]');await p.waitForTimeout(200);
  console.log('6 today goals:',(await p.$$eval('#app .goal .gn',e=>e.map(x=>x.textContent))).length,'sample banner:',await p.isVisible('text=Dane przykładowe'));
- await p.click('[data-act=mood][data-v="5"]');await p.click('#row-eat [data-act=toggle]');await p.waitForTimeout(1200);
+ await p.click('[data-act=mood][data-v="5"]');await p.click('#row-g-eat [data-act=toggle]');await p.waitForTimeout(1200);
  console.log('7 saved:',await p.textContent('#sync'),'upserts:',await p.evaluate(()=>window.__upserts),'db mood:',await p.evaluate(()=>JSON.stringify(window.__db.t.rytm_state.find(r=>r.user_id==='u1').data.mood)));
  
  // odświeżenie: dane z bazy, a nie z pamięci podręcznej
  await p.evaluate(()=>{for(const k of Object.keys(localStorage))if(k.startsWith('rytm-cache'))localStorage.removeItem(k)});
  await p.reload();await p.waitForTimeout(600);
- console.log('8 after reload mood on:',await p.isVisible('.mb.on'),'eat checked:',await p.isVisible('#row-eat .chk.on'));
+ console.log('8 after reload mood on:',await p.isVisible('.mb.on'),'eat checked:',await p.isVisible('#row-g-eat .chk.on'));
  // inne urządzenie: nowa przeglądarka bez pamięci podręcznej, ta sama baza
  const db=await p.evaluate(()=>localStorage.getItem('__fakedb'));
  const ctx2=await b.newContext({viewport:{width:1280,height:900}});await ctx2.route(/supabase-js/,r=>r.fulfill({contentType:'application/javascript',body:fs.readFileSync(path.join(__dirname,'fake-supabase.js'),'utf8')}));
