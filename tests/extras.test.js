@@ -36,7 +36,7 @@ const fake=fs.readFileSync(path.join(__dirname,'fake-supabase.js'),'utf8');
   // przypomnienie poniedziałkowe w Ustawieniach
   await p.click('[data-act=tab][data-t=settings]');await p.evaluate(()=>{ui.setSec='pixa';render()});await w(100);
   console.log('  przypomnienia:',await p.evaluate(()=>S.settings.reminders.map(r=>r.kind+' '+r.time+' '+JSON.stringify(r.days)).join(' | ')));
-  console.log('  wiersz poniedziałkowy bez dni tygodnia:',await p.evaluate(()=>{const r=[...document.querySelectorAll('.rrow')].find(x=>x.textContent.includes('Podsumowanie od Pixy'));return !!r&&!r.querySelector('.rdays')}));
+  console.log('  wiersz poniedziałkowy bez dni tygodnia:',await p.evaluate(()=>{const r=[...document.querySelectorAll('.rrow')].find(x=>x.textContent.includes('Podsumowanie tygodnia'));return !!r&&!r.querySelector('.rdays')}));
 
   // 2) kamienie milowe: 9 treningów, potem dziesiąty
   await p.evaluate(()=>{S.settings.pixaChat=false;ui.say=null;render()}); // dymki mają osobny test
