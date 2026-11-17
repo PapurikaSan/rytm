@@ -313,13 +313,15 @@ input,select,textarea{font-size:16px}
 @keyframes halglow{0%,100%{filter:brightness(.95);box-shadow:0 0 6px rgba(255,45,28,.45)}50%{filter:brightness(1.4);box-shadow:0 0 18px 4px rgba(255,45,28,.7)}}
 .pxav{image-rendering:pixelated;image-rendering:crisp-edges;cursor:pointer}
 .pxpanel{position:fixed;left:max(10px,env(safe-area-inset-left,0px));right:max(10px,env(safe-area-inset-right,0px));bottom:calc(64px + env(safe-area-inset-bottom,0px));max-width:620px;margin:0 auto;z-index:15;display:flex;gap:10px;align-items:flex-end;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:10px 10px 10px 8px;box-shadow:0 8px 24px rgba(0,0,0,.18)}
-.pxav{flex:none;width:88px;height:116px;margin:-10px -4px -6px -6px}
+.pxavw{flex:none;position:relative;width:124px;height:232px;margin:-84px -6px -8px -6px;overflow:hidden;pointer-events:none}
+.pxav{position:absolute;left:-26px;bottom:0;width:176px;height:232px;pointer-events:auto}
 .pxbub{flex:1;min-width:0;background:var(--bg);border-radius:12px 12px 12px 4px;padding:8px 10px}
 .pxname{font:700 11px var(--font-body);color:#e0362f;letter-spacing:.06em;text-transform:uppercase}
 .pxtxt{margin:2px 0 8px;font-size:13.5px;line-height:1.4}
 .pxact{display:flex;flex-wrap:wrap;gap:6px}
 .pxact .btn{height:36px;padding:0 12px;font-size:13px;flex:none}
-.pxact .mb{width:40px;padding:6px 0}
+.pxact .mb{width:34px;padding:5px 0}
+.pxact:has(.mb){gap:4px;flex-wrap:nowrap}
 .pxfoot{display:flex;gap:12px;margin-top:8px;font-size:12px;align-items:center}
 .pxfoot .link{font-size:12px;color:var(--muted)}
 .pxnext{margin-left:auto}
@@ -1879,7 +1881,7 @@ const Social=(()=>{
 })();
 function viewFriends(){return Social.view()}
 
-/* Pixa: oryginalna, abstrakcyjna kobieca postać z linii światła (siatka 88×116). Pozy liczone ze szkieletu. */
+/* Pixa: oryginalna, abstrakcyjna kobieca postać z linii światła (siatka 88×116), włosy z pasm danych w górę. Pozy liczone ze szkieletu. */
 const PixaArt=(()=>{
   const W=88,H=116,K=2.5,OY=14,CX=44;
   const PALETTES={
@@ -1899,8 +1901,13 @@ const PixaArt=(()=>{
     jump:{px:18,py:22,t:0,la:[-150,-170],ra:[150,170],ll:[-28,15],rl:[28,-15],face:'joy',fx:'spark',hop:1},
     orb:{px:18,py:24,t:4,la:[-12,-10],ra:[140,165],ll:[-4,-2],rl:[4,2],face:'happy',fx:'orb'},
     peek:{px:18,py:44,t:0,la:[-125,-75],ra:[125,75],ll:[0,0],rl:[0,0],face:'look',peek:1},
-    perch:{px:18,py:29,t:0,la:[-35,-15],ra:[35,15],ll:[-18,-4],rl:[18,4],face:'calm',swing:1}
+    perch:{px:18,py:29,t:0,la:[-35,-15],ra:[35,15],ll:[-18,-4],rl:[18,4],face:'calm',swing:1},
+    dance:{px:18,py:24,t:0,la:[-120,-40],ra:[60,60],ll:[-8,-4],rl:[10,6],face:'joy',dance:1},
+    cheer:{px:18,py:24,t:-3,la:[-20,-30],ra:[165,10],ll:[-6,-2],rl:[8,2],face:'joy',fx:'spark',cheer:1},
+    stretch:{px:18,py:24,t:0,la:[-160,-20],ra:[160,20],ll:[-6,-2],rl:[6,2],face:'closed',stretch:1},
+    comfort:{px:18,py:24,t:0,la:[-30,70],ra:[30,-70],ll:[-4,-2],rl:[4,2],face:'soft',fx:'heart'}
   };
+  const STATE=new WeakMap();
   const KEYS=['px','py','t','la0','la1','ra0','ra1','ll0','ll1','rl0','rl1'];
   const flat=p=>({px:p.px,py:p.py,t:p.t,la0:p.la[0],la1:p.la[1],ra0:p.ra[0],ra1:p.ra[1],ll0:p.ll[0],ll1:p.ll[1],rl0:p.rl[0],rl1:p.rl[1]});
   const rad=d=>d*Math.PI/180,dir=a=>[Math.sin(rad(a)),Math.cos(rad(a))];
@@ -1917,23 +1924,17 @@ const PixaArt=(()=>{
       for(let i=0;i<=n;i++){const s=i/n,cx=a[0]+dx*s,cy=a[1]+dy*s,w=w0+(w1-w0)*s;for(let o=-w;o<=w+.01;o+=.5)px(cx+nx*o,cy+ny*o,tone(o,w))}};
     const sx=x=>CX+(x-18)*K;
     let pyv=q.py*K+OY;if(P.hov)pyv+=Math.round(Math.sin(f*.15)*2);if(P.hop)pyv-=Math.round(Math.abs(Math.sin(f*.3))*6);
-    const Pv=[sx(q.px),pyv],[tx,ty]=dir(180+q.t),perp=[-ty,tx];
+    let tilt=q.t;if(P.dance)tilt+=Math.sin(f*.35)*8;if(P.stretch)tilt+=Math.sin(f*.12)*10;
+    const Pv=[sx(q.px)+(P.dance?Math.round(Math.sin(f*.35)*2):0),pyv],[tx,ty]=dir(180+tilt),perp=[-ty,tx];
     const N=[Pv[0]+tx*23,Pv[1]+ty*23],Hd=[N[0]+tx*13+(P.nod?2:0),N[1]+ty*13+(P.nod?2+Math.round(Math.sin(f*.12)):0)];
     const at=(s,o)=>[N[0]+(Pv[0]-N[0])*s+perp[0]*o,N[1]+(Pv[1]-N[1])*s+perp[1]*o];
     const shoulder=sd=>at(.07,6.4*sd),hip=sd=>at(.93,4.6*sd);
     if(P.fx==='shadow')for(let x=-16;x<=16;x++)for(let y=0;y<2;y++)if(Math.abs(x)<16-y*4)px(Pv[0]+x,Math.min(H-1,Pv[1]+30+y),'rgba(20,40,60,.22)');
-    // włosy-światłowody: tylne pasma (za ciałem)
-    const crown=[Hd[0]-1,Hd[1]-9];
-    const strand=(x0,y0,L,spread,ph,front)=>{for(let k=0;k<L;k++){if(k>L-7&&(k+f+ph)%3===0)continue;
-      const sw=Math.sin(f*.12+k*.11+ph)*(k*.07)+spread*k,x=x0+sw,y=y0+k*(P.nod?.85:1);
-      const n=k<L*.3?'hairA':k<L*.7?'hairM':'hairB';px(x,y,n);if(k<L*.55&&!front)px(x+1,y,k%5===0?'hairD':n);
-      if(k===L-1&&(f+ph)%10<6){px(x,y+1,'spark');px(x,y,'core')}}};
-    for(let i=0;i<14;i++){const r=i/13,x0=Hd[0]-8+r*16,y0=Hd[1]-6+Math.abs(r-.5)*5;strand(x0,y0,34+((i*7)%3)*6,(r-.5)*.25,i*.8,false)}
     // nogi
     let [l0,l1,r0,r1]=[q.ll0,q.ll1,q.rl0,q.rl1];if(P.swing){const w=Math.sin(f*.3)*14;l1+=w;r1-=w}
     [[hip(-1),l0,l1,-1],[hip(1),r0,r1,1]].forEach(([h,a0,a1,sd])=>{const [d0x,d0y]=dir(a0),kn=[h[0]+d0x*18,h[1]+d0y*18],[d1x,d1y]=dir(a0+a1),an=[kn[0]+d1x*18,kn[1]+d1y*18],[fx,fy]=dir(a0+a1+sd*40);
       seg(h,kn,4.4,2.9);seg(kn,an,2.7,1.5);for(let k=1;k<=4;k++)px(an[0]+fx*k,an[1]+fy*k,k<3?'shade':'edge');
-      const ab=[kn[0]+d1x*15,kn[1]+d1y*15];for(let o=-2;o<=2;o++)px(ab[0]+d1y*o,ab[1]-d1x*o,'acc');px(kn[0],kn[1],'core')});
+      const ab=[kn[0]+d1x*15,kn[1]+d1y*15];for(let o=-2;o<=2;o++)px(ab[0]+d1y*o,ab[1]-d1x*o,'acc');px(kn[0],kn[1],'core');px(kn[0]+1,kn[1],'acc');px(kn[0],kn[1]+1,'acc')});
     // tułów: ramiona, biust, talia, biodra
     const prof=s=>s<.25?6.4+.6*(s/.25):s<.6?7-3.3*((s-.25)/.35):3.7+4.6*((s-.6)/.4);
     for(let i=0;i<=46;i++){const s=i/46,w=prof(s);for(let o=-w;o<=w+.01;o+=.5){const p=at(s,o);px(p[0],p[1],tone(o,w))}}
@@ -1944,44 +1945,58 @@ const PixaArt=(()=>{
     {const e=at(.15,0),pl=f%20<10;[[0,0],[0,-1],[0,1],[-1,0],[1,0],[0,-2],[0,2]].forEach(([dx,dy],i)=>{if(i<5||pl)px(e[0]+dx,e[1]+dy,i===0?'core':'acc')})}
     // szyja
     seg([N[0],N[1]+2],[N[0]+tx*7,N[1]+ty*7],1.7,1.5);
-    // przednie pasma włosów wzdłuż twarzy
-    strand(Hd[0]-8,Hd[1]-3,22,-.02,1.3,true);strand(Hd[0]-7,Hd[1]-4,18,-.04,2.1,true);
-    strand(Hd[0]+8,Hd[1]-3,24,.02,3.4,true);strand(Hd[0]+7,Hd[1]-4,19,.04,4.2,true);
     // ręce
     let [a0,a1,b0,b1]=[q.la0,q.la1,q.ra0,q.ra1];if(P.wave)b1+=Math.sin(f*.7)*28;
+    if(P.dance){const d=Math.sin(f*.35);a0+=d*40;a1+=d*30;b0+=d*40;b1-=d*30}
+    if(P.cheer){b0+=Math.abs(Math.sin(f*.5))*-25;b1+=Math.abs(Math.sin(f*.5))*30}
+    if(P.stretch){const d=Math.sin(f*.12)*12;a0+=d;b0+=d}
     const hands=[];
     [[shoulder(-1),a0,a1],[shoulder(1),b0,b1]].forEach(([s,u,v])=>{const [ux,uy]=dir(u),e=[s[0]+ux*15,s[1]+uy*15],[vx,vy]=dir(u+v),hd=[e[0]+vx*14,e[1]+vy*14];
-      seg(s,e,2.4,1.9);seg(e,hd,1.8,1.1);const wr=[e[0]+vx*11.5,e[1]+vy*11.5];for(let o=-2;o<=2;o++)px(wr[0]+vy*o,wr[1]-vx*o,'acc');
+      seg(s,e,2.4,1.9);seg(e,hd,1.8,1.1);px(e[0],e[1],'core');px(e[0]+1,e[1],'acc');px(s[0],s[1],'core');const wr=[e[0]+vx*11.5,e[1]+vy*11.5];for(let o=-2;o<=2;o++)px(wr[0]+vy*o,wr[1]-vx*o,'acc');
       for(let k=0;k<4;k++){px(hd[0]+vx*k,hd[1]+vy*k,k<2?'body':'shade');px(hd[0]+vx*k+vy,hd[1]+vy*k-vx,'edge')}px(hd[0]+vx*1-vy*2,hd[1]+vy*1+vx*2,'shade');hands.push([hd[0]+vx*3,hd[1]+vy*3])});
-    // głowa: owal z linią żuchwy, cień na policzku
+    // stawy jako świecące węzły
+    // głowa: maska z dwóch płaszczyzn światła
     const ey=Hd[1]-1;
-    for(let y=-11;y<=12;y++)for(let x=-9;x<=9;x++){const rx=y>2?8.2*(1-.4*((y-2)/10)):8.2,ry=y>0?12:11,d=(x*x)/(rx*rx)+(y*y)/(ry*ry);if(d>1)continue;
-      px(Hd[0]+x,Hd[1]+y,d>.84?'edge':(x>rx*.5&&y>-3)||y>9?'shade':(x<-rx*.45&&y<-2&&y>-8)?'core':'body')}
-    // czapka włosów i grzywka zaczesana na bok
-    for(let y=-12;y<=-5;y++)for(let x=-9;x<=9;x++){const d=(x*x)/72+(y*y)/130;if(d>1.02||y>-5-(x<0?0:2))continue;px(Hd[0]+x,Hd[1]+y,(x+y+Math.floor(f/6))%5===0?'hairM':y<-9?'hairD':'hairA')}
-    for(let t=0;t<=1;t+=.04){const x=Hd[0]-9+t*15,y=Hd[1]-8+t*5+Math.sin(t*3)*1;for(let w=0;w<3;w++)px(x,y+w,w===0?'hairM':'hairA')}
-    // brwi, oczy, rzęsy
+    for(let y=-11;y<=12;y++)for(let x=-9;x<=9;x++){const rx=y>2?8.2*(1-.42*((y-2)/10)):8.2,ry=y>0?12:11,d=(x*x)/(rx*rx)+(y*y)/(ry*ry);if(d>1)continue;
+      const bx=1.5-y*.28;px(Hd[0]+x,Hd[1]+y,d>.86?'edge':Math.abs(x-bx)<.6&&y>-6&&y<7?'edge':x>bx?'shade':(x<-5&&y<-3)?'core':'body')}
+    // podstawa włosów
+    for(let y=-12;y<=-7;y++)for(let x=-9;x<=9;x++){const d=(x*x)/70+(y*y)/128;if(d>1.04||y>-7-(Math.abs(x)>6?1:0))continue;px(Hd[0]+x,Hd[1]+y,(x*3+y+Math.floor(f/3))%7===0?'hairB':y<-9?'hairD':'hairA')}
+    // pasma danych w górę, zawsze w ruchu, z odrywającymi się drobinkami
+    const st=STATE.get(cv)||{p:[],last:-1};STATE.set(cv,st);
+    const tips=[];
+    for(let i=0;i<18;i++){const r=i/17,bxx=-9+r*18,base=[Hd[0]+bxx,Hd[1]-Math.sqrt(Math.max(0,1-(bxx/8.6)**2))*10.5];
+      const L=17+((i*5)%4)*4+Math.round(Math.sin(f*.08+i)*3)+(P.nod?-4:0)-Math.round(Math.abs(r-.5)*6);let a=(r-.5)*150+Math.sin(f*.15+i*1.3)*10,x=base[0],y=base[1];
+      for(let k=0;k<L;k++){a+=(r-.5)*2.4+Math.sin(f*.22+k*.28+i)*2.4;const[ddx,ddy]=dir(180+a);x+=ddx;y+=ddy;
+        const n=k<L*.3?'hairA':k<L*.68?'hairM':'hairB';
+        if(k<L*.4){px(x,y,n);px(x+(r<.5?-1:1),y,k%4===0?'hairD':n)}
+        else if(((k-f*1.3+i*5)%6+6)%6<4)px(x,y,n);
+        else if(((k-f*1.3+i*5)%6+6)%6<5)px(x,y,'core')}
+      tips.push([x,y,(r-.5)])}
+    const upd=()=>{st.p.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vx*=.97;p.life--});st.p=st.p.filter(p=>p.life>0);
+      tips.forEach(([x,y,s2],i)=>{if(Math.random()<.32)st.p.push({x,y,vx:s2*.7+(Math.random()-.5)*.5,vy:-.45-Math.random()*.55,life:12+Math.floor(Math.random()*18),max:30,c:Math.random()<.25?'core':Math.random()<.5?'hairB':'hairM'})})};
+    if(st.last<0)for(let w=0;w<24;w++)upd();if(f!==st.last){upd();st.last=f}
+    st.p.forEach(p=>{c.globalAlpha=Math.max(.15,p.life/p.max);px(p.x,p.y,p.c);if(p.life>p.max*.6)px(p.x+1,p.y,p.c);c.globalAlpha=1});
+    // oczy: świecące, skośne szczeliny
     const look=P.face==='look'?1:0,blink=f%46>=43;
-    [-1,1].forEach(sd=>{const cx=Hd[0]+sd*4;
-      for(let dx=-2;dx<=2;dx++)px(cx+dx,ey-4-(Math.abs(dx)<2?1:0)+(dx*sd>1?1:0),'edge');
-      if(P.face==='closed'||blink){for(let dx=-2;dx<=2;dx++)px(cx+dx,ey+(Math.abs(dx)===2?-1:0),'edge');px(cx+sd*3,ey-1,'edge');return}
-      if(P.face==='happy'||P.face==='joy'){for(let dx=-2;dx<=2;dx++)px(cx+dx,ey-1+(Math.abs(dx)===2?1:0),'edge');for(let dx=-1;dx<=1;dx++)px(cx+dx,ey,'core');px(cx+sd*3,ey-2,'edge');return}
-      for(let dx=-2;dx<=2;dx++){px(cx+dx,ey-2,'edge');px(cx+dx,ey-1,'core')}for(let dx=-1;dx<=1;dx++)px(cx+dx,ey,'core');
-      px(cx+look,ey-1,'acc');px(cx+look,ey,'acc');px(cx+look-1,ey-1,'core');px(cx+sd*3,ey-3,'edge');px(cx+sd*3,ey-2,'edge');px(cx+sd*4,ey-3,'edge')});
-    // nos, usta, cyfrowe piegi
-    px(Hd[0]+.5,ey+3,'shade');px(Hd[0]+.5,ey+4,'shade');px(Hd[0]+1.5,ey+5,'edge');
-    const smile=P.face==='happy'||P.face==='joy';
-    for(let dx=-2;dx<=2;dx++)px(Hd[0]+dx,ey+7,'lip');for(let dx=-1;dx<=1;dx++)px(Hd[0]+dx,ey+8,'acc');
-    if(smile){px(Hd[0]-3,ey+6,'lip');px(Hd[0]+3,ey+6,'lip')}if(P.face==='joy')px(Hd[0],ey+8,'edge');
-    [[-6,2],[-5,3],[-6,4]].forEach(([dx,dy])=>px(Hd[0]+dx,ey+dy,'acc'));
+    [-1,1].forEach(sd=>{const cx=Hd[0]+sd*4+look;
+      for(let dx=-2;dx<=2;dx++)px(cx+dx,ey-4-(dx*sd>0?1:0),'edge');
+      if(P.face==='closed'||blink){for(let dx=-2;dx<=2;dx++)px(cx+dx,ey,'edge');return}
+      if(P.face==='happy'||P.face==='joy'){for(let dx=-2;dx<=2;dx++)px(cx+dx,ey-1+(Math.abs(dx)===2?1:0),'core');px(cx+sd*3,ey-1,'acc');return}
+      if(P.face==='soft'){for(let dx=-2;dx<=2;dx++)px(cx+dx,ey-(dx*sd<0?1:0),'core');px(cx,ey,'acc');return}
+      for(let dx=-2;dx<=2;dx++)px(cx+dx,ey,'core');for(let dx=0;dx<=2;dx++)px(cx+dx*sd,ey-1,'core');px(cx+sd*3,ey-2,'acc');px(cx,ey,'acc')});
+    // usta i „łzy danych”
+    const smile=P.face==='happy'||P.face==='joy'||P.face==='soft';
+    for(let dx=-2;dx<=2;dx++)px(Hd[0]+dx,ey+7+(smile&&Math.abs(dx)===2?-1:0),'acc');
+    if(P.face==='joy'){px(Hd[0],ey+8,'edge');px(Hd[0]-1,ey+8,'lip');px(Hd[0]+1,ey+8,'lip')}
+    [-1,1].forEach(sd=>{for(let k=0;k<3;k++)if((k+Math.floor(f/4))%3)px(Hd[0]+sd*4,ey+2+k,'acc')});
     // efekty (piksele 2×2)
     const p2=(x,y,n)=>{px(x,y,n);px(x+1,y,n);px(x,y+1,n);px(x+1,y+1,n)};
     if(P.fx==='zzz'){const b=(f%30)/30;[[0,0],[6,-8],[12,-16]].forEach(([dx,dy],i)=>{const x=Hd[0]+13+dx,y=Hd[1]-8+dy-b*6;if((f+i*7)%30<24){p2(x,y,'core');p2(x+2,y,'core');p2(x+2,y+2,'core');p2(x,y+4,'core');p2(x+2,y+4,'core')}})}
     if(P.fx==='spark'){[[Hd[0]-20,Hd[1]-12],[Hd[0]+20,Hd[1]-6],[Hd[0]+16,Hd[1]+16]].forEach(([x,y],i)=>{if((f+i*3)%8<5){p2(x,y,'spark');p2(x-2,y,'spark');p2(x+2,y,'spark');p2(x,y-2,'spark');p2(x,y+2,'spark')}})}
     if(P.fx==='q'){const x=Hd[0]+13,y=Hd[1]-20;[[0,0],[2,0],[4,2],[2,4],[2,8]].forEach(([dx,dy])=>p2(x+dx,y+dy,'spark'))}
     if(P.fx==='orb'){const hd=hands[1],yy=hd[1]-8-Math.abs(Math.sin(f*.25))*16;for(let y=-3;y<=3;y++)for(let x=-3;x<=3;x++){const d=x*x+y*y;if(d<=9)px(hd[0]+x,yy+y,d<=1?'core':d<=4?'acc':'lip')}}
+    if(P.fx==='heart'){const x=Hd[0]+14,y=Hd[1]-12-Math.round(Math.sin(f*.2)*2);[[0,0],[1,0],[3,0],[4,0],[-1,1],[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[0,2],[1,2],[2,2],[3,2],[4,2],[1,3],[2,3],[3,3],[2,4]].forEach(([dx,dy])=>px(x+dx,y+dy,'acc'))}
     if(P.peek){for(let x=0;x<W;x++)for(let y=H-4;y<H;y++)px(x,y,y===H-4?'core':'edge')}
-    for(let i=0;i<6;i++){const yy=(H-((f*.8+i*21)%H)),xx=8+i*15+Math.sin(f*.1+i)*3;px(xx,yy,(f+i)%6<3?'hairB':'hairA')}
     if(f%37<2){const y0=16+((f*13)%70),img=c.getImageData(0,y0,W,5);c.clearRect(0,y0,W,5);c.putImageData(img,(f%2?3:-3),y0)}
   }
   return{draw,POSES,PALETTES,flat,KEYS,W,H};
@@ -1990,12 +2005,18 @@ const PixaArt=(()=>{
 /* ---------- asystentka Pixa (podpowiedzi oparte na regułach, bez AI) ---------- */
 const Asst=(()=>{
   // Pozy: losowe co kilka sekund, dopasowane do treści podpowiedzi, reakcja na dotknięcie.
-  const POOL=['float','stand','sleep','perch','orb','peek','float','stand','perch'];
+  const POOL=['float','stand','sleep','perch','orb','peek','stretch','float','stand','dance'];
   const CTX={mood:'wave',start:'wave',missing:'think',review:'think',adjust:'think',limit:'think',paused:'think',record:'jump',insight:'orb'};
   let pose='float',cur=null,poseT=0,hold=80,ctxPose=null,pokeT=0,frame=0,anim=null;
   const pick=()=>{const o=POOL.filter(x=>x!==pose);return o[Math.floor(Math.random()*o.length)]};
   function choose(n){if(n!==pose){pose=n;poseT=0;hold=60+Math.floor(Math.random()*60)}else poseT=0}
-  function setCtx(tp){ctxPose=tp?(CTX[tp.kind]||null):null;choose(ctxPose||'float')}
+  function setCtx(tp){ctxPose=tp?(CTX[tp.kind]||null):null;if(!pokeT)choose(ctxPose||'float')}
+  function react(tp,ac){
+    let pool=['cheer','jump','dance','wave'];
+    if(ac&&ac.mood)pool=ac.mood>=4?['dance','jump','cheer']:ac.mood===3?['wave','stretch','orb']:['comfort'];
+    else if(!ac)pool=['wave','think','stretch'];
+    const o=pool.filter(x=>x!==pose);choose((o.length?o:pool)[Math.floor(Math.random()*(o.length?o:pool).length)]);pokeT=26;
+  }
   function poke(){choose(Math.random()<.6?'jump':'wave');pokeT=16}
   function step(cv){
     frame++;poseT++;
@@ -2066,7 +2087,7 @@ const Asst=(()=>{
     let bub;
     if(!tp)bub='<p class="pxtxt">Wszystko gra. Nie mam teraz żadnych pytań. Zajrzę, gdy coś zauważę.</p>';
     else bub='<p class="pxtxt">'+esc(tp.text)+'</p><div class="pxact">'+(tp.actions[0]&&tp.actions[0].mood?tp.actions.map((a,j)=>'<button class="mb md'+a.mood+'" data-asst="do" data-j="'+j+'" aria-label="'+esc(a.l)+'"><b>'+a.mood+'</b></button>').join(''):tp.actions.map((a,j)=>'<button class="btn main" data-asst="do" data-j="'+j+'">'+esc(a.l)+'</button>').join(''))+'</div><div class="pxfoot"><button class="link" data-asst="later">Nie teraz</button><button class="link" data-asst="never">Nie pokazuj takich</button>'+(tipsCache.length>1?'<button class="link pxnext" data-asst="next">'+(idx+1)+'/'+tipsCache.length+' ›</button>':'')+'</div>';
-    root.innerHTML='<div class="pxpanel" role="dialog" aria-label="Pixa, asystentka"><canvas class="pxav" width="88" height="116" data-asst="poke" role="img" aria-label="Pixa"></canvas><div class="pxbub"><div class="pxname">Pixa</div>'+bub+'</div><button class="pxclose" data-asst="close" aria-label="Zamknij asystentkę">×</button></div>';
+    root.innerHTML='<div class="pxpanel" role="dialog" aria-label="Pixa, asystentka"><div class="pxavw"><canvas class="pxav" width="88" height="116" data-asst="poke" role="img" aria-label="Pixa"></canvas></div><div class="pxbub"><div class="pxname">Pixa</div>'+bub+'</div><button class="pxclose" data-asst="close" aria-label="Zamknij asystentkę">×</button></div>';
     const cv=root.querySelector('.pxav');
     setCtx(tp);
     if(reduced()){PixaArt.draw(cv,0,ctxPose||'stand',null,S.settings.pixaPal);return}
@@ -2077,10 +2098,10 @@ const Asst=(()=>{
     if(a==='open'){ui.asstOpen=true;idx=0;try{localStorage.setItem(openedKey,todayS())}catch(x){}paint()}
     if(a==='close'){ui.asstOpen=false;paint()}
     if(a==='poke'){poke()}
-    if(a==='next'){idx=(idx+1)%tipsCache.length;paint()}
-    if(a==='later'&&tp){snooze(tp);paint()}
-    if(a==='never'&&tp){S.asst.off[tp.kind]=true;save();toast('Nie pokażę już takich podpowiedzi. Przywrócisz je w Ustawieniach.');paint()}
-    if(a==='do'&&tp){const ac=tp.actions[+el.dataset.j];S.asst.snooze[tp.id]=addDays(todayS(),3650);ac.f();save();if(ui.tab==='today'||ui.tab==='settings'||ui.tab==='goals')render();else paint()}
+    if(a==='next'){idx=(idx+1)%tipsCache.length;react(null,null);paint()}
+    if(a==='later'&&tp){react(tp,null);snooze(tp);paint()}
+    if(a==='never'&&tp){react(tp,null);S.asst.off[tp.kind]=true;save();toast('Nie pokażę już takich podpowiedzi. Przywrócisz je w Ustawieniach.');paint()}
+    if(a==='do'&&tp){const ac=tp.actions[+el.dataset.j];react(tp,ac);S.asst.snooze[tp.id]=addDays(todayS(),3650);ac.f();save();if(ui.tab==='today'||ui.tab==='settings'||ui.tab==='goals')render();else paint()}
   });
   return{paint,tips};
 })();
