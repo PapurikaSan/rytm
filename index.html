@@ -358,6 +358,17 @@ input,select,textarea{font-size:16px}
 .secm small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .chev{font:600 22px var(--font-body);color:var(--accent);width:22px;text-align:center}
 .secbody{margin:0 0 18px}
+/* dymek Pixy przy soczewce */
+.pxsay{position:fixed;left:calc(max(10px,env(safe-area-inset-left,0px)) + 54px);right:max(12px,env(safe-area-inset-right,0px));max-width:340px;bottom:calc(74px + env(safe-area-inset-bottom,0px));z-index:15;background:var(--surface);border:1px solid var(--line);border-radius:14px 14px 14px 4px;padding:9px 34px 9px 12px;box-shadow:0 8px 24px rgba(0,0,0,.18);animation:pxsayin .25s ease-out}
+.pxsayt{margin:0;font-size:13.5px;line-height:1.4;cursor:pointer}
+.pxsayt b{font:700 10.5px var(--font-body);color:#e0362f;letter-spacing:.06em;text-transform:uppercase;margin-right:4px}
+.pxsayact{display:flex;gap:6px;margin-top:8px}
+.pxsayact .btn{height:34px;padding:0 12px;font-size:13px;flex:none}
+.pxsayx{position:absolute;top:2px;right:4px;width:30px;height:30px;border-radius:50%;font-size:18px;color:var(--muted)}
+.hal.talk .lens{animation:haltalk 1.1s ease-in-out infinite}
+@keyframes haltalk{50%{filter:brightness(1.5)}}
+@keyframes pxsayin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.pxsay{animation:none}.hal.talk .lens{animation:none;filter:brightness(1.3)}}
 /* przewodnik i kamienie milowe */
 #tour .pxpanel{z-index:25}
 .tour.up{bottom:calc(126px + env(safe-area-inset-bottom,0px))}
@@ -480,17 +491,22 @@ function fixState(o){
   if(typeof o.settings.mainReq!=='boolean')o.settings.mainReq=true;if(typeof o.settings.mainSoft!=='boolean')o.settings.mainSoft=false;
   if(typeof o.settings.asst!=='boolean')o.settings.asst=true;
   if(!o.settings.pixaPal)o.settings.pixaPal='turkus';
-  o.asst=o.asst||{};o.asst.snooze=o.asst.snooze||{};o.asst.off=o.asst.off||{};o.asst.ck=o.asst.ck||{};{const lim=addDays(todayS(),-14);Object.keys(o.asst.ck).forEach(k=>{if(k<lim)delete o.asst.ck[k]})}
+  if(o.settings.pixaTone!=='hard')o.settings.pixaTone='soft';
+  if(typeof o.settings.pixaChat!=='boolean')o.settings.pixaChat=true;
+  if(!Array.isArray(o.settings.msGroups))o.settings.msGroups=[];
+  o.asst=o.asst||{};o.asst.snooze=o.asst.snooze||{};o.asst.off=o.asst.off||{};o.asst.ck=o.asst.ck||{};o.asst.plan=o.asst.plan||{};{const lim=addDays(todayS(),-14);Object.keys(o.asst.ck).forEach(k=>{if(k<lim)delete o.asst.ck[k]});Object.keys(o.asst.plan).forEach(k=>{if(k<lim)delete o.asst.plan[k]})}
   if(!Array.isArray(o.settings.reminders))o.settings.reminders=[{id:'r1',kind:'missing',time:'21:00',days:[0,1,2,3,4,5,6],on:true},{id:'r2',kind:'review',time:'20:00',days:[6],on:true}];
   if(!o.settings.remW){o.settings.remW=1;if(!o.settings.reminders.some(r=>r.kind==='weekly'))o.settings.reminders.push({id:'r3',kind:'weekly',time:'09:00',days:[0],on:true})}
   if(!o.ms||typeof o.ms!=='object'){o.ms={};o.msInit=false}
+  if(!o.settings.remM){o.settings.remM=1;if(!o.settings.reminders.some(r=>r.kind==='monthly'))o.settings.reminders.push({id:'r4',kind:'monthly',time:'09:30',days:[0,1,2,3,4,5,6],on:true})}
   if(o.tour===undefined)o.tour='done';
   try{o.settings.tz=Intl.DateTimeFormat().resolvedOptions().timeZone||'Europe/Warsaw'}catch(e){}
   return o;
 }
 let S=null;
 function save(){
-  if(S){try{const ws=wstart(todayS()),o={};[addDays(ws,-7),ws].forEach(w=>{const x=weekRecap(w);if(x)o[w]={t:x.t,b:x.b}});S.wsum=o}catch(e){}}
+  if(S){try{const ws=wstart(todayS()),o={};[addDays(ws,-7),ws].forEach(w=>{const x=weekRecap(w);if(x)o[w]={t:x.t,b:x.b}});S.wsum=o}catch(e){}
+    try{const m0=mstart(todayS()),o={};[mstart(addDays(m0,-1)),m0].forEach(m=>{const x=monthRecap(m);if(x)o[m]={t:x.t,b:x.b}});S.msum=o}catch(e){}}
   Sync.save();clearTimeout(save.mt);save.mt=setTimeout(()=>Ms.check(),400);
 }
 let ui={tab:'today',date:todayS(),wk:0,mo:0,mode:'w',cg:null,sheet:null,open:{},confirm:null,oc:{},selDay:null,catSel:{},personSel:null,pq:'',ser:{}};
@@ -1269,7 +1285,7 @@ function weekRecap(ws){
   const a=first>ws?first:ws,e=we<t?we:t;
   const n=range(a,we).filter(d=>!S.off[d]).length;if(!n)return null;
   const gdays=(x,y)=>range(x,y).filter(d=>!S.off[d]&&goodDay(d)).length;
-  const good=gdays(a,e),pa=addDays(ws,-7),pe=addDays(pa,6),pg=first<=pe?gdays(first>pa?first:pa,pe):null;
+  const good=gdays(a,e),pa=addDays(ws,-7),pe=addDays(pa,6),pg=first<=pa?gdays(pa,pe):null;
   const W=g=>PW[g.prio||'imp'];
   const gs=S.goals.filter(g=>W(g)&&!pausedAt(g,e)).map(g=>({g,c:goalCompletion(g,a,we)})).filter(x=>x.c!=null);
   const done=gs.filter(x=>x.c>=1).sort((x,y)=>W(y.g)-W(x.g)).map(x=>x.g.name);
@@ -1280,6 +1296,21 @@ function weekRecap(ws){
   if(weak)b.push('Do poprawy: '+weak.g.name+'.');
   const st=streak();if(st>=2&&e>=addDays(we,-1))b.push('Seria: '+st+' dni.');
   return{t:'Twój tydzień: dobre dni '+good+' z '+n,b:b.join(' '),g:good,n};
+}
+const MN=['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'],MNL=['styczniu','lutym','marcu','kwietniu','maju','czerwcu','lipcu','sierpniu','wrześniu','październiku','listopadzie','grudniu'];
+function monthRecap(m0){
+  const t=todayS(),me=mend(m0),first=Object.keys(S.log).sort()[0];
+  if(!first||first>me||m0>t)return null;
+  const a=first>m0?first:m0,e=me<t?me:t,n=range(a,me).filter(d=>!S.off[d]).length;if(!n)return null;
+  const gdays=(x,y)=>x>y?0:range(x,y).filter(d=>!S.off[d]&&goodDay(d)).length,W=g=>PW[g.prio||'imp'];
+  const good=gdays(a,e),pm=mstart(addDays(m0,-1)),pme=addDays(m0,-1),pg=first<=pm?gdays(pm,pme):null,mi=+m0.slice(5,7)-1,pmi=(mi+11)%12,b=[];
+  if(pg!=null)b.push(good>pg?'O '+(good-pg)+' więcej niż w '+MNL[pmi]+'.':good<pg?'O '+(pg-good)+' mniej niż w '+MNL[pmi]+'.':'Tyle samo co w '+MNL[pmi]+'.');
+  const tops=S.goals.filter(g=>W(g)&&(g.type==='do'||g.type==='contact'||(g.type==='qty'&&!isMax(g)))).map(g=>({g,s:sumRange(g.id,a,e)})).filter(x=>x.s>0).sort((x,y)=>W(y.g)-W(x.g)||y.s-x.s).slice(0,3);
+  if(tops.length)b.push('Najwięcej: '+tops.map(x=>x.g.name+' '+(x.g.type==='qty'?fmt(x.s)+(x.g.unit?' '+x.g.unit:''):x.s+'×')).join(', ')+'.');
+  const weak=S.goals.filter(g=>W(g)&&!pausedAt(g,e)).map(g=>({g,c:goalCompletion(g,a,me)})).filter(x=>x.c!=null&&x.c<.6).sort((x,y)=>x.c-y.c)[0];
+  if(weak)b.push('Do poprawy: '+weak.g.name+'.');
+  const mv=range(a,e).map(d=>S.mood[d]).filter(x=>x!=null);if(mv.length>=5)b.push('Średni nastrój: '+fmt(avg(mv))+'.');
+  return{t:MN[mi]+': dobre dni '+good+' z '+n,b:b.join(' '),g:good,n};
 }
 /* ---------- kamienie milowe ---------- */
 const Ms=(()=>{
@@ -1344,7 +1375,7 @@ const Ms=(()=>{
     else h+='<p class="gs" style="margin:6px 0 0">Pierwszy kamień milowy, np. 10 treningów albo seria 7 dni, pojawi się tutaj.</p>';
     return h+'</div>';
   }
-  return{compute,check,card};
+  return{compute,check,card,short};
 })();
 function viewCharts(){
   const bk=buckets(ui.mode),t=todayS(),a=bk[0].a;
@@ -1448,9 +1479,9 @@ function shareBox(g){
   return h+'<p class="gs" style="margin:0 0 6px">Znajomi zobaczą tylko podsumowanie: dni z aktywnością, Twój cel i zaliczone tygodnie. Bez szczegółów i notatek.</p><div class="chips">'+gr.map(x=>'<button class="pill'+((g.groups||[]).includes(x.id)?' on':'')+'" data-act="gshare" data-id="'+x.id+'" aria-pressed="'+(g.groups||[]).includes(x.id)+'">'+esc(x.name)+'</button>').join('')+'</div>';
 }
 function remindersCard(){
-  const R=S.settings.reminders,KL={missing:['Uzupełnij dzień','Przychodzi tylko wtedy, gdy czegoś brakuje, i wymienia czego.'],review:['Podsumuj tydzień','Tylko jeśli ten tydzień nie ma jeszcze podsumowania.'],weekly:['Podsumowanie od Pixy','W poniedziałek o tej godzinie: ile było dobrych dni, co się udało i co poprawić.'],custom:['Własne','']};
+  const R=S.settings.reminders,KL={missing:['Uzupełnij dzień','Przychodzi tylko wtedy, gdy czegoś brakuje, i wymienia czego.'],review:['Podsumuj tydzień','Tylko jeśli ten tydzień nie ma jeszcze podsumowania.'],weekly:['Podsumowanie od Pixy','W poniedziałek o tej godzinie: ile było dobrych dni, co się udało i co poprawić.'],monthly:['Podsumowanie miesiąca','Pierwszego dnia miesiąca o tej godzinie: dobre dni, czego było najwięcej, co poprawić.'],custom:['Własne','']};
   let h='<div class="card"><h3>Przypomnienia</h3><p class="sub">Przychodzą nawet przy zamkniętej aplikacji. Każde urządzenie włączasz osobno, a godziny poniżej są wspólne dla wszystkich.</p><div id="pushbox" class="pushbox">'+Push.boxHtml()+'</div>';
-  h+=R.map((r,i)=>'<div class="rrow"><div class="rtop"><button class="sw'+(r.on?' on':'')+'" data-act="ron" data-i="'+i+'" role="switch" aria-checked="'+!!r.on+'" aria-label="Włącz: '+KL[r.kind][0]+'"></button><div class="rm"><b>'+KL[r.kind][0]+'</b>'+(KL[r.kind][1]?'<small>'+KL[r.kind][1]+'</small>':'')+'</div><input class="inp rtime" type="time" id="rt-'+r.id+'" value="'+esc(r.time)+'" data-chg="rtime" data-i="'+i+'" aria-label="Godzina"></div>'+(r.kind==='custom'?'<input class="inp" style="margin-top:8px" id="rx-'+r.id+'" value="'+esc(r.text||'')+'" placeholder="Treść, np. Wpisz wagę" data-chg="rtext" data-i="'+i+'">':'')+(r.kind==='weekly'?'':'<div class="rdays">'+DOW.map((x,j)=>'<button class="pill'+((r.days||[]).includes(j)?' on':'')+'" data-act="rday" data-i="'+i+'" data-j="'+j+'" aria-pressed="'+(r.days||[]).includes(j)+'">'+x+'</button>').join('')+(r.kind==='custom'?'<button class="link" style="margin-left:auto" data-act="rdel" data-i="'+i+'">Usuń</button>':'')+'</div>')+'</div>').join('');
+  h+=R.map((r,i)=>'<div class="rrow"><div class="rtop"><button class="sw'+(r.on?' on':'')+'" data-act="ron" data-i="'+i+'" role="switch" aria-checked="'+!!r.on+'" aria-label="Włącz: '+KL[r.kind][0]+'"></button><div class="rm"><b>'+KL[r.kind][0]+'</b>'+(KL[r.kind][1]?'<small>'+KL[r.kind][1]+'</small>':'')+'</div><input class="inp rtime" type="time" id="rt-'+r.id+'" value="'+esc(r.time)+'" data-chg="rtime" data-i="'+i+'" aria-label="Godzina"></div>'+(r.kind==='custom'?'<input class="inp" style="margin-top:8px" id="rx-'+r.id+'" value="'+esc(r.text||'')+'" placeholder="Treść, np. Wpisz wagę" data-chg="rtext" data-i="'+i+'">':'')+(r.kind==='weekly'||r.kind==='monthly'?'':'<div class="rdays">'+DOW.map((x,j)=>'<button class="pill'+((r.days||[]).includes(j)?' on':'')+'" data-act="rday" data-i="'+i+'" data-j="'+j+'" aria-pressed="'+(r.days||[]).includes(j)+'">'+x+'</button>').join('')+(r.kind==='custom'?'<button class="link" style="margin-left:auto" data-act="rdel" data-i="'+i+'">Usuń</button>':'')+'</div>')+'</div>').join('');
   return h+'<button class="btn" style="margin-top:10px" data-act="radd">+ Dodaj własne przypomnienie</button></div>';
 }
 const Bk={list:null,loading:false,
@@ -1462,7 +1493,7 @@ const Bk={list:null,loading:false,
 function viewSettings(){
   const st=S.settings;
   let h='<div class="datebar"><div class="d">Ustawienia</div></div>';
-  const cPixa='<div class="card"><h3>Asystentka Pixa</h3><p class="sub">Czerwona soczewka w lewym dolnym rogu. Świeci mocniej, gdy Pixa ma dla Ciebie pytanie albo propozycję. Nigdy nie otwiera się sama i niczego nie zmienia bez Twojej zgody.</p><div class="offbar" style="margin:0"><button class="sw'+(S.settings.asst?' on':'')+'" data-act="sasst" role="switch" aria-checked="'+!!S.settings.asst+'" aria-label="Asystentka"></button><span><b style="color:var(--fg)">Pokazuj asystentkę</b>'+(Object.keys(S.asst.off).length?' · <button class="link" data-act="asstreset">przywróć ukryte rodzaje podpowiedzi</button>':'')+'</span></div><span class="fl">Kolory Pixy</span><div class="pxpick"><canvas id="pxprev" width="88" height="126" aria-label="Podgląd Pixy"></canvas><div class="chips">'+Object.keys(PixaArt.PALETTES).map(k=>'<button class="pill'+(S.settings.pixaPal===k?' on':'')+'" data-act="pxpal" data-k="'+k+'"><i class="pxsw" style="background:'+PixaArt.PALETTES[k].body+'"></i>'+PixaArt.PALETTES[k].n+'</button>').join('')+'</div></div></div>';
+  const cPixa='<div class="card"><h3>Asystentka Pixa</h3><p class="sub">Czerwona soczewka w lewym dolnym rogu. Świeci mocniej, gdy Pixa ma dla Ciebie pytanie albo propozycję. Nigdy nie otwiera się sama i niczego nie zmienia bez Twojej zgody.</p><div class="offbar" style="margin:0"><button class="sw'+(S.settings.asst?' on':'')+'" data-act="sasst" role="switch" aria-checked="'+!!S.settings.asst+'" aria-label="Asystentka"></button><span><b style="color:var(--fg)">Pokazuj asystentkę</b>'+(Object.keys(S.asst.off).length?' · <button class="link" data-act="asstreset">przywróć ukryte rodzaje podpowiedzi</button>':'')+'</span></div><span class="fl">Kolory Pixy</span><div class="pxpick"><canvas id="pxprev" width="88" height="126" aria-label="Podgląd Pixy"></canvas><div class="chips">'+Object.keys(PixaArt.PALETTES).map(k=>'<button class="pill'+(S.settings.pixaPal===k?' on':'')+'" data-act="pxpal" data-k="'+k+'"><i class="pxsw" style="background:'+PixaArt.PALETTES[k].body+'"></i>'+PixaArt.PALETTES[k].n+'</button>').join('')+'</div></div><span class="fl">Charakter</span><div class="seg" style="margin-bottom:6px">'+[['soft','Łagodna'],['hard','Twarda']].map(x=>'<button class="'+(S.settings.pixaTone===x[0]?'on':'')+'" data-act="pxtone" data-k="'+x[0]+'">'+x[1]+'</button>').join('')+'</div><p class="gs" style="margin:0 0 12px">'+(S.settings.pixaTone==='hard'?'Np. „Seria 12 dni wisi na włosku. Zrób: Siłownia. Bez wymówek.”':'Np. „Seria 12 dni jest zagrożona. Do dobrego dnia brakuje: Siłownia.”')+'</p><div class="offbar" style="margin:0"><button class="sw'+(S.settings.pixaChat?' on':'')+'" data-act="pxchat" role="switch" aria-checked="'+!!S.settings.pixaChat+'" aria-label="Dymki przy zakładkach"></button><span><b style="color:var(--fg)">Dymki przy zakładkach</b>. Po wejściu w zakładkę Pixa mówi jedno zdanie obok soczewki: pyta, przypomina albo dzieli się wnioskiem.</span></div></div>';
   const cRem=remindersCard();
   const cLook='<div class="card"><h3>Wygląd</h3><p class="sub">Auto dopasowuje się do ustawień telefonu.</p><div class="seg" style="margin:0">'+[['auto','Auto'],['light','Jasny'],['dark','Ciemny']].map(x=>'<button class="'+(ui.theme===x[0]?'on':'')+'" data-act="theme" data-v="'+x[0]+'">'+x[1]+'</button>').join('')+'</div></div>';
   const cScore='<div class="card"><h3>Seria i wynik dnia</h3><p class="sub">Wynik dnia to średnia z celów ważona priorytetem: główne liczą się potrójnie, ważne pojedynczo, dodatkowe wcale. Cel tygodniowy liczy się jako zaliczony, dopóki da się go jeszcze w tym tygodniu zrobić. Dni wolne nie przerywają serii. Dobry dzień to wynik co najmniej:</p><div class="seg" style="margin:0">'+[.5,.6,.7,.8,.9,1].map(v=>'<button class="'+(Math.abs(st.streak-v)<.01?'on':'')+'" data-act="sstreak" data-v="'+v+'">'+Math.round(v*100)+'%</button>').join('')+'</div><div class="offbar" style="margin:12px 0 0"><button class="sw'+(st.mainReq?' on':'')+'" data-act="smain" role="switch" aria-checked="'+!!st.mainReq+'" aria-label="Wymagaj głównych celów"></button><span><b style="color:var(--fg)">Wszystkie główne cele muszą być zaliczone.</b> Bez tego nawet wysoki wynik nie da dobrego dnia.</span></div><div class="offbar" style="margin:8px 0 0'+(st.mainReq?'':';opacity:.5')+'"><button class="sw'+(st.mainSoft?' on':'')+'" data-act="ssoft" role="switch" aria-checked="'+!!st.mainSoft+'" aria-label="Złagodzenie dla głównych celów"'+(st.mainReq?'':' disabled')+'></button><span><b style="color:var(--fg)">Złagodzenie:</b> główny cel „trochę obok” (np. sen 6,5 h przy celu 7,5 h) albo zrobiony co najmniej w połowie (np. 10 z 20 stron) też się liczy. Dzień psuje dopiero „mocno obok” albo brak wpisu.'+(st.mainReq?'':' Działa tylko przy włączonym przełączniku wyżej.')+'</span></div></div>';
@@ -1561,6 +1592,8 @@ const GEAR='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="
 function render(){
   if(!S)return;
   if(S.tour==='new'&&ui.tour==null&&!ui.sheet&&ui.tab==='today'&&!Social.pendingJoin){ui.tour=0;ui.tourLens=false;ui.asstOpen=false}
+  if(!render.chatted){render.chatted=true;setTimeout(()=>Asst.chat(ui.tab),1500)}
+  if(!render.msc){render.msc=true;setTimeout(()=>Ms.check(),1200)}
   const tabs=[['today','Dziś'],['cal','Kalendarz'],['charts','Wykresy'],['friends','Znajomi'],['goals','Cele']];
   const body={today:viewToday,week:viewWeek,month:viewMonth,charts:viewCharts,goals:viewGoals,settings:viewSettings,friends:viewFriends}[ui.tab]();
   document.getElementById('app').innerHTML='<div class="top"><div class="brand">Rytm'+Sync.badge()+'</div><button class="iconbtn'+(ui.tab==='settings'?' on':'')+'" data-act="tab" data-t="settings">'+GEAR+'Ustawienia</button></div>'+body+'<nav class="nav" aria-label="Widoki"><div>'+tabs.map(t=>'<button class="'+(ui.tab===t[0]||(t[0]==='cal'&&(ui.tab==='week'||ui.tab==='month'))?'on':'')+'" data-act="tab" data-t="'+t[0]+'">'+t[1]+'</button>').join('')+'</div></nav>';
@@ -1590,7 +1623,7 @@ function act(a,ds){
   switch(a){
     case'tour':Tour.go(0);break;
     case'msall':ui.msAll=!ui.msAll;render();break;
-    case'tab':ui.tab=ds.t==='cal'?(ui.calLast||'week'):ds.t;ui.confirm=null;render();window.scrollTo(0,0);break;
+    case'tab':ui.tab=ds.t==='cal'?(ui.calLast||'week'):ds.t;ui.confirm=null;render();window.scrollTo(0,0);setTimeout(()=>Asst.chat(ui.tab),350);break;
     case'theme':ui.theme=ds.v;try{localStorage.setItem('rytm-theme',ui.theme)}catch(e){}applyTheme();render();break;
     case'sstreak':S.settings.streak=+ds.v;save();render();break;
     case'prev':ui.date=addDays(d,-1);render();break;
@@ -1665,6 +1698,8 @@ function act(a,ds){
     case'radd':S.settings.reminders.push({id:'r'+Date.now(),kind:'custom',time:'09:00',days:[0,1,2,3,4,5,6],on:true,text:''});save();render();break;
     case'rdel':S.settings.reminders.splice(+ds.i,1);save();render();break;
     case'pxpal':S.settings.pixaPal=ds.k;save();render();break;
+    case'pxtone':S.settings.pixaTone=ds.k==='hard'?'hard':'soft';save();render();break;
+    case'pxchat':S.settings.pixaChat=!S.settings.pixaChat;save();render();break;
     case'sasst':S.settings.asst=!S.settings.asst;ui.asstOpen=false;save();render();break;
     case'asstreset':S.asst.off={};S.asst.snooze={};save();render();toast('Przywrócono wszystkie podpowiedzi.');break;
     case'bkask':ui.confirm='bk'+ds.day;render();break;
@@ -1775,7 +1810,7 @@ function mergeState(base,l,r){
   const map=(b,a,c,deep)=>{b=b||{};a=a||{};c=c||{};const o={};new Set([...Object.keys(a),...Object.keys(c),...Object.keys(b)]).forEach(k=>{const v=deep?map(b[k],a[k],c[k],false):pick(b[k],a[k],c[k]);if(v===undefined||v===null)return;if(deep&&!Object.keys(v).length)return;o[k]=v});return o};
   const byId=(b,a,c)=>{const ix=x=>{const m={};(x||[]).forEach(e=>{m[e.id]=e});return m},B=ix(b),A=ix(a),C=ix(c),ids=(a||[]).map(e=>e.id).concat((c||[]).map(e=>e.id).filter(id=>!A[id]));return[...new Set(ids)].map(id=>pick(B[id],A[id],C[id])).filter(Boolean)};
   const set=(b,a,c)=>{b=b||[];a=a||[];c=c||[];const out=[];a.concat(c).forEach(x=>{if(out.includes(x))return;const inA=a.includes(x),inC=c.includes(x),inB=b.includes(x);if(inB&&(!inA||!inC))return;out.push(x)});return out};
-  const asst=(b,a,c)=>{b=b||{};a=a||{};c=c||{};return{snooze:map(b.snooze,a.snooze,c.snooze),off:map(b.off,a.off,c.off),ck:map(b.ck,a.ck,c.ck)}};
+  const asst=(b,a,c)=>{b=b||{};a=a||{};c=c||{};return{snooze:map(b.snooze,a.snooze,c.snooze),off:map(b.off,a.off,c.off),ck:map(b.ck,a.ck,c.ck),plan:map(b.plan,a.plan,c.plan,true)}};
   return Object.assign({},r,l,{log:map(base.log,l.log,r.log,true),mood:map(base.mood,l.mood,r.mood),notes:map(base.notes,l.notes,r.notes),off:map(base.off,l.off,r.off),reviews:map(base.reviews,l.reviews,r.reviews),
     goals:byId(base.goals,l.goals,r.goals),lt:byId(base.lt,l.lt,r.lt),people:set(base.people,l.people,r.people),settings:map(base.settings,l.settings,r.settings),asst:asst(base.asst,l.asst,r.asst),ms:map(base.ms,l.ms,r.ms),msInit:!!(l.msInit||r.msInit),tour:pick(base.tour,l.tour,r.tour)});
 }
@@ -1783,7 +1818,8 @@ function mergeState(base,l,r){
 function navHash(){
   const h=location.hash,clr=()=>history.replaceState(null,'',location.pathname+location.search);
   if(h==='#week'||h==='#friends'){ui.tab=h.slice(1);if(h==='#week')ui.wk=0;ui.sheet=null;clr();return true}
-  if(h==='#pixa-week'){ui.tab='today';ui.sheet=null;ui.asstOpen=true;ui.asstKind='weekly';clr();return true}
+  if(h==='#pixa-week'||h==='#pixa-month'){ui.tab='today';ui.sheet=null;ui.asstOpen=true;ui.asstKind=h==='#pixa-week'?'weekly':'monthly';clr();return true}
+  if(h==='#pixa-fill'){ui.tab='today';ui.date=todayS();ui.sheet=null;ui.asstOpen=true;ui.asstFill=true;clr();return true}
   return false;
 }
 window.addEventListener('hashchange',()=>{if(navHash()&&S){render();window.scrollTo(0,0)}});
@@ -1860,7 +1896,7 @@ const Sync=(()=>{
       '<button class="opt" data-act="start" data-k="zero"><b>Od zera</b><span>Pusta aplikacja. Sam dodajesz kategorie i cele.</span></button>'+
       '<button class="opt" data-act="start" data-k="sample"><b>Najpierw rozejrzę się na przykładowych danych</b><span>110 wymyślonych dni. Potem jednym kliknięciem wyczyścisz wpisy i zostaną same cele.</span></button></div>');
   }
-  function start(k){S=fixState(k==='sample'?seed():k==='template'?templateState():emptyState());S.tour='new';ui.tab=Social.pendingJoin?'friends':k==='zero'?'goals':'today';save();render();Social.load()}
+  function start(k){S=fixState(k==='sample'?seed():k==='template'?templateState():emptyState());S.tour='new';ui.tab=Social.pendingJoin?'friends':k==='zero'?'goals':'today';window.save();render();Social.load()}
   function authPage(){
     const m=authMode,f=(id,type,lab,ac,ph)=>'<label class="fl" for="'+id+'">'+lab+'</label><input class="inp" id="'+id+'" type="'+type+'" autocomplete="'+ac+'"'+(ph?' placeholder="'+ph+'"':'')+(type==='email'?' value="'+esc(lastEmail)+'"':'')+' required>';
     let h='<div class="authwrap"><p class="sub" style="margin-bottom:16px">Twoje cele i nawyki w jednym miejscu, na telefonie i laptopie.</p><form class="card" id="authform" novalidate>';
@@ -1955,6 +1991,7 @@ const Social=(()=>{
     }catch(e){D.err=e}
     D.loading=false;
     if(ui.tab==='friends')render();
+    if(ui.chatWait&&ui.tab==='friends'){ui.chatWait=false;setTimeout(()=>Asst.chat('friends',true),300)}
     syncShares();
   }
   function doneDay(g,d){const r=val(g.id,d);if(g.type==='qty')return r!=null&&qtyOk(g,r);if(g.type==='range')return r!=null&&evalRange(g,r).status==='ok';return num(r)>0}
@@ -1965,10 +2002,46 @@ const Social=(()=>{
     return{days,weeks,target:targetLabel(g)};
   }
   function queueShares(){clearTimeout(timer);timer=setTimeout(syncShares,1500)}
+  // Kamienie milowe do pokazania grupie: tylko z celów, które wolno udostępniać (ruch, umysł), plus dobre dni i seria. Ostatnie 30 dni.
+  function msList(){const out=[],t=todayS();Object.keys(S.ms||{}).forEach(k=>{const m=S.ms[k];if(!m||!m.d||diffDays(m.d,t)>30)return;let ok=/^(gd|st)-/.test(k);
+    if(!ok){const mm=/^(.*)-[csr]-[\d.]+$/.exec(k),g=mm&&S.goals.find(x=>x.id===mm[1]);ok=!!(g&&g.act&&CAT_BY[g.act]&&CAT_BY[g.act].share)}
+    if(ok)out.push({k,t:m.t,d:m.d})});return out.sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:0).slice(0,12)}
+  const kLabel=a=>a&&a.indexOf('ms:')===0?'kamień milowy':(CAT_BY[a]||{n:a}).n;
+  function msCard(g){
+    const mem=D.members.filter(m=>m.group_id===g.id).map(m=>m.user_id),t=todayS(),list=[];
+    D.shares.filter(x=>x.act==='_ms'&&(x.groups||[]).includes(g.id)&&mem.includes(x.user_id)).forEach(x=>((x.data&&x.data.list)||[]).forEach(m=>{if(diffDays(m.d,t)<=30)list.push({uid:x.user_id,m})}));
+    if(!list.length)return'';
+    list.sort((a,b)=>a.m.d<b.m.d?1:a.m.d>b.m.d?-1:0);
+    return'<div class="card"><h3>Kamienie milowe w grupie</h3>'+list.slice(0,8).map(o=>{const a=('ms:'+o.m.k).slice(0,30),sent=sentToday(o.uid,a);
+      return'<div class="msg"><span class="medal" aria-hidden="true">'+Ms.short(o.m.k)+'</span><span class="mst"><b>'+esc(name(o.uid))+'</b> · '+esc(o.m.t)+'<small>'+ago(o.m.d)+'</small></span>'+(o.uid===me()?'':'<button class="btn rkk" style="margin-left:auto" data-soc="kudos" data-to="'+o.uid+'" data-a="'+esc(a)+'" data-lbl="'+esc(o.m.t)+'"'+(sent?' disabled':'')+'>'+(sent?'Wysłano':'Piątka')+'</button>')+'</div>'}).join('')+'</div>';
+  }
+  // Co Pixa mówi w zakładce Znajomi.
+  function chat(tn){
+    const out=[],add=(id,text,acts,pose)=>out.push({id,text,acts:acts||[],pose}),t=todayS();
+    if(!D.loaded)return out;
+    const kud=(uid,a,lbl)=>({l:'Piątka',f:()=>act('kudos',{to:uid,a,lbl})});
+    if(!D.profile){add('soc-prof',tn('Ustaw imię albo ksywkę, pod którą zobaczą Cię znajomi.','Najpierw ksywka dla znajomych. Pole jest wyżej.'),[],'wave');return out}
+    if(!D.groups.length){add('soc-nogrp',tn('Razem łatwiej. Załóż grupę i wyślij znajomym kod albo dołącz kodem od kogoś.','Sam dasz radę, ale z ekipą szybciej. Załóż grupę.'),[],'love');return out}
+    D.kudos.filter(k=>k.to_user===me()&&diffDays(k.day,t)<=3).slice(0,2).forEach(k=>add('soc-kin-'+k.from_user+k.act+k.day,(D.profiles[k.from_user]||'Znajomy')+' przybija Ci piątkę: '+kLabel(k.act)+'!',[],'clap'));
+    D.shares.filter(x=>x.act==='_ms'&&x.user_id!==me()).forEach(x=>((x.data&&x.data.list)||[]).filter(m=>diffDays(m.d,t)<=7).slice(0,2).forEach(m=>{const a=('ms:'+m.k).slice(0,30);if(sentToday(x.user_id,a))return;add('soc-ms-'+x.user_id+m.k,name(x.user_id)+' zdobywa kamień milowy: '+m.t+'. '+tn('Przybijesz piątkę?','Doceń. Piątka?'),[kud(x.user_id,a,m.t)],'cheer')}));
+    D.shares.filter(x=>x.user_id!==me()&&CAT_BY[x.act]&&((x.data&&x.data.days)||[]).includes(t)).slice(0,3).forEach(x=>{if(sentToday(x.user_id,x.act))return;add('soc-act-'+x.user_id+x.act+t,name(x.user_id)+' dziś: '+CAT_BY[x.act].n+'. '+tn('Przybijesz piątkę?','Doceń. Piątka?'),[kud(x.user_id,x.act,CAT_BY[x.act].n)],'clap')});
+    D.groups.forEach(g=>{const sh=groupShares(g.id),m=sh.find(x=>x.user_id===me()&&CAT_BY[x.act]);if(!m)return;
+      const rows=sh.filter(x=>x.act===m.act).map(x=>({uid:x.user_id,v:weekStreak(x)}));if(rows.length<2)return;
+      const my=rows.find(r=>r.uid===me()),pos=rows.filter(r=>r.v>my.v).length+1,top=Math.max(...rows.map(r=>r.v));
+      add('soc-rk-'+g.id+m.act+t,'„'+g.name+'”, '+CAT_BY[m.act].n+': jesteś '+pos+'. z '+rows.length+' (seria '+my.v+' tyg.).'+(pos===1?tn(' Prowadzisz!',' Prowadzisz. Utrzymaj.'):' Do lidera '+(top-my.v)+' tyg.'),[],pos===1?'cheer':'point')});
+    D.challenges.filter(c=>c.start_day<=t&&c.end_day>=t).forEach(c=>{const tot=groupShares(c.group_id).filter(x=>x.act===c.act).reduce((s2,x)=>s2+daysIn(x,c.start_day,t),0),left=diffDays(t,c.end_day),total=diffDays(c.start_day,c.end_day)+1,el=diffDays(c.start_day,t)+1,plan=Math.ceil(c.target*el/total);
+      add('soc-ch-'+c.id+t+tot,'Wyzwanie „'+c.name+'”: razem '+tot+'/'+c.target+', zostało '+left+' '+(left===1?'dzień':'dni')+'.'+(tot>=c.target?' Udało się!':tot>=plan?tn(' Idziecie zgodnie z planem.',' W planie. Dociskać.'):' Do planu brakuje '+(plan-tot)+'.'),[],tot>=plan?'thumbs':'point')});
+    const g0=D.groups.find(x=>x.id===ui.grp)||D.groups[0];
+    if(g0&&!S.goals.some(x=>(x.groups||[]).includes(g0.id)))add('soc-sh-'+g0.id,'Grupa „'+g0.name+'” nie widzi jeszcze żadnego Twojego celu. Udostępnij coś w Celach, a pojawisz się w rankingu.',[],'think');
+    if(g0&&!(S.settings.msGroups||[]).includes(g0.id))add('soc-msq-'+g0.id,'Możesz pokazywać grupie swoje kamienie milowe. Przełącznik jest niżej, w „Co udostępniasz tej grupie”.',[],'idea');
+    add('soc-help','Piątka to szybkie „dobra robota” dla znajomego. Dostanie powiadomienie.',[],'clap');
+    return out;
+  }
   async function syncShares(){
     if(!D.loaded||!me()||!S)return;
     const mine=D.groups.map(x=>x.id);
     const rows=S.goals.filter(g=>catOk(g)&&CAT_BY[g.act].share&&!isPaused(g)).map(g=>({user_id:me(),goal_id:g.id,act:g.act,name:g.name,groups:(g.groups||[]).filter(id=>mine.includes(id)),data:shareData(g)})).filter(r=>r.groups.length);
+    {const mg=(S.settings.msGroups||[]).filter(id=>mine.includes(id));if(mg.length)rows.push({user_id:me(),goal_id:'_ms',act:'_ms',name:'Kamienie milowe',groups:mg,data:{list:msList()}})}
     const sig=JSON.stringify(rows);if(sig===lastSig)return;
     try{
       const now=new Date().toISOString();rows.forEach(r=>{r.updated_at=now});
@@ -2020,14 +2093,14 @@ const Social=(()=>{
     h+='<p class="gs" style="margin:-4px 0 12px">Widzą Cię jako <b style="color:var(--fg)">'+esc(D.profile.name)+'</b> · <button class="link" data-soc="editname">zmień</button></p>';
     if(pendingJoin)h+='<div class="note"><p><b>Zaproszenie do grupy.</b> Dołączasz kodem <b>'+esc(pendingJoin)+'</b>.</p><div class="actions" style="margin:0"><button class="btn main" data-soc="joinpending">Dołącz</button><button class="btn" data-soc="dropjoin">Nie teraz</button></div></div>';
     const rec=D.kudos.filter(k=>k.to_user===me()&&diffDays(k.day,todayS())<=7);
-    if(rec.length)h+='<div class="card"><h3>Piątki dla Ciebie</h3>'+rec.slice(0,6).map(k=>'<div class="gs" style="padding:4px 0"><b style="color:var(--fg)">'+esc(D.profiles[k.from_user]||'Znajomy')+'</b> · '+esc((CAT_BY[k.act]||{n:k.act}).n)+' · '+ago(k.day)+'</div>').join('')+'</div>';
+    if(rec.length)h+='<div class="card"><h3>Piątki dla Ciebie</h3>'+rec.slice(0,6).map(k=>'<div class="gs" style="padding:4px 0"><b style="color:var(--fg)">'+esc(D.profiles[k.from_user]||'Znajomy')+'</b> · '+esc(kLabel(k.act))+' · '+ago(k.day)+'</div>').join('')+'</div>';
     if(D.groups.length){
       const g=D.groups.find(x=>x.id===ui.grp)||D.groups[0];ui.grp=g.id;
       if(D.groups.length>1)h+='<div class="chips" style="margin-bottom:12px">'+D.groups.map(x=>'<button class="pill'+(x.id===g.id?' on':'')+'" data-soc="grp" data-id="'+x.id+'">'+esc(x.name)+'</button>').join('')+'</div>';
       const mem=D.members.filter(m=>m.group_id===g.id),owner=g.created_by===me();
       h+='<div class="card"><h3>'+esc(g.name)+'</h3><p class="sub">'+mem.length+' '+plOs(mem.length)+': '+mem.map(m=>esc(name(m.user_id))+(m.role==='owner'?' (założyciel)':'')).join(', ')+'</p><div class="invite"><span>Kod zaproszenia: <b>'+esc(g.code)+'</b></span><button class="btn" data-soc="invite" data-code="'+esc(g.code)+'" data-n="'+esc(g.name)+'">Zaproś</button></div></div>';
-      h+=rankingCard(g)+challengesCard(g);
-      h+='<div class="card"><h3>Co udostępniasz tej grupie</h3>'+(()=>{const mine=S.goals.filter(x=>(x.groups||[]).includes(g.id));return mine.length?'<p class="sub" style="margin:0">'+mine.map(x=>esc(x.name)).join(', ')+'. Zmienisz to w edytorze celu.</p>':'<p class="sub" style="margin:0">Nic. Udostępnisz cel w <b>Cele → wybierz cel → Widoczne dla grup znajomych</b>.</p>'})()+'</div>';
+      h+=rankingCard(g)+challengesCard(g)+msCard(g);
+      h+='<div class="card"><h3>Co udostępniasz tej grupie</h3>'+(()=>{const mine=S.goals.filter(x=>(x.groups||[]).includes(g.id));return mine.length?'<p class="sub" style="margin:0">'+mine.map(x=>esc(x.name)).join(', ')+'. Zmienisz to w edytorze celu.</p>':'<p class="sub" style="margin:0">Nic. Udostępnisz cel w <b>Cele → wybierz cel → Widoczne dla grup znajomych</b>.</p>'})()+(()=>{const on=(S.settings.msGroups||[]).includes(g.id);return'<div class="offbar" style="margin:10px 0 0"><button class="sw'+(on?' on':'')+'" data-soc="msshare" data-g="'+g.id+'" role="switch" aria-checked="'+on+'" aria-label="Kamienie milowe dla tej grupy"></button><span><b style="color:var(--fg)">Moje kamienie milowe</b>: z ruchu i nauki oraz liczba dobrych dni i seria. Bez notatek i szczegółów.</span></div>'})()+'</div>';
       h+='<p style="text-align:center;margin:4px 0 16px"><button class="link" style="color:var(--bad)" data-soc="'+(ui.confirm==='leave'+g.id?(owner?'delgroup':'leave'):'askleave')+'" data-id="'+g.id+'">'+(ui.confirm==='leave'+g.id?(owner?'Na pewno usunąć grupę dla wszystkich?':'Na pewno opuścić grupę?'):(owner?'Usuń grupę':'Opuść grupę'))+'</button></p>';
     }else h+='<div class="card"><h3>Zacznij od grupy</h3><p class="sub" style="margin:0">Utwórz grupę, np. „Ekipa ze ścianki”, i wyślij znajomym kod. Albo dołącz do grupy kodem, który od kogoś dostałeś. Możesz należeć do kilku grup.</p></div>';
     h+='<div class="card"><h3>Nowa grupa albo dołączenie</h3><label class="fl" for="soc-gname">Utwórz grupę</label><div class="row2"><input class="inp" id="soc-gname" maxlength="60" placeholder="np. Ekipa ze ścianki"><button class="btn" style="flex:none" data-soc="create">Utwórz</button></div><label class="fl" for="soc-code">Dołącz kodem</label><div class="row2"><input class="inp" id="soc-code" maxlength="10" autocomplete="off" autocapitalize="characters" placeholder="np. K7PQ2M"><button class="btn" style="flex:none" data-soc="join">Dołącz</button></div></div>';
@@ -2041,6 +2114,7 @@ const Social=(()=>{
       if(a==='cancelname'){ui.socEditName=false;render()}
       if(a==='saveprofile'){const n=(document.getElementById('soc-name').value||'').trim();if(!n){toast('Wpisz imię albo ksywkę.');return}const r=await sb().from('rytm_profile').upsert({user_id:me(),name:n.slice(0,40)});if(r.error)throw r.error;D.profile={user_id:me(),name:n};D.profiles[me()]=n;ui.socEditName=false;render();toast('Zapisano.')}
       if(a==='grp'){ui.grp=ds.id;render()}
+      if(a==='msshare'){const cur=S.settings.msGroups||[],was=cur.includes(ds.g);S.settings.msGroups=was?cur.filter(x=>x!==ds.g):cur.concat([ds.g]);save();lastSig='';render();await syncShares();toast(was?'Kamienie milowe ukryte przed grupą.':'Grupa zobaczy Twoje kamienie milowe.')}
       if(a==='act'){ui.grpAct=ds.a;render()}
       if(a==='metric'){ui.grpMetric=ds.m;render()}
       if(a==='create'){const n=(document.getElementById('soc-gname').value||'').trim();if(!n){toast('Wpisz nazwę grupy.');return}const r=await sb().rpc('rytm_create_group',{p_name:n});if(r.error)throw r.error;ui.grp=r.data;D.loading=false;await load();toast('Grupa utworzona. Kliknij „Zaproś”, żeby wysłać kod znajomym.')}
@@ -2052,7 +2126,7 @@ const Social=(()=>{
       if(a==='askleave'){ui.confirm='leave'+ds.id;render()}
       if(a==='leave'||a==='delgroup'){const r=a==='leave'?await sb().from('rytm_member').delete().eq('group_id',ds.id).eq('user_id',me()):await sb().from('rytm_group').delete().eq('id',ds.id);if(r.error)throw r.error;
         S.goals.forEach(g=>{g.groups=(g.groups||[]).filter(x=>x!==ds.id)});ui.confirm=null;ui.grp=null;save();await load();toast(a==='leave'?'Opuszczono grupę.':'Usunięto grupę.')}
-      if(a==='kudos'){const r=await sb().functions.invoke('rytm-push',{body:{action:'kudos',to:ds.to,act:ds.a,label:(CAT_BY[ds.a]||{n:ds.a}).n}});if(r.error)throw r.error;
+      if(a==='kudos'){const r=await sb().functions.invoke('rytm-push',{body:{action:'kudos',to:ds.to,act:ds.a,label:ds.lbl||(CAT_BY[ds.a]||{n:ds.a}).n}});if(r.error)throw r.error;
         D.kudos.unshift({from_user:me(),to_user:ds.to,act:ds.a,day:todayS()});render();toast(r.data&&r.data.already?'Dziś już przybiłeś piątkę za tę aktywność.':'Piątka wysłana!')}
       if(a==='newch'){const sh=groupShares(ds.g),acts=[...new Set(sh.map(x=>x.act))].filter(k=>CAT_BY[k]),t=todayS();
         ui.sheet={kind:'challenge',x:{group_id:ds.g,name:'',act:acts.includes(ui.grpAct)?ui.grpAct:(acts[0]||'gym'),target:20,start_day:t,end_day:addDays(t,29)}};renderSheet()}
@@ -2068,7 +2142,7 @@ const Social=(()=>{
   }
   document.addEventListener('click',e=>{const el=e.target.closest('[data-soc]');if(!el||el.disabled)return;act(el.dataset.soc,el.dataset)});
   ['input','change'].forEach(ev=>document.addEventListener(ev,e=>{const el=e.target,f=el.dataset&&el.dataset.chi;if(!f||!ui.sheet||ui.sheet.kind!=='challenge')return;const x=ui.sheet.x;x[f]=f==='target'?(parseInt(el.value,10)||0):el.value;const b=document.getElementById('chsave');if(b)b.disabled=!chOk(x)}));
-  return{load,queueShares,view,chSheet,groups:()=>D.loaded?D.groups:[],reset:()=>{D=fresh();lastSig=''},get pendingJoin(){return pendingJoin},data:()=>D};
+  return{chat,load,queueShares,view,chSheet,groups:()=>D.loaded?D.groups:[],reset:()=>{D=fresh();lastSig=''},get pendingJoin(){return pendingJoin},data:()=>D};
 })();
 function viewFriends(){return Social.view()}
 
@@ -2098,7 +2172,22 @@ const PixaArt=(()=>{
     stretch:{px:18,py:24,t:0,la:[-160,-20],ra:[160,20],ll:[-6,-2],rl:[6,2],face:'closed',stretch:1},
     comfort:{px:18,py:24,t:0,la:[-30,70],ra:[30,-70],ll:[-4,-2],rl:[4,2],face:'soft',fx:'heart'},
     work:{px:18,py:27,t:0,la:[-22,78],ra:[22,-78],ll:[-72,150],rl:[72,-150],face:'look',fx:'laptop'},
-    breathe:{px:18,py:27,t:0,la:[-42,-28],ra:[42,28],ll:[-72,150],rl:[72,-150],face:'closed',fx:'shadow'}
+    breathe:{px:18,py:27,t:0,la:[-42,-28],ra:[42,28],ll:[-72,150],rl:[72,-150],face:'closed',fx:'shadow'},
+    thumbs:{px:18,py:24,t:-3,la:[-10,-6],ra:[60,100],ll:[-4,-2],rl:[6,3],face:'wink',fx:'star'},
+    flex:{px:18,py:24,t:0,la:[-95,-85],ra:[95,85],ll:[-8,-3],rl:[8,3],face:'fierce',fx:'flame',flex:1},
+    shrug:{px:18,py:24,t:4,la:[-35,-65],ra:[35,65],ll:[-4,-2],rl:[4,2],face:'sly',shrug:1},
+    facepalm:{px:18,py:25,t:-5,la:[-10,-6],ra:[40,-190],ll:[-4,-2],rl:[4,2],face:'closed',fx:'sweat'},
+    wow:{px:18,py:23,t:0,la:[-55,-60],ra:[55,60],ll:[-6,-2],rl:[6,2],face:'wow',fx:'bang'},
+    sad:{px:18,py:25,t:0,nod:1,la:[-6,-4],ra:[6,4],ll:[-3,-1],rl:[3,1],face:'sad'},
+    salute:{px:18,py:24,t:-2,la:[-10,-6],ra:[120,130],ll:[-3,-1],rl:[3,1],face:'fierce'},
+    love:{px:18,py:24,t:0,la:[-150,-60],ra:[150,60],ll:[-4,-2],rl:[4,2],face:'love',fx:'hearts'},
+    clap:{px:18,py:24,t:0,la:[-25,170],ra:[25,-170],ll:[-5,-2],rl:[5,2],face:'joy',fx:'spark',clap:1},
+    point:{px:18,py:24,t:-3,la:[-10,-6],ra:[85,5],ll:[-4,-2],rl:[6,3],face:'wink',point:1},
+    idea:{px:18,py:24,t:-2,la:[-10,-6],ra:[150,20],ll:[-4,-2],rl:[4,2],face:'happy',fx:'bulb'},
+    groove:{px:18,py:24,t:0,la:[-40,-60],ra:[40,60],ll:[-8,-4],rl:[8,4],face:'happy',fx:'notes',dance:1},
+    spin:{px:18,py:23,t:0,la:[-150,-10],ra:[150,10],ll:[-6,-2],rl:[6,2],face:'joy',fx:'confetti',spin:1},
+    meditate:{px:18,py:27,t:0,la:[-42,-50],ra:[42,50],ll:[-72,150],rl:[72,-150],face:'closed',fx:'aura',hov:1},
+    yawn:{px:18,py:24,t:3,la:[-160,-25],ra:[40,-185],ll:[-4,-2],rl:[4,2],face:'wow',fx:'zzz'}
   };
   const STATE=new WeakMap();
   const KEYS=['px','py','t','la0','la1','ra0','ra1','ll0','ll1','rl0','rl1'];
@@ -2117,7 +2206,7 @@ const PixaArt=(()=>{
       for(let i=0;i<=n;i++){const s=i/n,cx=a[0]+dx*s,cy=a[1]+dy*s,w=w0+(w1-w0)*s;for(let o=-w;o<=w+.01;o+=.5)px(cx+nx*o,cy+ny*o,tone(o,w))}};
     const sx=x=>CX+(x-18)*K;
     let pyv=q.py*K+OY;if(P.hov)pyv+=Math.round(Math.sin(f*.15)*2);if(P.hop)pyv-=Math.round(Math.abs(Math.sin(f*.3))*6);
-    let tilt=q.t;if(P.dance)tilt+=Math.sin(f*.35)*8;if(P.stretch)tilt+=Math.sin(f*.12)*10;
+    let tilt=q.t;if(P.dance)tilt+=Math.sin(f*.35)*8;if(P.stretch)tilt+=Math.sin(f*.12)*10;if(P.spin)tilt+=Math.sin(f*.5)*18;if(P.shrug)tilt+=Math.sin(f*.2)*3;
     const Pv=[sx(q.px)+(P.dance?Math.round(Math.sin(f*.35)*2):0),pyv],[tx,ty]=dir(180+tilt),perp=[-ty,tx];
     const N=[Pv[0]+tx*23,Pv[1]+ty*23],Hd=[N[0]+tx*13+(P.nod?2:0),N[1]+ty*13+(P.nod?2+Math.round(Math.sin(f*.12)):0)];
     const at=(s,o)=>[N[0]+(Pv[0]-N[0])*s+perp[0]*o,N[1]+(Pv[1]-N[1])*s+perp[1]*o];
@@ -2143,6 +2232,10 @@ const PixaArt=(()=>{
     if(P.dance){const d=Math.sin(f*.35);a0+=d*40;a1+=d*30;b0+=d*40;b1-=d*30}
     if(P.cheer){b0+=Math.abs(Math.sin(f*.5))*-25;b1+=Math.abs(Math.sin(f*.5))*30}
     if(P.stretch){const d=Math.sin(f*.12)*12;a0+=d;b0+=d}
+    if(P.clap){const d=Math.abs(Math.sin(f*.9))*22;a1-=d;b1+=d}
+    if(P.flex){const d=Math.sin(f*.3)*8;a1-=d;b1+=d}
+    if(P.point){b0+=Math.sin(f*.25)*4}
+    if(P.shrug){const d=Math.abs(Math.sin(f*.2))*10;a1-=d;b1+=d}
     const hands=[];
     [[shoulder(-1),a0,a1],[shoulder(1),b0,b1]].forEach(([s,u,v])=>{const [ux,uy]=dir(u),e=[s[0]+ux*15,s[1]+uy*15],[vx,vy]=dir(u+v),hd=[e[0]+vx*14,e[1]+vy*14];
       seg(s,e,2.4,1.9);seg(e,hd,1.8,1.1);px(e[0],e[1],'core');px(e[0]+1,e[1],'acc');px(s[0],s[1],'core');const wr=[e[0]+vx*11.5,e[1]+vy*11.5];for(let o=-2;o<=2;o++)px(wr[0]+vy*o,wr[1]-vx*o,'acc');
@@ -2170,16 +2263,27 @@ const PixaArt=(()=>{
     if(st.last<0)for(let w=0;w<24;w++)upd();if(f!==st.last){upd();st.last=f}
     st.p.forEach(p=>{c.globalAlpha=Math.max(.15,p.life/p.max);px(p.x,p.y,p.c);if(p.life>p.max*.6)px(p.x+1,p.y,p.c);c.globalAlpha=1});
     // oczy: świecące, skośne szczeliny
-    const look=P.face==='look'?1:0,blink=f%46>=43;
+    const FC=P.face,look=FC==='look'?1:0,blink=f%46>=43&&FC!=='wow';
     [-1,1].forEach(sd=>{const cx=Hd[0]+sd*4+look;
-      for(let dx=-2;dx<=2;dx++)px(cx+dx,ey-4-(dx*sd>0?1:0),'edge');
-      if(P.face==='closed'||blink){for(let dx=-2;dx<=2;dx++)px(cx+dx,ey,'edge');return}
+      // brwi
+      for(let dx=-2;dx<=2;dx++)px(cx+dx,FC==='sad'?ey-4-(dx*sd<0?1:0):FC==='fierce'?ey-4+(dx*sd<0?1:0):FC==='wow'?ey-5-(Math.abs(dx)<2?1:0):ey-4-(dx*sd>0?1:0),'edge');
+      if(FC==='wink'&&sd===1){for(let dx=-2;dx<=2;dx++)px(cx+dx,ey-1+(Math.abs(dx)===2?1:0),'edge');return}
+      if(FC==='closed'||blink){for(let dx=-2;dx<=2;dx++)px(cx+dx,ey,'edge');return}
+      if(FC==='love'){[[-2,-1],[-1,-1],[1,-1],[2,-1],[-2,0],[-1,0],[0,0],[1,0],[2,0],[-1,1],[0,1],[1,1],[0,2]].forEach(([dx,dy])=>px(cx+dx,ey-1+dy,(f>>2)%2&&dy===0&&dx===-1?'core':'acc'));return}
+      if(FC==='wow'){for(let dx=-2;dx<=2;dx++){px(cx+dx,ey,'core');if(Math.abs(dx)<2)px(cx+dx,ey-1,'core')}px(cx+sd*3,ey-1,'acc');px(cx,ey,'acc');return}
+      if(FC==='sad'){for(let dx=-2;dx<=2;dx++)px(cx+dx,ey+(dx*sd>0?1:0),'core');px(cx,ey,'acc');if(sd===-1){const ty=ey+2+((f>>2)%6);px(cx-1,ty,'hairB');px(cx-1,ty+1,'core')}return}
+      if(FC==='fierce'){for(let dx=-2;dx<=2;dx++)px(cx+dx,ey,'core');px(cx-sd,ey-1,'core');px(cx+sd*3,ey,'acc');px(cx,ey,'acc');return}
+      if(FC==='wink'){for(let dx=-2;dx<=2;dx++)px(cx+dx,ey-1+(Math.abs(dx)===2?1:0),'core');px(cx+sd*3,ey-1,'acc');return}
       if(P.face==='happy'||P.face==='joy'){for(let dx=-2;dx<=2;dx++)px(cx+dx,ey-1+(Math.abs(dx)===2?1:0),'core');px(cx+sd*3,ey-1,'acc');return}
       if(P.face==='soft'){for(let dx=-2;dx<=2;dx++)px(cx+dx,ey-(dx*sd<0?1:0),'core');px(cx,ey,'acc');return}
       for(let dx=-2;dx<=2;dx++)px(cx+dx,ey,'core');for(let dx=0;dx<=2;dx++)px(cx+dx*sd,ey-1,'core');px(cx+sd*3,ey-2,'acc');px(cx,ey,'acc')});
     // usta i „łzy danych”
-    const smile=P.face==='happy'||P.face==='joy'||P.face==='soft';
-    for(let dx=-2;dx<=2;dx++)px(Hd[0]+dx,ey+7+(smile&&Math.abs(dx)===2?-1:0),'acc');
+    const smile=FC==='happy'||FC==='joy'||FC==='soft'||FC==='wink'||FC==='love';
+    if(FC==='wow'){for(let dx=-1;dx<=1;dx++)px(Hd[0]+dx,ey+7,'acc');px(Hd[0],ey+8,'lip')}
+    else if(FC==='sad')for(let dx=-2;dx<=2;dx++)px(Hd[0]+dx,ey+7+(Math.abs(dx)===2?1:0),'acc');
+    else if(FC==='sly')for(let dx=-2;dx<=2;dx++)px(Hd[0]+dx,ey+7-(dx>=2?1:0),'acc');
+    else if(FC==='fierce')for(let dx=-2;dx<=2;dx++)px(Hd[0]+dx,ey+7,dx===0?'core':'lip');
+    else for(let dx=-2;dx<=2;dx++)px(Hd[0]+dx,ey+7+(smile&&Math.abs(dx)===2?-1:0),'acc');
     if(P.face==='joy'){px(Hd[0],ey+8,'edge');px(Hd[0]-1,ey+8,'lip');px(Hd[0]+1,ey+8,'lip')}
     [-1,1].forEach(sd=>{for(let k=0;k<3;k++)if((k+Math.floor(f/4))%3)px(Hd[0]+sd*4,ey+2+k,'acc')});
     // efekty (piksele 2×2)
@@ -2190,6 +2294,15 @@ const PixaArt=(()=>{
     if(P.fx==='orb'){const hd=hands[1],yy=hd[1]-8-Math.abs(Math.sin(f*.25))*16;for(let y=-3;y<=3;y++)for(let x=-3;x<=3;x++){const d=x*x+y*y;if(d<=9)px(hd[0]+x,yy+y,d<=1?'core':d<=4?'acc':'lip')}}
     if(P.fx==='laptop'){const x0=Math.round(Pv[0])-8,y0=Math.round(Pv[1])-1;for(let x=0;x<=16;x++){px(x0+x,y0+8,'edge');px(x0+x+1,y0+9,'edge')}for(let y=0;y<8;y++)for(let x=1;x<=15;x++)px(x0+x,y0+y,y===0||y===7||x===1||x===15?'edge':((x+y*3+f)%9===0?'acc':(y%2&&x<4+((f+y)%10))?'core':'body'))}
     if(P.fx==='heart'){const x=Hd[0]+14,y=Hd[1]-12-Math.round(Math.sin(f*.2)*2);[[0,0],[1,0],[3,0],[4,0],[-1,1],[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[0,2],[1,2],[2,2],[3,2],[4,2],[1,3],[2,3],[3,3],[2,4]].forEach(([dx,dy])=>px(x+dx,y+dy,'acc'))}
+    if(P.fx==='star'){const [x,y]=[hands[1][0]+5,hands[1][1]-6],on=f%10<7;if(on){p2(x,y,'spark');p2(x-2,y,'spark');p2(x+2,y,'spark');p2(x,y-2,'spark');p2(x,y+2,'spark');px(x+4,y,'spark');px(x-3,y,'spark');px(x,y+4,'spark');px(x,y-3,'spark')}}
+    if(P.fx==='flame'){hands.forEach(([hx,hy],i)=>{for(let k=0;k<7;k++){const w=Math.max(0,2-Math.floor(k/3)),j=Math.round(Math.sin(f*.9+k+i*2)*(k/3));for(let o=-w;o<=w;o++)px(hx+o+j,hy-2-k,k<2?'spark':k<4?'acc':(k+f)%2?'lip':'acc')}})}
+    if(P.fx==='sweat'){const x=Hd[0]+11,y=Hd[1]-6+((f>>1)%8);px(x,y,'core');px(x,y+1,'hairB');px(x-1,y+2,'hairB');px(x,y+2,'core');px(x+1,y+2,'hairB');px(x,y+3,'hairB')}
+    if(P.fx==='bang'&&f%12<9){const x=Hd[0]+14,y=Hd[1]-24;for(let k=0;k<4;k++)p2(x,y+k*2,'spark');p2(x,y+10,'spark')}
+    if(P.fx==='hearts'){for(let i=0;i<3;i++){const ph=(f+i*11)%33,x=Hd[0]-12+i*12+Math.round(Math.sin((f+i*5)*.2)*2),y=Hd[1]-14-ph;if(ph<28)[[0,0],[2,0],[0,1],[1,1],[2,1],[1,2]].forEach(([dx,dy])=>px(x+dx,y+dy,'acc'))}}
+    if(P.fx==='notes'){for(let i=0;i<2;i++){const ph=(f+i*14)%28,x=Hd[0]+(i?14:-17)+Math.round(Math.sin((f+i*7)*.25)*2),y=Hd[1]-4-ph;if(ph<24){for(let k=0;k<5;k++)px(x+2,y-k,'spark');px(x+3,y-4,'spark');px(x+4,y-3,'spark');p2(x,y,'spark')}}}
+    if(P.fx==='confetti'){const C=['acc','spark','hairB','hairA','core'];for(let i=0;i<16;i++){const x=(i*37+Math.round(Math.sin(f*.2+i)*3))%W,y=(i*23+f*2)%H;px(x,y,C[i%5]);px(x+1,y,C[i%5])}}
+    if(P.fx==='aura'){for(let i=0;i<14;i++){const a=i/14*Math.PI*2+f*.08,x=Pv[0]+Math.cos(a)*30,y=Pv[1]-10+Math.sin(a)*18;if((i+(f>>1))%3)px(x,y,i%2?'core':'acc')}}
+    if(P.fx==='bulb'){const x=Hd[0]+15,y=Hd[1]-24,on=f%16<12;for(let yy=-3;yy<=3;yy++)for(let xx=-3;xx<=3;xx++){if(xx*xx+yy*yy<=10)px(x+xx,y+yy,on?(xx*xx+yy*yy<=2?'core':'spark'):'shade')}for(let xx=-1;xx<=1;xx++){px(x+xx,y+4,'edge');px(x+xx,y+5,'shade')}if(on)[[-6,0],[6,0],[0,-6],[-4,-4],[4,-4]].forEach(([dx,dy])=>px(x+dx,y+dy,'spark'))}
     if(P.peek){for(let x=0;x<W;x++)for(let y=H-4;y<H;y++)px(x,y,y===H-4?'core':'edge')}
     if(f%37<2){const y0=16+((f*13)%70),img=c.getImageData(0,y0,W,5);c.clearRect(0,y0,W,5);c.putImageData(img,(f%2?3:-3),y0)}
   }
@@ -2199,16 +2312,20 @@ const PixaArt=(()=>{
 /* ---------- asystentka Pixa (podpowiedzi oparte na regułach, bez AI) ---------- */
 const Asst=(()=>{
   // Pozy: losowe co kilka sekund, dopasowane do treści podpowiedzi, reakcja na dotknięcie.
-  const POOL=['float','stand','sleep','perch','orb','peek','stretch','float','stand','dance'];
-  const CTX={mood:'wave',start:'wave',missing:'think',review:'think',adjust:'think',limit:'think',paused:'think',record:'jump',insight:'orb',milestone:'cheer',weekly:'wave'};
+  // Pozy dobierane do pory dnia: rano przeciąganie, w dzień ruch, wieczorem spokój, w nocy sen.
+  const POOLS={night:['sleep','sleep','yawn','meditate','float'],morning:['stretch','yawn','wave','stand','float','perch','groove'],day:['float','stand','perch','orb','peek','dance','groove','think','idea','point','wave'],evening:['float','perch','orb','meditate','think','stand','sleep','groove']};
+  const dayPart=()=>{const h=new Date().getHours();return h>=23||h<5?'night':h<10?'morning':h<18?'day':'evening'};
+  const tn=(a,b)=>S&&S.settings.pixaTone==='hard'?b:a;
+  const CTX={mood:'wave',start:'wave',missing:'point',yesterday:'think',streak:'wow',review:'think',adjust:'point',limit:'facepalm',paused:'shrug',record:'thumbs',insight:'idea',milestone:'cheer',weekly:'wave',monthly:'wave'};
   let pose='float',cur=null,poseT=0,hold=80,ctxPose=null,pokeT=0,frame=0,anim=null;
-  const pick=()=>{const o=POOL.filter(x=>x!==pose);return o[Math.floor(Math.random()*o.length)]};
+  const pick=()=>{const P=POOLS[dayPart()],o=P.filter(x=>x!==pose);return o[Math.floor(Math.random()*o.length)]};
   function choose(n){if(n!==pose){pose=n;poseT=0;hold=60+Math.floor(Math.random()*60)}else poseT=0}
   function setCtx(tp){ctxPose=tp?(tp.pose||CTX[tp.kind]||null):null;if(!pokeT)choose(ctxPose||'float')}
   function react(tp,ac){
-    let pool=['cheer','jump','dance','wave'];
-    if(ac&&ac.mood)pool=ac.mood>=4?['dance','jump','cheer']:ac.mood===3?['wave','stretch','orb']:['comfort'];
-    else if(!ac)pool=['wave','think','stretch'];
+    const hard=S.settings.pixaTone==='hard';
+    let pool=hard?['flex','salute','thumbs','clap','cheer']:['cheer','jump','dance','wave','thumbs','clap','spin'];
+    if(ac&&ac.mood)pool=ac.mood>=4?(hard?['flex','thumbs','cheer','clap']:['dance','jump','cheer','clap','spin','love','groove']):ac.mood===3?['wave','stretch','orb','thumbs','shrug']:(hard?['comfort','salute']:['comfort','love','sad']);
+    else if(!ac)pool=['wave','think','stretch','shrug'];
     const o=pool.filter(x=>x!==pose);choose((o.length?o:pool)[Math.floor(Math.random()*(o.length?o:pool).length)]);pokeT=26;
   }
   // ---- minutnik skupienia ----
@@ -2266,7 +2383,7 @@ const Asst=(()=>{
     for(let k=1;k<=Math.min(3,cand.length);k++){const set=cand.slice(0,k);if(ok(set))return{n,set}}
     return null;
   }
-  function poke(){choose(Math.random()<.6?'jump':'wave');pokeT=16}
+  function poke(){const P=['jump','wave','wow','love','spin','thumbs','groove','facepalm','shrug','clap'];choose(P[Math.floor(Math.random()*P.length)]);pokeT=18}
   function step(cv){
     frame++;poseT++;
     if(pokeT>0){pokeT--;if(!pokeT)choose(ctxPose||pick())}
@@ -2289,12 +2406,13 @@ const Asst=(()=>{
   const ckTypes=g=>g.type==='qty'||g.type==='range'||(g.type==='do'&&g.period==='day')||(isMeasure(g)&&g.period==='day');
   function missingFor(d){if(S.off[d])return[];const ans=S.asst.ck[d]||[];return S.goals.filter(g=>!pausedAt(g,d)&&ckTypes(g)&&!ans.includes(g.id)&&(g.type==='do'?!num(val(g.id,d)):val(g.id,d)==null))}
   function answered(d,id){const a=S.asst.ck[d]=S.asst.ck[d]||[];if(!a.includes(id))a.push(id)}
-  function startCk(d,list){ui.ck={d,q:list.map(g=>g.id),i:0,n:0};ui.asstOpen=true;choose('think')}
+  function startCk(d,list,mood){ui.ck={d,q:(mood&&S.mood[d]==null&&!S.off[d]?['mood']:[]).concat(list.map(g=>g.id)),i:0,n:0};ui.asstOpen=true;ui.say=null;choose('think')}
   const dayWord=d=>d===todayS()?'Dziś':d===addDays(todayS(),-1)?'Wczoraj':shortDate(d);
   const names=l=>l.slice(0,4).map(g=>g.name).join(', ')+(l.length>4?' i '+(l.length-4)+' więcej':'');
   function ckBubble(){
     const c=ui.ck;
     if(c.i>=c.q.length)return'<p class="pxtxt">Gotowe! '+dayWord(c.d)+' uzupełniony'+(c.n?' ('+c.n+' '+(c.n===1?'wpis':'wpisy')+')':'')+'.</p><div class="pxact"><button class="btn main" data-asst="ckend">Dzięki!</button></div>';
+    if(c.q[c.i]==='mood')return'<div class="pxstep">'+dayWord(c.d)+' · '+(c.i+1)+'/'+c.q.length+'</div><p class="pxtxt">'+(c.d===todayS()?'Jak się dziś czujesz?':'Jak się wtedy czułeś?')+'</p><div class="pxact">'+[1,2,3,4,5].map(n=>'<button class="mb md'+n+'" data-asst="ckmood" data-v="'+n+'" aria-label="'+MOODS[n-1]+'"><b>'+n+'</b></button>').join('')+'</div><div class="pxfoot"><button class="link" data-asst="ckskip">Pomiń</button><button class="link" data-asst="ckend">Zakończ</button></div>';
     const g=S.goals.find(x=>x.id===c.q[c.i]);if(!g){c.i++;return ckBubble()}
     const u=g.unit?' '+g.unit:'',head='<div class="pxstep">'+dayWord(c.d)+' · '+(c.i+1)+'/'+c.q.length+'</div>';
     const btn=(v,l)=>'<button class="btn" data-asst="ckv" data-v="'+v+'">'+esc(l)+'</button>';
@@ -2313,7 +2431,7 @@ const Asst=(()=>{
     return head+'<p class="pxtxt">'+esc(q)+'</p>'+body+'<div class="pxfoot"><button class="link" data-asst="ckskip">'+(g.type==='do'?'Pomiń':'Nie pamiętam')+'</button><button class="link" data-asst="ckend">Zakończ</button></div>';
   }
   function ckAnswer(v,kind){
-    const c=ui.ck,id=c.q[c.i],g=S.goals.find(x=>x.id===id);
+    const c=ui.ck,id=c.q[c.i],g=id==='mood'?null:S.goals.find(x=>x.id===id);
     if(g&&v!=null){if(v===0&&isMax(g)){S.log[c.d]=S.log[c.d]||{};S.log[c.d][id]=0}else setVal(id,c.d,v);c.n++}
     answered(c.d,id);react(null,kind==='yes'?{mood:5}:kind==='no'?null:{mood:4});c.i++;save();
     if(ui.tab==='today'&&ui.date===c.d)render();else paint();
@@ -2323,19 +2441,21 @@ const Asst=(()=>{
     const t=todayS(),hour=new Date().getHours(),out=[],ws=wstart(t),fd=firstDay();
     const add=(id,kind,pr,text,actions,pose)=>{const sn=S.asst.snooze[id];if(S.asst.off[kind]||(sn&&sn>t))return;out.push({id,kind,pr,text,actions,pose})};
     // kamienie milowe z ostatniego tygodnia
-    if(S.ms){const lim=addDays(t,-7),CH=['Jestem z Ciebie dumna!','Tak trzymaj!','To jest rytm!'];Object.keys(S.ms).forEach(k=>{const m=S.ms[k];if(!m||m.q||!m.at||m.at<lim)return;add('ms-'+k,'milestone',85,'Kamień milowy! '+m.t+'. '+CH[k.length%3],[{l:'Dzięki!',f:()=>{}}],k.length%2?'cheer':'dance')})}
+    if(S.ms){const lim=addDays(t,-7),CH=tn(['Jestem z Ciebie dumna!','Tak trzymaj!','To jest rytm!'],['Tak się to robi.','Dalej, nie zwalniaj.','Zasłużone.']);Object.keys(S.ms).forEach(k=>{const m=S.ms[k];if(!m||m.q||!m.at||m.at<lim)return;add('ms-'+k,'milestone',85,'Kamień milowy! '+m.t+'. '+CH[k.length%3],[{l:'Dzięki!',f:()=>{}}],k.length%2?'cheer':'dance')})}
+    {const dm=+t.slice(8);if(dm<=3){const pm=mstart(addDays(mstart(t),-1));let s=null;try{s=monthRecap(pm)}catch(e){}
+      if(s)add('mon-'+pm,'monthly',74,s.t+'. '+(s.b?s.b+' ':'')+(s.g>=s.n*.7?tn('Piękny miesiąc!','Mocny miesiąc. Podnieś poprzeczkę.'):tn('Nowy miesiąc, nowa szansa.','Ten miesiąc ma być lepszy.')),[{l:'Zobacz miesiąc',f:()=>{ui.asstOpen=false;ui.tab='month';ui.calLast='month';ui.mo=-1;render();window.scrollTo(0,0)}}],s.g>=s.n*.7?'cheer':'point')}}
     // podsumowanie zeszłego tygodnia (poniedziałek i wtorek)
     {const dw=new Date().getDay();if(dw===1||dw===2){const pw=addDays(ws,-7);let s=null;try{s=weekRecap(pw)}catch(e){}
       if(s){const go=f=>()=>{ui.asstOpen=false;ui.tab='week';ui.calLast='week';ui.wk=-1;render();window.scrollTo(0,0);if(f)setTimeout(()=>{const el=document.getElementById('rv-good');if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.focus({preventScroll:true})}},50)};
         const acts=[{l:'Zobacz tydzień',f:go(false)}];if(!(S.reviews[pw]&&(S.reviews[pw].good||S.reviews[pw].improve)))acts.push({l:'Dopisz wnioski',f:go(true)});
-        add('wk-'+pw,'weekly',75,'Zeszły tydzień: dobre dni '+s.g+' z '+s.n+'. '+(s.b?s.b+' ':'')+(s.g>=5?'Świetna robota!':s.g>=3?'Solidnie. Ten tydzień może być jeszcze lepszy.':'Nowy tydzień to nowy start. Jestem z Tobą.'),acts,s.g>=5?'cheer':s.g>=3?'wave':'comfort')}}}
+        add('wk-'+pw,'weekly',75,'Zeszły tydzień: dobre dni '+s.g+' z '+s.n+'. '+(s.b?s.b+' ':'')+(s.g>=5?tn('Świetna robota!','Dobra robota. Utrzymaj to.'):s.g>=3?tn('Solidnie. Ten tydzień może być jeszcze lepszy.','Średnio. Stać Cię na więcej.'):tn('Nowy tydzień to nowy start. Jestem z Tobą.','Słaby tydzień. Ten będzie lepszy, bo tak postanowiłeś.')),acts,s.g>=5?'cheer':s.g>=3?'wave':'comfort')}}}
     if(!S.goals.length)add('first','start',100,'Cześć! Jestem Pixa. Zacznijmy od pierwszego celu. Co chcesz robić regularnie?',[{l:'Dodaj cel',f:()=>{ui.asstOpen=false;openGoal(null)}}]);
-    if(S.mood[t]==null&&!S.off[t])add('mood-'+t,'mood',80,'Jak się dziś czujesz?',MOODS.map((m,i)=>({l:(i+1)+' '+m.toLowerCase(),mood:i+1,f:()=>{S.mood[t]=i+1;save();toast('Zapisano nastrój.');if(i+1<=2)ui.breath={offer:true}}})));
-    if(hour>=17){const rs=rescue(t);if(rs){const ckable=rs.set.every(ckTypes);add('streak-'+t,'streak',90,'Seria '+rs.n+' dni jest zagrożona. Do dobrego dnia brakuje: '+names(rs.set)+'.',ckable?[{l:'Uzupełnij z Pixą',f:()=>startCk(t,rs.set)}]:[{l:'Pokaż',f:()=>{ui.asstOpen=false;ui.tab='today';ui.date=t;render();setTimeout(()=>act('jump',{g:rs.set[0].id}),50)}}])}}
-    {const y=addDays(t,-1),my=missingFor(y);if(my.length&&firstDay()<=y)add('yest-'+y,'yesterday',78,'Wczoraj nie było wpisu przy: '+names(my)+'. Nie pominąłeś czegoś?',[{l:'Uzupełnij',f:()=>startCk(y,my)},{l:'Nic więcej nie było',f:()=>{my.forEach(g=>answered(y,g.id));toast('OK, wczoraj zamknięty.')}}])}
+    if(S.mood[t]==null&&!S.off[t])add('mood-'+t,'mood',80,tn('Jak się dziś czujesz?','Raport: jak się dziś czujesz?'),MOODS.map((m,i)=>({l:(i+1)+' '+m.toLowerCase(),mood:i+1,f:()=>{S.mood[t]=i+1;save();toast('Zapisano nastrój.');if(i+1<=2)ui.breath={offer:true}}})));
+    if(hour>=17){const rs=rescue(t);if(rs){const ckable=rs.set.every(ckTypes);add('streak-'+t,'streak',90,tn('Seria '+rs.n+' dni jest zagrożona. Do dobrego dnia brakuje: '+names(rs.set)+'.','Seria '+rs.n+' dni wisi na włosku. Zrób: '+names(rs.set)+'. Bez wymówek.'),ckable?[{l:'Uzupełnij z Pixą',f:()=>startCk(t,rs.set)}]:[{l:'Pokaż',f:()=>{ui.asstOpen=false;ui.tab='today';ui.date=t;render();setTimeout(()=>act('jump',{g:rs.set[0].id}),50)}}])}}
+    {const y=addDays(t,-1),my=missingFor(y);if(my.length&&firstDay()<=y)add('yest-'+y,'yesterday',78,tn('Wczoraj nie było wpisu przy: '+names(my)+'. Nie pominąłeś czegoś?','Wczoraj pusto przy: '+names(my)+'. Zrobione czy nie?'),[{l:'Uzupełnij',f:()=>startCk(y,my)},{l:'Nic więcej nie było',f:()=>{my.forEach(g=>answered(y,g.id));toast('OK, wczoraj zamknięty.')}}])}
     if(hour>=18&&!S.off[t]){
       const miss=missingFor(t);
-      if(miss.length)add('miss-'+t,'missing',70,'Do uzupełnienia na dziś: '+names(miss)+'.',[{l:'Uzupełnij z Pixą',f:()=>startCk(t,miss)},{l:'Pokaż',f:()=>{ui.asstOpen=false;ui.tab='today';ui.date=t;render();setTimeout(()=>act('jump',{g:miss[0].id}),50)}}]);
+      if(miss.length)add('miss-'+t,'missing',70,tn('Do uzupełnienia na dziś: '+names(miss)+'.','Dzień niedomknięty. Brakuje: '+names(miss)+'.'),[{l:'Uzupełnij z Pixą',f:()=>startCk(t,miss,true)},{l:'Pokaż',f:()=>{ui.asstOpen=false;ui.tab='today';ui.date=t;render();setTimeout(()=>act('jump',{g:miss[0].id}),50)}}]);
     }
     if(new Date().getDay()===0&&hour>=17&&!(S.reviews[ws]&&(S.reviews[ws].good||S.reviews[ws].improve)))add('rev-'+ws,'review',60,'Koniec tygodnia. Podsumujesz go w minutę? Co poszło dobrze, co poprawić?',[{l:'Podsumuj',f:()=>{ui.asstOpen=false;ui.tab='week';ui.wk=0;render();setTimeout(()=>{const el=document.getElementById('rv-good');if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.focus({preventScroll:true})}},50)}}]);
     S.goals.forEach(g=>{
@@ -2358,7 +2478,7 @@ const Asst=(()=>{
       if(g.type==='limit'&&g.period==='week'){const over=[1,2,3,4].filter(k=>{const a=addDays(ws,-7*k);return a>=wstart(fd)&&sumRange(g.id,a,addDays(a,6))>g.target}).length;
         if(over>=3)add('over-'+g.id+'-'+ws,'limit',40,'„'+g.name+'” był ponad limitem w '+over+' z ostatnich 4 tygodni. Chcesz zobaczyć, w które dni najczęściej?',[{l:'Pokaż miesiąc',f:()=>{ui.asstOpen=false;ui.tab='month';ui.mo=0;ui.oc['m:'+g.cat]=true;ui.ser[g.cat]=[{k:g.id,slot:1}];render()}}])}
       // rekord serii
-      const r=goalRuns(g);if(r&&r.cur>=3&&r.cur===r.best)add('rec-'+g.id+'-'+r.cur,'record',35,'„'+g.name+'”: '+r.cur+' '+r.u+' z rzędu. To Twój rekord!',[{l:'Dzięki!',f:()=>{}}]);
+      const r=goalRuns(g);if(r&&r.cur>=3&&r.cur===r.best)add('rec-'+g.id+'-'+r.cur,'record',35,'„'+g.name+'”: '+r.cur+' '+r.u+' z rzędu. '+tn('To Twój rekord!','Rekord. Teraz go pobij.'),[{l:'Dzięki!',f:()=>{}}]);
     });
     // wniosek z danych
     try{const ins=insights().find(x=>x.good===true);if(ins)add('ins-'+ins.t,'insight',20,'Zauważyłam coś w Twoich danych. '+ins.t+': średnio '+fmt(ins.a)+ins.u+', a bez tego '+fmt(ins.b)+ins.u+'.',[{l:'Ciekawe',f:()=>{}}])}catch(e){}
@@ -2370,11 +2490,13 @@ const Asst=(()=>{
     const root=document.getElementById('asst');if(!root)return;
     if(anim){cancelAnimationFrame(anim);anim=null}
     if(!S||!S.settings.asst||ui.sheet||ui.tab==='settings'||(ui.tour!=null&&!ui.tourLens)){root.innerHTML='';return}
-    tipsCache=tips();if(idx>=tipsCache.length)idx=0;
+    if(ui.asstFill&&ui.asstOpen){ui.asstFill=false;const d=new Date().getHours()<5?addDays(todayS(),-1):todayS(),l=missingFor(d);if(l.length||(S.mood[d]==null&&!S.off[d]))startCk(d,l,true)}
+    tipsCache=tips();if(ui.chatTip&&ui.asstOpen){const c=ui.chatTip;tipsCache.unshift({id:'chat-'+c.id,kind:'chat',pr:999,text:c.text,actions:c.acts&&c.acts.length?c.acts:[{l:'OK',f:()=>{}}],pose:c.pose});idx=0}
+    if(idx>=tipsCache.length)idx=0;
     if(ui.asstKind){const j=tipsCache.findIndex(x=>x.kind===ui.asstKind);if(j>=0)idx=j;ui.asstKind=null}
     const has=tipsCache.length>0||!!ui.fdone,fresh=(has&&!openedToday())||!!ui.fdone||tipsCache.some(x=>x.kind==='milestone');
     if(!ui.asstOpen){
-      root.innerHTML='<button class="hal'+(fresh?' on':'')+'" data-asst="open" aria-label="'+(has?'Pixa ma dla Ciebie '+tipsCache.length+' '+(tipsCache.length===1?'wiadomość':'wiadomości'):'Otwórz asystentkę Pixę')+'"><span class="lens"></span></button>';
+      root.innerHTML=(ui.say?sayHtml(ui.say):'')+'<button class="hal'+(fresh?' on':'')+(ui.say?' talk':'')+'" data-asst="open" aria-label="'+(has?'Pixa ma dla Ciebie '+tipsCache.length+' '+(tipsCache.length===1?'wiadomość':'wiadomości'):'Otwórz asystentkę Pixę')+'"><span class="lens"></span></button>';
       return;
     }
     const mode=ui.ck?'ck':(ui.fset||focus||ui.fdone)?'focus':ui.breath?'breath':null;
@@ -2393,8 +2515,11 @@ const Asst=(()=>{
   }
   document.addEventListener('click',e=>{
     const el=e.target.closest('[data-asst]');if(!el)return;const a=el.dataset.asst,tp=tipsCache[idx];
-    if(a==='open'){ui.asstOpen=true;idx=0;try{localStorage.setItem(openedKey,todayS())}catch(x){}paint()}
-    if(a==='close'){ui.asstOpen=false;ui.ck=null;ui.fset=null;ui.fdone=null;if(ui.breath&&!bPhase())ui.breath=null;paint()}
+    if(a==='sayx'){ui.say=null;paint();return}
+    if(a==='sayopen'&&ui.say){ui.chatTip=ui.say;ui.say=null;ui.asstOpen=true;idx=0;choose(ui.chatTip.pose||'wave');paint();return}
+    if(a==='sayact'&&ui.say){const it=ui.say,x=it.acts[+el.dataset.j];ui.say=null;react(null,x.neg?null:{});x.f();save();if(x.t)toast(x.t);if(!ui.asstOpen&&(ui.tab==='today'||ui.tab==='goals'))render();else paint();return}
+    if(a==='open'){ui.say=null;ui.chatTip=null;ui.asstOpen=true;idx=0;try{localStorage.setItem(openedKey,todayS())}catch(x){}paint()}
+    if(a==='close'){ui.asstOpen=false;ui.chatTip=null;ui.ck=null;ui.fset=null;ui.fdone=null;if(ui.breath&&!bPhase())ui.breath=null;paint()}
     if(a==='ftool'){ui.ck=null;ui.breath=null;ui.fdone=null;if(!focus)ui.fset={g:(S.goals.find(g=>isMin(g)&&!isPaused(g))||{}).id||null,m:25};paint();return}
     if(a==='btool'){ui.ck=null;ui.fset=null;ui.fdone=null;ui.breath={start:Date.now()};choose('breathe');pokeT=0;paint();return}
     if(a==='fgoal'){ui.fset.g=el.dataset.g||null;paint();return}
@@ -2411,6 +2536,7 @@ const Asst=(()=>{
     if(ui.ck){
       if(a==='ckv')ckAnswer(parseNum(el.dataset.v),'val');
       if(a==='ckyes')ckAnswer(1,'yes');
+      if(a==='ckmood'){const v=+el.dataset.v,c=ui.ck;S.mood[c.d]=v;c.n++;c.i++;react(null,{mood:v});save();if(ui.tab==='today'&&ui.date===c.d)render();else paint();return}
       if(a==='ckno'||a==='ckskip')ckAnswer(null,'no');
       if(a==='cksave'){const v=parseNum((document.getElementById('ckin')||{}).value);if(v==null){toast('Wpisz liczbę.');return}ckAnswer(v,'val')}
       if(a==='ckend'){ui.ck=null;react(null,{mood:5});if(ui.tab==='today')render();else paint()}
@@ -2418,11 +2544,125 @@ const Asst=(()=>{
     }
     if(a==='poke'){poke()}
     if(a==='next'){idx=(idx+1)%tipsCache.length;react(null,null);paint()}
-    if(a==='later'&&tp){react(tp,null);snooze(tp);paint()}
-    if(a==='never'&&tp){react(tp,null);S.asst.off[tp.kind]=true;save();toast('Nie pokażę już takich podpowiedzi. Przywrócisz je w Ustawieniach.');paint()}
-    if(a==='do'&&tp){const ac=tp.actions[+el.dataset.j];if(tp.kind==='adjust'||tp.kind==='paused'){const u=withUndo('Zmieniono cel.');setTimeout(u,0)}react(tp,ac);S.asst.snooze[tp.id]=addDays(todayS(),3650);ac.f();save();if(ui.tab==='today'||ui.tab==='settings'||ui.tab==='goals')render();else paint()}
+    if(a==='later'&&tp){react(tp,null);if(tp.kind==='chat')ui.chatTip=null;else snooze(tp);paint()}
+    if(a==='never'&&tp){react(tp,null);if(tp.kind==='chat'){ui.chatTip=null;S.settings.pixaChat=false;save();toast('Wyłączyłam dymki przy zakładkach. Włączysz je w Ustawieniach.');paint();return}S.asst.off[tp.kind]=true;save();toast('Nie pokażę już takich podpowiedzi. Przywrócisz je w Ustawieniach.');paint()}
+    if(a==='do'&&tp){const ac=tp.actions[+el.dataset.j];if(tp.kind==='adjust'||tp.kind==='paused'){const u=withUndo('Zmieniono cel.');setTimeout(u,0)}react(tp,ac);if(tp.kind==='chat')ui.chatTip=null;else S.asst.snooze[tp.id]=addDays(todayS(),3650);ac.f();save();if(ac.t)toast(ac.t);if(ui.tab==='today'||ui.tab==='settings'||ui.tab==='goals')render();else paint()}
   });
-  return{paint,tips,rescue};
+  // ---- dymki przy zakładkach: jedno zdanie po wejściu, kolejne przy następnych wejściach, potem od nowa w kółko ----
+  const SEEN='rytm-chat-seen';let sayT=null,lastGrp=null,lastAt=0;
+  const seenGet=()=>{try{return JSON.parse(localStorage.getItem(SEEN)||'{}')}catch(e){return{}}};
+  const seenSet=o=>{try{localStorage.setItem(SEEN,JSON.stringify(o))}catch(e){}};
+  const grpOf=t=>t==='week'||t==='month'?'cal':t;
+  function sayHtml(it){return'<div class="pxsay" role="status"><button class="pxsayx" data-asst="sayx" aria-label="Zamknij dymek">×</button><p class="pxsayt" data-asst="sayopen"><b>Pixa</b> '+esc(it.text)+'</p>'+(it.acts&&it.acts.length?'<div class="pxsayact">'+it.acts.slice(0,2).map((x,j)=>'<button class="btn'+(j===0?' main':'')+'" data-asst="sayact" data-j="'+j+'">'+esc(x.l)+'</button>').join('')+'</div>':'')+'</div>'}
+  function chat(tab,force){
+    if(!S||!S.settings.asst||!S.settings.pixaChat||ui.asstOpen||ui.sheet||ui.tour!=null||tab==='settings')return false;
+    const g=grpOf(tab);if(!force&&g===lastGrp&&Date.now()-lastAt<20000)return false;
+    if(g==='friends'&&!Social.data().loaded){ui.chatWait=true;return false}
+    let items=[];try{items=chatItems(g)}catch(e){console.warn('chat',e)}
+    if(!items.length)return false;lastGrp=g;lastAt=Date.now();
+    const seen=seenGet(),now=Date.now();
+    const it=items.map((x,i)=>({x,i,s:seen[x.id]||0})).sort((a,b)=>((a.s>0)-(b.s>0))||(a.s-b.s)||(a.i-b.i))[0].x;
+    seen[it.id]=now;Object.keys(seen).forEach(k=>{if(now-seen[k]>4*864e5)delete seen[k]});seenSet(seen);
+    ui.say=it;sayY=window.scrollY;choose(it.pose||'wave');pokeT=0;paint();
+    clearTimeout(sayT);sayT=setTimeout(()=>{if(ui.say===it){ui.say=null;paint()}},it.acts&&it.acts.length?15000:9000);
+    return true;
+  }
+  // dymek znika od dotknięcia czegokolwiek obok albo przewinięcia, żeby nie zasłaniał listy
+  let sayY=0;
+  document.addEventListener('pointerdown',e=>{if(ui.say&&!e.target.closest('#asst')){ui.say=null;paint()}},true);
+  window.addEventListener('scroll',()=>{if(ui.say&&Math.abs(window.scrollY-sayY)>60){ui.say=null;paint()}},{passive:true});
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&S&&Date.now()-lastAt>10*60000)setTimeout(()=>chat(ui.tab,true),800)});
+  const setPlan=(gid,v)=>{const p=S.asst.plan||(S.asst.plan={});(p[todayS()]=p[todayS()]||{})[gid]=v};
+  const QUOTES=[['Małe kroki też się liczą.','Motywacja przychodzi i odchodzi. Nawyk zostaje.'],['Nie musi być idealnie. Ważne, żeby było regularnie.','Nikt tego za Ciebie nie zrobi.'],['Jeden gorszy dzień to nic. Liczy się, co robisz jutro.','Jeden słaby dzień to wypadek. Dwa to początek nawyku. Nie dopuść.'],['Pamiętaj o wodzie i chwili przerwy od ekranu.','Woda, ruch, sen. Reszta to szczegóły.']];
+  function chatItems(g){
+    const t=todayS(),h=new Date().getHours(),out=[],add=(id,text,acts,pose)=>out.push({id,text,acts:acts||[],pose});
+    const gs=S.goals.filter(x=>!isPaused(x)),ws=wstart(t),we=addDays(ws,6);
+    const yes=(gid,d,msg)=>({l:'Tak',f:()=>{setVal(gid,d,1);answered(d,gid)},t:msg||tn('Zapisane. Brawo!','Zapisane. Tak trzymaj.')});
+    const fill=(d,x)=>()=>startCk(d,[x]);
+    if(g==='today'){
+      if(S.off[t]){add('off-'+t,tn('Dziś dzień wolny. Odpoczywaj, seria jest bezpieczna.','Dzień wolny. Zregeneruj się, jutro wracamy do roboty.'),[],'sleep');return out}
+      const plan=(S.asst.plan||{})[t]||{},left=diffDays(t,we)+1;
+      // cele tygodniowe: obowiązkowo dziś, sprawdzenie planu, plan na dziś
+      const later=[];
+      gs.filter(x=>x.type==='do'&&x.period==='week'&&hasTarget(x)).forEach(x=>{
+        if(num(val(x.id,t))>0)return;const tot=sumRange(x.id,ws,t),need=x.target-tot;if(need<=0)return;
+        if(plan[x.id]===1&&h>=17)add('pc-'+x.id+t,tn('Rano mówiłeś, że dziś „'+x.name+'”. Udało się?','Miało być dziś „'+x.name+'”. Jest?'),[yes(x.id,t),{l:'Jeszcze nie',neg:1,f:()=>{}}],'think');
+        else if(need>=left)add('must-'+x.id+t,tn('Żeby zaliczyć „'+x.name+'” w tym tygodniu, dziś musi się udać ('+tot+'/'+x.target+'). Dasz radę?','„'+x.name+'”: '+tot+'/'+x.target+', a do niedzieli '+left+' '+dni(left)+'. Dziś obowiązkowo.'),[yes(x.id,t,tn('Zapisane. Tydzień uratowany!','Zapisane. Tak się to robi.')),{l:'Zrobię później',f:()=>setPlan(x.id,1),t:tn('Trzymam kciuki!','Trzymam za słowo.')}],'point');
+        else if(plan[x.id]==null&&h<18)later.push(()=>add('plan-'+x.id+t,tn('Planujesz dziś „'+x.name+'”? W tym tygodniu '+tot+'/'+x.target+'.','„'+x.name+'”: '+tot+'/'+x.target+'. Dziś idziesz?'),[{l:'Tak',f:()=>setPlan(x.id,1),t:tn('Super, zapytam wieczorem, jak poszło.','Zapisane. Rozliczę Cię wieczorem.')},{l:'Nie dziś',neg:1,f:()=>setPlan(x.id,0)}],'think'));
+      });
+      // cele codzienne
+      gs.filter(x=>x.type==='do'&&x.period==='day').forEach(x=>{if(num(val(x.id,t))>0)return;
+        if(plan[x.id]===1&&h>=17)add('pc-'+x.id+t,tn('Rano mówiłeś, że dziś „'+x.name+'”. Udało się?','Miało być „'+x.name+'”. Jest?'),[yes(x.id,t),{l:'Jeszcze nie',neg:1,f:()=>{}}],'think');
+        else if(h<12&&plan[x.id]==null)add('will-'+x.id+t,tn('Zamierzasz dziś „'+x.name+'”?','Dziś „'+x.name+'”. Plan jest?'),[{l:'Tak',f:()=>setPlan(x.id,1),t:tn('Trzymam kciuki!','Trzymam za słowo.')},{l:'Nie dziś',neg:1,f:()=>setPlan(x.id,0)}],'think');
+        else if(h>=12)add('did-'+x.id+t,tn('Udało się już dziś „'+x.name+'”?','„'+x.name+'” dziś zrobione?'),[yes(x.id,t),{l:'Jeszcze nie',neg:1,f:()=>{}}],'point')});
+      later.forEach(f=>f());
+      // wczoraj
+      {const y=addDays(t,-1);if(firstDay()<=y)missingFor(y).slice(0,3).forEach(x=>{
+        if(x.type==='do')add('y-'+x.id+y,tn('Wczoraj nie ma wpisu przy „'+x.name+'”. Udało się?','Wczoraj „'+x.name+'”: było czy nie?'),[{l:'Tak',f:()=>{setVal(x.id,y,1);answered(y,x.id)},t:'Dopisane do wczoraj.'},{l:'Nie',neg:1,f:()=>answered(y,x.id)}],'think');
+        else add('y-'+x.id+y,tn('Wczoraj brak wpisu: „'+x.name+'”. Pamiętasz, ile było?','Wczoraj „'+x.name+'”: brak liczby. Wpisz.'),[{l:'Wpisz',f:fill(y,x)},{l:'Nie pamiętam',neg:1,f:()=>answered(y,x.id)}],'think')})}
+      // ilości
+      gs.filter(x=>x.type==='qty'&&!isMax(x)&&x.target>0).forEach(x=>{const v=val(x.id,t);
+        if(v!=null&&v>0&&v<x.target)add('qp-'+x.id+t+v,'„'+x.name+'”: '+fmt(v)+' z '+fmt(x.target)+(x.unit?' '+x.unit:'')+'. '+tn('Zostało tylko ','Brakuje ')+fmt(x.target-v)+'.',[{l:'Dopisz',f:fill(t,x)}],'point');
+        else if(v==null&&h>=15)add('qq-'+x.id+t,tn('Ile dziś „'+x.name+'”?','„'+x.name+'”: ile dziś?'),[{l:'Wpisz',f:fill(t,x)}],'think');
+        else if(v!=null&&v>=x.target)add('qd-'+x.id+t,tn('„'+x.name+'” na dziś zrobione. Pięknie!','„'+x.name+'”: zaliczone. Tak trzymaj.'),[],'thumbs')});
+      gs.filter(x=>x.type==='range').forEach(x=>{const v=val(x.id,t);if(v==null)return;const e=evalRange(x,v);if(e.status==='bad')add('rg-'+x.id+t,'„'+x.name+'”: '+e.text.toLowerCase()+'. '+tn('Dziś postaraj się to wyrównać.','Dziś to naprawiasz.'),[],'sad');else if(e.status==='ok')add('rg-'+x.id+t,'„'+x.name+'” w normie. '+tn('Tak trzymaj!','Tak ma być.'),[],'thumbs')});
+      // seria
+      {const st=streak();if(goodDay(t))add('good-'+t,tn('Dzisiejszy dzień już jest dobry. Seria: '+st+' '+dni(st)+'!','Dzień zaliczony. Seria '+st+'. Nie zwalniaj.'),[],'cheer');
+        else if(st>=2){let rs=null;try{rs=rescue(t)}catch(e){}add('st-'+t,tn('Seria '+st+' dni czeka na dzisiejszy dobry dzień.','Seria '+st+' dni. Dziś jeszcze niezaliczone.')+(rs?' Brakuje: '+names(rs.set)+'.':''),[],'point')}}
+      // limity
+      gs.filter(x=>x.type==='limit').forEach(x=>{const pb=periodBounds(x,t),tot=sumRange(x.id,pb[0],t),P=x.period==='month'?'w tym miesiącu':'w tym tygodniu';
+        if(tot>x.target)add('lo-'+x.id+pb[0]+tot,tn('„'+x.name+'” '+P+' ponad limit ('+tot+'/'+x.target+'). Od jutra wracamy do normy?','„'+x.name+'”: '+tot+'/'+x.target+'. Limit przekroczony. Stop.'),[],'facepalm');
+        else if(tot===x.target&&tot>0)add('lf-'+x.id+pb[0]+tot,tn('„'+x.name+'”: limit '+P+' już wykorzystany. Dziś lepiej odpuścić.','„'+x.name+'”: limit wyczerpany. Zero do końca okresu.'),[],'point');
+        else if(tot===0&&x.period==='week'&&diffDays(ws,t)>=3)add('lc-'+x.id+ws,tn('„'+x.name+'”: '+P+' ani razu. Super!','„'+x.name+'”: czysto cały tydzień. Szacun.'),[],'thumbs')});
+      // pomiary tygodniowe
+      gs.filter(x=>isMeasure(x)&&x.period==='week').forEach(x=>{if(diffDays(ws,t)>=3&&!range(ws,t).some(d=>val(x.id,d)!=null))add('me-'+x.id+ws,tn('W tym tygodniu jeszcze bez pomiaru: „'+x.name+'”.','„'+x.name+'”: brak pomiaru w tym tygodniu. Zrób.'),[{l:'Wpisz',f:fill(t,x)}],'point')});
+      // powitanie i cytaty (zawsze coś jest, więc dymek pojawia się za każdym razem)
+      const dp=dayPart();
+      add('hi-'+t+dp,dp==='night'?tn('Późno już. Sen to też trening.','Śpij. Regeneracja to część planu.'):dp==='morning'?tn('Dzień dobry! Dobrego dnia.','Pobudka. Dziś robimy robotę.'):dp==='day'?tn('Hej! Jak idzie dzień?','Działamy. Co już odhaczone?'):tn('Dobry wieczór. Jeszcze chwila, żeby domknąć dzień.','Wieczór. Rozlicz dzień.'),[],dp==='night'?'sleep':dp==='morning'?'stretch':dp==='day'?'wave':'meditate');
+      QUOTES.forEach((q,i)=>add('q-'+i,tn(q[0],q[1]),[],i%2?'idea':'love'));
+    }
+    if(g==='cal'){
+      const days=range(ws,t).filter(d=>!S.off[d]),gd=days.filter(goodDay).length;
+      if(days.length)add('cw-'+t+gd,tn('W tym tygodniu dobre dni: '+gd+' z '+days.length+'.'+(gd===days.length&&gd>1?' Komplet!':''),'Tydzień: '+gd+'/'+days.length+' dobrych dni.'+(gd<days.length?' Da się lepiej.':' Komplet. Tak ma być.')),[],gd===days.length?'cheer':'think');
+      gs.filter(x=>(x.type==='do'||x.type==='contact')&&x.period==='week'&&hasTarget(x)).forEach(x=>{const tot=sumRange(x.id,ws,t),left=diffDays(t,we)+1;
+        if(tot>=x.target)add('wg-'+x.id+ws,'„'+x.name+'” zaliczone w tym tygodniu ('+tot+'/'+x.target+'). '+tn('Brawo!','Odhaczone.'),[],'thumbs');
+        else add('wg-'+x.id+ws+tot,'„'+x.name+'”: '+tot+'/'+x.target+'. Do końca tygodnia '+left+' '+dni(left)+'.',[],'point')});
+      {const by=[[],[],[],[],[],[],[]];range(addDays(t,-55),addDays(t,-1)).forEach(d=>{const v=dayScore(d);if(v!=null)by[(parse(d).getDay()+6)%7].push(v)});
+        const ok=by.map((a,i)=>({v:a.length>=3?avg(a):null,i})).filter(x=>x.v!=null);
+        if(ok.length>=5){ok.sort((a,b)=>b.v-a.v);const DN=['poniedziałki','wtorki','środy','czwartki','piątki','soboty','niedziele'],b=ok[0],w=ok[ok.length-1];
+          if(b.v-w.v>=.1)add('wd-'+ws,'Najlepiej idą Ci '+DN[b.i]+' ('+Math.round(b.v*100)+'%), najsłabiej '+DN[w.i]+' ('+Math.round(w.v*100)+'%). '+tn('Może na '+DN[w.i]+' zaplanuj coś łatwiejszego?','Popraw '+DN[w.i]+'.'),[],'idea')}}
+      {const m0=mstart(t),gm=range(m0,t).filter(d=>!S.off[d]&&goodDay(d)).length,nm=range(m0,t).filter(d=>!S.off[d]).length,pm=mstart(addDays(m0,-1)),pe=addDays(pm,Math.min(diffDays(m0,t),diffDays(pm,addDays(m0,-1)))),gp=range(pm,pe).filter(d=>!S.off[d]&&goodDay(d)).length;
+        if(nm>=3)add('cm-'+t+gm,'W tym miesiącu dobre dni: '+gm+' z '+nm+'. W zeszłym o tej porze: '+gp+'.'+(gm>gp?tn(' Idzie lepiej!',' Progres.'):gm<gp?tn(' Jeszcze da się nadrobić.',' Słabiej. Do roboty.'):''),[],gm>=gp?'thumbs':'point')}
+      {const pw=addDays(ws,-7);if(firstDay()<=pw&&!(S.reviews[pw]&&(S.reviews[pw].good||S.reviews[pw].improve)))add('rv-'+pw,tn('Zeszły tydzień nie ma jeszcze podsumowania. Dopiszesz dwa zdania?','Zeszły tydzień bez wniosków. Dwa zdania, minuta roboty.'),[{l:'Dopisz',f:()=>{ui.tab='week';ui.calLast='week';ui.wk=-1;render();setTimeout(()=>{const el=document.getElementById('rv-good');if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.focus({preventScroll:true})}},50)}}],'think')}
+      {const off=Object.keys(S.off).filter(d=>d.slice(0,7)===t.slice(0,7)).length;if(off)add('off-'+t.slice(0,7)+off,'Dni wolne w tym miesiącu: '+off+'. '+tn('Zdrowie najważniejsze.','Wracamy do formy.'),[],'comfort')}
+      add('ch-tap','Dotknij dowolnego dnia, żeby zobaczyć szczegóły albo coś dopisać.',[],'point');
+    }
+    if(g==='charts'){
+      try{insights().forEach(x=>add('in-'+x.t,'Zauważyłam coś. '+x.t+': średnio '+fmt(x.a)+x.u+', w pozostałe dni '+fmt(x.b)+x.u+'.',[],'idea'))}catch(e){}
+      {const a=groupCompletion(S.goals,addDays(t,-27),t),b=groupCompletion(S.goals,addDays(t,-55),addDays(t,-28));if(a!=null&&b!=null&&firstDay()<=addDays(t,-40)){const d=Math.round((a-b)*100);add('tr-'+t,'Realizacja celów z ostatnich 4 tygodni: '+Math.round(a*100)+'%, wcześniej '+Math.round(b*100)+'%.'+(d>=3?tn(' Idzie w górę!',' Progres.'):d<=-3?tn(' Trochę spadło, ale to do odrobienia.',' Spadek. Czas docisnąć.'):' Stabilnie.'),[],d>=3?'cheer':d<=-3?'point':'thumbs')}}
+      {const mv=(x,y)=>{const v=range(x,y).map(d=>S.mood[d]).filter(z=>z!=null);return v.length>=5?avg(v):null},a=mv(addDays(t,-13),t),b=mv(addDays(t,-27),addDays(t,-14));
+        if(a!=null&&b!=null)add('mo-'+t,'Średni nastrój z dwóch tygodni: '+fmt(a)+' (wcześniej '+fmt(b)+').'+(a-b>=.3?tn(' Lepiej!',' Lepiej.'):a-b<=-.3?tn(' Gorzej. Zadbaj o sen i ruch.',' Gorzej. Sen i ruch, bez dyskusji.'):''),[],a>=b?'love':'comfort')}
+      {const hs=gs.map(x=>({x,v:habitStrength(x)})).filter(o=>o.v!=null).sort((p,q)=>q.v-p.v);if(hs.length>=2){add('hs1-'+hs[0].x.id,'Najmocniejszy nawyk: „'+hs[0].x.name+'” ('+Math.round(hs[0].v*100)+'%). '+tn('To już część Ciebie.','Fundament. Nie ruszać.'),[],'flex');const w=hs[hs.length-1];if(w.v<.5)add('hs2-'+w.x.id,'Najsłabiej trzyma się „'+w.x.name+'” ('+Math.round(w.v*100)+'%). '+tn('Może mniejszy cel na start?','Zmniejsz cel albo zacznij to robić.'),[],'think')}}
+      try{const nx=[];Ms.compute().forEach(x=>{const n=x.steps.find(v=>!x.reached[v]);if(n&&x.cur>0&&x.cur/n>=.6)nx.push({t:x.label(n),left:n-x.cur,r:x.cur/n})});nx.sort((a,b)=>b.r-a.r).slice(0,2).forEach(x=>add('nx-'+x.t,tn('Blisko kamienia milowego „'+x.t+'”: brakuje '+fmt(x.left)+'.','„'+x.t+'”: zostało '+fmt(x.left)+'. Domknij to.'),[],'point'))}catch(e){}
+      {const st=streak(),b=bestStreak();if(st>0&&b>st&&b-st<=5)add('bs-'+t,'Obecna seria: '+st+', rekord: '+b+'. Jeszcze '+(b-st)+' '+dni(b-st)+' do pobicia!',[],'wow');else if(st>2&&st>=b)add('bs-'+t,'Obecna seria '+st+' '+dni(st)+' to Twój rekord!',[],'cheer')}
+      add('ch-help','Na górze przełączysz 14 dni, 8 tygodni i 6 miesięcy, żeby zobaczyć krótszy albo dłuższy trend.',[],'point');
+    }
+    if(g==='goals'){
+      const mains=gs.filter(x=>x.prio==='main');
+      if(mains.length>3)add('gm-'+mains.length,'Masz '+mains.length+' cele główne. Przy więcej niż trzech trudno o dobry dzień. Może któryś zrobić ważnym?',[],'think');
+      if(!mains.length&&gs.length)add('gm0','Żaden cel nie jest główny. Główne liczą się potrójnie, więc ustaw tak to, na czym zależy Ci najbardziej.',[],'idea');
+      gs.forEach(x=>{if(x.created&&x.created>addDays(t,-28))return;const c=goalCompletion(x,addDays(t,-27),t);if(c==null||firstDay()>addDays(t,-27))return;
+        if(c>=.95&&x.type!=='limit'&&!isMax(x))add('ge-'+x.id,'„'+x.name+'”: '+Math.round(c*100)+'% przez 4 tygodnie. '+tn('Może czas podnieść poprzeczkę?','Za łatwo. Podnieś cel.'),[],'flex');
+        else if(c<.4)add('gh-'+x.id,'„'+x.name+'” idzie ciężko ('+Math.round(c*100)+'% przez 4 tygodnie). '+tn('Mniejszy cel też jest w porządku.','Zmniejsz cel albo weź się za to.'),[],'shrug')});
+      S.goals.filter(isPaused).slice(0,1).forEach(x=>add('gp-'+x.id,'„'+x.name+'” jest wstrzymany. '+tn('Wznowisz, kiedy będziesz gotowy.','Wznów, jak tylko się da.'),[],'sleep'));
+      if(Social.groups().length){const un=gs.filter(x=>x.act&&CAT_BY[x.act]&&CAT_BY[x.act].share&&!(x.groups||[]).length);if(un.length)add('gsh-'+un[0].id,'„'+un[0].name+'” możesz pokazać znajomym z grupy. Otwórz cel i zaznacz grupę.',[],'love')}
+      if(gs.length<3)add('gfew-'+gs.length,tn('Masz '+gs.length+' '+(gs.length===1?'cel':'cele')+'. Jeśli czujesz zapas, dodaj kolejny.','Tylko '+gs.length+'. Dorzuć coś, jeśli dajesz radę.'),[{l:'Dodaj cel',f:()=>openGoal(null)}],'idea');
+      add('g-help','Wpisz nazwę celu po swojemu, np. „siłka” albo „czytanie”, a rozpoznam aktywność.',[],'point');
+    }
+    if(g==='friends')Social.chat(tn).forEach(x=>out.push(x));
+    return out;
+  }
+  return{paint,tips,rescue,chat};
 })();
 
 /* ---------- przewodnik dla nowych osób (prowadzi Pixa) ---------- */

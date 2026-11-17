@@ -1,5 +1,5 @@
 // Rytm: wysyłanie przypomnień (Supabase Edge Function)
-// Akcje: "public-key" (klucz publiczny dla telefonu), "run" (co 5 minut z harmonogramu; rodzaje przypomnień: missing, review, weekly, custom),
+// Akcje: "public-key" (klucz publiczny dla telefonu), "run" (co 5 minut z harmonogramu; rodzaje przypomnień: missing, review, weekly, monthly, custom),
 // "test" (próbne powiadomienie dla zalogowanego użytkownika), "kudos" (piątka dla znajomego z tej samej grupy).
 import webpush from "npm:web-push@3.6.7";
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
@@ -80,7 +80,7 @@ export function message(r: any, d: any, day: string) {
   if (r.kind === "missing") {
     const m = missing(d, day);
     if (!m.length) return null;
-    return { title: "Uzupełnij dzień", body: "Brakuje: " + list(m) + ".", url: APP_URL };
+    return { title: "Uzupełnij dzień", body: "Brakuje: " + list(m) + ". Dotknij, a Pixa zapyta po kolei.", url: APP_URL + "#pixa-fill" };
   }
   if (r.kind === "review") {
     if (d.reviews && d.reviews[weekStart(day)]) return null;
@@ -93,6 +93,16 @@ export function message(r: any, d: any, day: string) {
     const w = d.wsum && d.wsum[prev];
     if (w && w.t) return { title: w.t, body: w.b || "Zobacz, jak poszło.", url: APP_URL + "#pixa-week" };
     return { title: "Nowy tydzień", body: "Zeszły tydzień był bez wpisów. Zacznijmy nowy: zaznacz dziś pierwszy cel.", url: APP_URL };
+  }
+  if (r.kind === "monthly") {
+    // Pierwszego dnia miesiąca: podsumowanie poprzedniego (data.msum liczy aplikacja).
+    if (day.slice(8) !== "01") return null;
+    const d0 = new Date(day + "T12:00:00Z");
+    d0.setUTCMonth(d0.getUTCMonth() - 1);
+    const prev = d0.toISOString().slice(0, 7) + "-01";
+    const w = d.msum && d.msum[prev];
+    if (w && w.t) return { title: w.t, body: w.b || "Zobacz, jak poszło.", url: APP_URL + "#pixa-month" };
+    return null;
   }
   return { title: "Rytm", body: r.text || "Przypomnienie", url: APP_URL };
 }

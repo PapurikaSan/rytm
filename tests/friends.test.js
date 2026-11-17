@@ -20,7 +20,7 @@ const fake=fs.readFileSync(path.join(__dirname,'fake-supabase.js'),'utf8');const
   // udostępnij siłownię tej grupie przez edytor
   await p.click('.nav [data-t=goals]');await p.click('[data-act=editgoal][data-g=gym]');
   console.log('4 edytor:',(await p.textContent('#actbox')).trim().slice(0,50));
-  await p.click('[data-act=gshare]');await p.click('#gsave');await p.waitForTimeout(2200);
+  await p.click('[data-act=gshare]');await p.click('#gsave');await p.waitForTimeout(3200);
   console.log('5 udostępnienie w bazie:',await p.evaluate(()=>JSON.stringify((window.__db.t.rytm_share||[]).map(s=>[s.user_id,s.act,s.groups.length,s.data.days.length,s.data.target]))));
   // Ola dołącza linkiem
   const db=await p.evaluate(()=>localStorage.getItem('__fakedb'));
@@ -32,7 +32,7 @@ const fake=fs.readFileSync(path.join(__dirname,'fake-supabase.js'),'utf8');const
   await q.fill('#soc-name','Ola');await q.click('[data-soc=saveprofile]');await q.waitForTimeout(200);
   await q.click('[data-soc=joinpending]');await q.waitForTimeout(400);
   console.log('7 Ola w grupie:',(await q.textContent('.card .sub')).trim());
-  await q.click('.nav [data-t=goals]');await q.click('[data-act=editgoal][data-g=gym]');await q.click('[data-act=gshare]');await q.click('#gsave');await q.waitForTimeout(2200);
+  await q.click('.nav [data-t=goals]');await q.click('[data-act=editgoal][data-g=gym]');await q.click('[data-act=gshare]');await q.click('#gsave');await q.waitForTimeout(3200);
   await q.click('.nav [data-t=friends]');await q.waitForTimeout(300);
   console.log('8 ranking Oli:',(await q.$$eval('.rk',e=>e.map(x=>x.textContent.replace(/\s+/g,' ').trim()))).join(' | '));
   await q.click('[data-soc=metric][data-m=month]');console.log('9 miesiąc:',(await q.$$eval('.rk .rkv',e=>e.map(x=>x.textContent))).join(', '));
@@ -48,6 +48,16 @@ const fake=fs.readFileSync(path.join(__dirname,'fake-supabase.js'),'utf8');const
   console.log('12 Jan widzi piątki:',(await p.textContent('.card:has(h3:text("Piątki dla Ciebie"))')).replace(/\s+/g,' ').trim());
   // prywatność: prywatna aktywność nie do udostępnienia
   await p.click('.nav [data-t=goals]');await p.click('[data-act=editgoal][data-g=alc]');console.log('13 alkohol:',(await p.textContent('.sheet')).includes('prywatna i nie da się jej udostępnić'));
+  // kamienie milowe w grupie: Jan włącza, Ola widzi i przybija piątkę
+  await p.click('.sheet .btn[data-act=close]').catch(()=>{});await p.evaluate(()=>{ui.sheet=null;render()});
+  await p.click('.nav [data-t=friends]');await p.waitForTimeout(400);await p.click('[data-soc=msshare]');await p.waitForTimeout(800);
+  const db3=await p.evaluate(()=>localStorage.getItem('__fakedb'));await q.evaluate(d=>localStorage.setItem('__fakedb',d),db3);await q.reload();await q.waitForTimeout(600);
+  await q.click('.nav [data-t=friends]');await q.waitForTimeout(800);
+  console.log('14 Ola widzi kamienie Jana:',(await q.isVisible('.card:has(h3:text("Kamienie milowe w grupie"))'))?(await q.textContent('.card:has(h3:text("Kamienie milowe w grupie"))')).replace(/\s+/g,' ').slice(0,140):'(brak)');
+  console.log('   bez prywatnych (alkohol, sen, kalorie):',!/Alkohol|Sen|Kalorie|Rozmowy/.test(await q.textContent('#app')));
+  console.log('   Pixa u Oli:',await q.evaluate(()=>Social.chat((a,b)=>a).map(x=>x.text).filter(t=>/kamień|piątk/i.test(t)).slice(0,2).join(' | ')));
+  await q.click('.card:has(h3:text("Kamienie milowe w grupie")) [data-soc=kudos]');await q.waitForTimeout(300);
+  console.log('   piątka za kamień:',(await q.textContent('#toast')).trim(),'|',await q.evaluate(()=>JSON.stringify(Social.data().kudos.filter(k=>k.act.indexOf('ms:')===0).map(k=>k.act))));
   console.log('ov',await q.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth));
   console.log('errors',JSON.stringify(errs));await b.close();
 })();
