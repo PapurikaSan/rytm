@@ -327,7 +327,7 @@ input,select,textarea{font-size:16px}
 .wrap{padding-bottom:180px}
 @media (prefers-reduced-motion:reduce){.hal.on .lens{animation:none;filter:brightness(1.3)}}
 .pxpick{display:flex;gap:12px;align-items:center}
-.pxpick canvas{flex:none;width:66px;height:87px;image-rendering:pixelated;background:var(--bg);border-radius:10px}
+.pxpick canvas{flex:none;width:88px;height:116px;image-rendering:pixelated;background:var(--bg);border-radius:10px}
 .pxsw{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px;box-shadow:0 0 0 1px rgba(0,0,0,.15)}
 </style>
 </head>
@@ -1314,7 +1314,7 @@ function remindersCard(){
 function viewSettings(){
   const st=S.settings;
   let h='<div class="datebar"><div class="d">Ustawienia</div></div>';
-  h+='<div class="card"><h3>Asystentka Pixa</h3><p class="sub">Czerwona soczewka w lewym dolnym rogu. Świeci mocniej, gdy Pixa ma dla Ciebie pytanie albo propozycję. Nigdy nie otwiera się sama i niczego nie zmienia bez Twojej zgody.</p><div class="offbar" style="margin:0"><button class="sw'+(S.settings.asst?' on':'')+'" data-act="sasst" role="switch" aria-checked="'+!!S.settings.asst+'" aria-label="Asystentka"></button><span><b style="color:var(--fg)">Pokazuj asystentkę</b>'+(Object.keys(S.asst.off).length?' · <button class="link" data-act="asstreset">przywróć ukryte rodzaje podpowiedzi</button>':'')+'</span></div><span class="fl">Kolory Pixy</span><div class="pxpick"><canvas id="pxprev" width="44" height="58" aria-label="Podgląd Pixy"></canvas><div class="chips">'+Object.keys(PixaArt.PALETTES).map(k=>'<button class="pill'+(S.settings.pixaPal===k?' on':'')+'" data-act="pxpal" data-k="'+k+'"><i class="pxsw" style="background:'+PixaArt.PALETTES[k].body+'"></i>'+PixaArt.PALETTES[k].n+'</button>').join('')+'</div></div></div>';
+  h+='<div class="card"><h3>Asystentka Pixa</h3><p class="sub">Czerwona soczewka w lewym dolnym rogu. Świeci mocniej, gdy Pixa ma dla Ciebie pytanie albo propozycję. Nigdy nie otwiera się sama i niczego nie zmienia bez Twojej zgody.</p><div class="offbar" style="margin:0"><button class="sw'+(S.settings.asst?' on':'')+'" data-act="sasst" role="switch" aria-checked="'+!!S.settings.asst+'" aria-label="Asystentka"></button><span><b style="color:var(--fg)">Pokazuj asystentkę</b>'+(Object.keys(S.asst.off).length?' · <button class="link" data-act="asstreset">przywróć ukryte rodzaje podpowiedzi</button>':'')+'</span></div><span class="fl">Kolory Pixy</span><div class="pxpick"><canvas id="pxprev" width="88" height="116" aria-label="Podgląd Pixy"></canvas><div class="chips">'+Object.keys(PixaArt.PALETTES).map(k=>'<button class="pill'+(S.settings.pixaPal===k?' on':'')+'" data-act="pxpal" data-k="'+k+'"><i class="pxsw" style="background:'+PixaArt.PALETTES[k].body+'"></i>'+PixaArt.PALETTES[k].n+'</button>').join('')+'</div></div></div>';
   h+=remindersCard();
   h+='<div class="card"><h3>Wygląd</h3><p class="sub">Auto dopasowuje się do ustawień telefonu.</p><div class="seg" style="margin:0">'+[['auto','Auto'],['light','Jasny'],['dark','Ciemny']].map(x=>'<button class="'+(ui.theme===x[0]?'on':'')+'" data-act="theme" data-v="'+x[0]+'">'+x[1]+'</button>').join('')+'</div></div>';
   h+='<div class="card"><h3>Seria i wynik dnia</h3><p class="sub">Wynik dnia to średnia z celów ważona priorytetem: główne liczą się potrójnie, ważne pojedynczo, dodatkowe wcale. Cel tygodniowy liczy się jako zaliczony, dopóki da się go jeszcze w tym tygodniu zrobić. Dni wolne nie przerywają serii. Dobry dzień to wynik co najmniej:</p><div class="seg" style="margin:0">'+[.5,.6,.7,.8,.9,1].map(v=>'<button class="'+(Math.abs(st.streak-v)<.01?'on':'')+'" data-act="sstreak" data-v="'+v+'">'+Math.round(v*100)+'%</button>').join('')+'</div><div class="offbar" style="margin:12px 0 0"><button class="sw'+(st.mainReq?' on':'')+'" data-act="smain" role="switch" aria-checked="'+!!st.mainReq+'" aria-label="Wymagaj głównych celów"></button><span><b style="color:var(--fg)">Wszystkie główne cele muszą być zaliczone.</b> Bez tego nawet wysoki wynik nie da dobrego dnia.</span></div><div class="offbar" style="margin:8px 0 0'+(st.mainReq?'':';opacity:.5')+'"><button class="sw'+(st.mainSoft?' on':'')+'" data-act="ssoft" role="switch" aria-checked="'+!!st.mainSoft+'" aria-label="Złagodzenie dla głównych celów"'+(st.mainReq?'':' disabled')+'></button><span><b style="color:var(--fg)">Złagodzenie:</b> główny cel „trochę obok” (np. sen 6,5 h przy celu 7,5 h) albo zrobiony co najmniej w połowie (np. 10 z 20 stron) też się liczy. Dzień psuje dopiero „mocno obok” albo brak wpisu.'+(st.mainReq?'':' Działa tylko przy włączonym przełączniku wyżej.')+'</span></div></div>';
@@ -1879,91 +1879,110 @@ const Social=(()=>{
 })();
 function viewFriends(){return Social.view()}
 
-/* Pixa: oryginalna, abstrakcyjna kobieca postać z linii światła (siatka 44×58). Pozy liczone ze szkieletu. */
+/* Pixa: oryginalna, abstrakcyjna kobieca postać z linii światła (siatka 88×116). Pozy liczone ze szkieletu. */
 const PixaArt=(()=>{
-  const W=44,H=58,K=1.25,OY=8,CX=22;
+  const W=88,H=116,K=2.5,OY=14,CX=44;
   const PALETTES={
-    turkus:{n:'Turkus',body:'#3ee6d6',edge:'#147f7b',core:'#f0fffd',hairA:'#b197fc',hairM:'#8fb8f6',hairB:'#5eead4',acc:'#ff6fb5',spark:'#ffe58a',visor:'#071f26'},
-    ultra:{n:'Ultrafiolet',body:'#b794ff',edge:'#5b30b8',core:'#f6efff',hairA:'#ff7ad9',hairM:'#c084fc',hairB:'#7dd3fc',acc:'#5ef0ff',spark:'#ffe58a',visor:'#1a0b33'},
-    bursztyn:{n:'Bursztyn',body:'#ffb347',edge:'#a24c0b',core:'#fff7e6',hairA:'#ff5e7a',hairM:'#ff8a5c',hairB:'#ffd166',acc:'#ff3b5c',spark:'#fff1a8',visor:'#2a1204'},
-    sygnal:{n:'Czerwony sygnał',body:'#ff5a4e',edge:'#9c140c',core:'#ffecea',hairA:'#ffa94d',hairM:'#ff7b6b',hairB:'#ffd6a5',acc:'#ffd166',spark:'#fff1a8',visor:'#2b0402'},
-    lod:{n:'Lód',body:'#9ff0fb',edge:'#25809a',core:'#ffffff',hairA:'#e0f2fe',hairM:'#93c5fd',hairB:'#c4b5fd',acc:'#3b82f6',spark:'#ffffff',visor:'#06202b'},
-    holo:{n:'Hologram',holo:1,body:'#c4f1ff',edge:'#3f5f9a',core:'#ffffff',hairA:'#c7b8ff',hairM:'#9fd0ff',hairB:'#8ff0e6',acc:'#ffffff',spark:'#fff1a8',visor:'#101828'}
+    turkus:{n:'Turkus',body:'#3ee6d6',edge:'#0f6e6b',core:'#f0fffd',hairA:'#8f7bff',hairM:'#7fb2ff',hairB:'#5eead4',acc:'#ff6fb5',spark:'#ffe58a'},
+    ultra:{n:'Ultrafiolet',body:'#b794ff',edge:'#4a2399',core:'#f6efff',hairA:'#ff6fcf',hairM:'#c084fc',hairB:'#7dd3fc',acc:'#4ff0ff',spark:'#ffe58a'},
+    bursztyn:{n:'Bursztyn',body:'#ffb347',edge:'#8a3c07',core:'#fff7e6',hairA:'#ff4f6e',hairM:'#ff8a5c',hairB:'#ffd166',acc:'#ff3b5c',spark:'#fff1a8'},
+    sygnal:{n:'Czerwony sygnał',body:'#ff5a4e',edge:'#85110a',core:'#ffecea',hairA:'#ff9f43',hairM:'#ff7b6b',hairB:'#ffd6a5',acc:'#ffd166',spark:'#fff1a8'},
+    lod:{n:'Lód',body:'#9ff0fb',edge:'#1f6f88',core:'#ffffff',hairA:'#dbeafe',hairM:'#93c5fd',hairB:'#c4b5fd',acc:'#3b82f6',spark:'#ffffff'},
+    holo:{n:'Hologram',holo:1,body:'#c4f1ff',edge:'#34558c',core:'#ffffff',hairA:'#c7b8ff',hairM:'#9fd0ff',hairB:'#8ff0e6',acc:'#ffffff',spark:'#fff1a8'}
   };
-  // kąty: 0 = w dół, 90 = w prawo, -90 = w lewo, 180 = w górę
   const POSES={
-    stand:{px:18,py:24,t:0,la:[-12,-6],ra:[12,6],ll:[-5,-2],rl:[5,2],face:'calm'},
+    stand:{px:18,py:24,t:0,la:[-10,-6],ra:[10,6],ll:[-4,-2],rl:[4,2],face:'calm'},
     float:{px:18,py:27,t:0,la:[-40,-30],ra:[40,30],ll:[-72,150],rl:[72,-150],face:'calm',fx:'shadow',hov:1},
-    wave:{px:18,py:24,t:-5,la:[-12,-8],ra:[140,175],ll:[-5,-2],rl:[9,4],face:'happy',wave:1},
-    think:{px:18,py:24,t:-6,la:[-25,35],ra:[25,-150],ll:[-4,0],rl:[14,6],face:'look',fx:'q'},
+    wave:{px:18,py:24,t:-5,la:[-10,-8],ra:[140,175],ll:[-4,-2],rl:[9,4],face:'happy',wave:1},
+    think:{px:18,py:24,t:-6,la:[-25,35],ra:[25,-150],ll:[-3,0],rl:[14,6],face:'look',fx:'q'},
     sleep:{px:18,py:30,t:0,nod:1,la:[-30,-35],ra:[30,35],ll:[-72,150],rl:[72,-150],face:'closed',fx:'zzz'},
     jump:{px:18,py:22,t:0,la:[-150,-170],ra:[150,170],ll:[-28,15],rl:[28,-15],face:'joy',fx:'spark',hop:1},
-    orb:{px:18,py:24,t:4,la:[-14,-10],ra:[140,165],ll:[-5,-2],rl:[5,2],face:'happy',fx:'orb'},
-    peek:{px:18,py:46,t:0,la:[-125,-75],ra:[125,75],ll:[0,0],rl:[0,0],face:'look',peek:1},
-    perch:{px:18,py:29,t:0,la:[-35,-15],ra:[35,15],ll:[-20,-4],rl:[20,4],face:'calm',swing:1}
+    orb:{px:18,py:24,t:4,la:[-12,-10],ra:[140,165],ll:[-4,-2],rl:[4,2],face:'happy',fx:'orb'},
+    peek:{px:18,py:44,t:0,la:[-125,-75],ra:[125,75],ll:[0,0],rl:[0,0],face:'look',peek:1},
+    perch:{px:18,py:29,t:0,la:[-35,-15],ra:[35,15],ll:[-18,-4],rl:[18,4],face:'calm',swing:1}
   };
   const KEYS=['px','py','t','la0','la1','ra0','ra1','ll0','ll1','rl0','rl1'];
   const flat=p=>({px:p.px,py:p.py,t:p.t,la0:p.la[0],la1:p.la[1],ra0:p.ra[0],ra1:p.ra[1],ll0:p.ll[0],ll1:p.ll[1],rl0:p.rl[0],rl1:p.rl[1]});
   const rad=d=>d*Math.PI/180,dir=a=>[Math.sin(rad(a)),Math.cos(rad(a))];
+  const mixHex=(a,b,t)=>{const p=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)),A=p(a),B=p(b);return'#'+A.map((v,i)=>Math.round(v+(B[i]-v)*t).toString(16).padStart(2,'0')).join('')};
   function draw(cv,f,pname,cur,palName){
     const c=cv.getContext('2d');c.clearRect(0,0,W,H);
     const PL=PALETTES[palName]||PALETTES.turkus,P=POSES[pname]||POSES.stand,q=cur||flat(P);
-    const holo=(x,y,light)=>{const t=((y*7+x*3+f*6)%220)/220,h=175+Math.abs(t*2-1)*105;return'hsl('+h+','+(light?'100%,90%':'80%,72%')+')'};
-    const col=(n,x,y)=>PL.holo&&(n==='body'||n==='core')?holo(x,y,n==='core'):PL[n];
-    const px=(x,y,n)=>{x=Math.round(x);y=Math.round(y);if(x<0||y<0||x>=W||y>=H)return;c.fillStyle=n.charAt(0)==='#'||n.startsWith('rgba')?n:col(n,x,y);c.fillRect(x,y,1,1)};
-    // odcinek ciała o zmiennej szerokości (obrys + wypełnienie)
-    const seg=(a,b,w0,w1,fill)=>{const dx=b[0]-a[0],dy=b[1]-a[1],len=Math.hypot(dx,dy)||1,nx=-dy/len,ny=dx/len,n=Math.ceil(len*2);
-      for(let i=0;i<=n;i++){const s=i/n,cx=a[0]+dx*s,cy=a[1]+dy*s,w=w0+(w1-w0)*s;for(let o=-w;o<=w+.01;o+=.5)px(cx+nx*o,cy+ny*o,Math.abs(o)>w-.6?'edge':(fill||'body'))}};
+    const X={shade:mixHex(PL.body,PL.edge,.45),lip:mixHex(PL.acc,PL.edge,.35),hairD:mixHex(PL.hairA,PL.edge,.35)};
+    const holoH=(x,y)=>{const t=((y*3.5+x*1.5+f*6)%220)/220;return 175+Math.abs(t*2-1)*105};
+    const col=(n,x,y)=>{if(PL.holo&&(n==='body'||n==='core'||n==='shade')){const h=holoH(x,y);return'hsl('+h+','+(n==='core'?'100%,93%':n==='shade'?'62%,56%':'82%,73%')+')'}return X[n]||PL[n]||n};
+    const px=(x,y,n)=>{x=Math.round(x);y=Math.round(y);if(x<0||y<0||x>=W||y>=H)return;c.fillStyle=col(n,x,y);c.fillRect(x,y,1,1)};
+    const tone=(o,w)=>o<-w+1||o>w-1?'edge':o>w-2.8?'shade':Math.abs(o+w-2)<.5?'core':'body';
+    const seg=(a,b,w0,w1)=>{const dx=b[0]-a[0],dy=b[1]-a[1],len=Math.hypot(dx,dy)||1,nx=-dy/len,ny=dx/len,n=Math.ceil(len*2);
+      for(let i=0;i<=n;i++){const s=i/n,cx=a[0]+dx*s,cy=a[1]+dy*s,w=w0+(w1-w0)*s;for(let o=-w;o<=w+.01;o+=.5)px(cx+nx*o,cy+ny*o,tone(o,w))}};
     const sx=x=>CX+(x-18)*K;
-    let pyv=q.py*K+OY;if(P.hov)pyv+=Math.round(Math.sin(f*.15));if(P.hop)pyv-=Math.round(Math.abs(Math.sin(f*.3))*3);
+    let pyv=q.py*K+OY;if(P.hov)pyv+=Math.round(Math.sin(f*.15)*2);if(P.hop)pyv-=Math.round(Math.abs(Math.sin(f*.3))*6);
     const Pv=[sx(q.px),pyv],[tx,ty]=dir(180+q.t),perp=[-ty,tx];
-    const N=[Pv[0]+tx*11.5,Pv[1]+ty*11.5],Hd=[N[0]+tx*6.2+(P.nod?1:0),N[1]+ty*6.2+(P.nod?1+Math.round(Math.sin(f*.12)*.6):0)];
+    const N=[Pv[0]+tx*23,Pv[1]+ty*23],Hd=[N[0]+tx*13+(P.nod?2:0),N[1]+ty*13+(P.nod?2+Math.round(Math.sin(f*.12)):0)];
     const at=(s,o)=>[N[0]+(Pv[0]-N[0])*s+perp[0]*o,N[1]+(Pv[1]-N[1])*s+perp[1]*o];
-    const shoulder=sd=>at(.08,3.1*sd),hip=sd=>at(.95,2.4*sd);
-    if(P.fx==='shadow')for(let x=-8;x<=8;x++)px(Pv[0]+x,Math.min(H-1,Pv[1]+15),'rgba(20,40,60,.25)');
-    // długie pasma za plecami (za ciałem)
-    [-1,1].forEach(sd=>[0,1].forEach(j=>{const L=13+j*3;for(let k=0;k<L;k++){if(k>L-4&&(k+f+j)%2)continue;const w=Math.sin(f*.18+k*.4+j+sd)*(.4+k*.05);px(Hd[0]+sd*(3.6+j*1.2+k*.12)+w,Hd[1]-1+k*1.05,k<L*.4?'hairA':k<L*.75?'hairM':'hairB')}}));
+    const shoulder=sd=>at(.07,6.4*sd),hip=sd=>at(.93,4.6*sd);
+    if(P.fx==='shadow')for(let x=-16;x<=16;x++)for(let y=0;y<2;y++)if(Math.abs(x)<16-y*4)px(Pv[0]+x,Math.min(H-1,Pv[1]+30+y),'rgba(20,40,60,.22)');
+    // włosy-światłowody: tylne pasma (za ciałem)
+    const crown=[Hd[0]-1,Hd[1]-9];
+    const strand=(x0,y0,L,spread,ph,front)=>{for(let k=0;k<L;k++){if(k>L-7&&(k+f+ph)%3===0)continue;
+      const sw=Math.sin(f*.12+k*.11+ph)*(k*.07)+spread*k,x=x0+sw,y=y0+k*(P.nod?.85:1);
+      const n=k<L*.3?'hairA':k<L*.7?'hairM':'hairB';px(x,y,n);if(k<L*.55&&!front)px(x+1,y,k%5===0?'hairD':n);
+      if(k===L-1&&(f+ph)%10<6){px(x,y+1,'spark');px(x,y,'core')}}};
+    for(let i=0;i<14;i++){const r=i/13,x0=Hd[0]-8+r*16,y0=Hd[1]-6+Math.abs(r-.5)*5;strand(x0,y0,34+((i*7)%3)*6,(r-.5)*.25,i*.8,false)}
     // nogi
     let [l0,l1,r0,r1]=[q.ll0,q.ll1,q.rl0,q.rl1];if(P.swing){const w=Math.sin(f*.3)*14;l1+=w;r1-=w}
-    [[hip(-1),l0,l1],[hip(1),r0,r1]].forEach(([h,a0,a1])=>{const [d0x,d0y]=dir(a0),kn=[h[0]+d0x*9,h[1]+d0y*9],[d1x,d1y]=dir(a0+a1),an=[kn[0]+d1x*9,kn[1]+d1y*9],[fx,fy]=dir(a0+a1+(h[0]<Pv[0]?-35:35));
-      seg(h,kn,2.4,1.5);seg(kn,an,1.4,.8);px(an[0]+fx*1.5,an[1]+fy*1.5,'edge');px(an[0]+fx*2.5,an[1]+fy*2.5,'edge');px(kn[0],kn[1],'core');px(an[0],an[1]-1,'acc')});
+    [[hip(-1),l0,l1,-1],[hip(1),r0,r1,1]].forEach(([h,a0,a1,sd])=>{const [d0x,d0y]=dir(a0),kn=[h[0]+d0x*18,h[1]+d0y*18],[d1x,d1y]=dir(a0+a1),an=[kn[0]+d1x*18,kn[1]+d1y*18],[fx,fy]=dir(a0+a1+sd*40);
+      seg(h,kn,4.4,2.9);seg(kn,an,2.7,1.5);for(let k=1;k<=4;k++)px(an[0]+fx*k,an[1]+fy*k,k<3?'shade':'edge');
+      const ab=[kn[0]+d1x*15,kn[1]+d1y*15];for(let o=-2;o<=2;o++)px(ab[0]+d1y*o,ab[1]-d1x*o,'acc');px(kn[0],kn[1],'core')});
     // tułów: ramiona, biust, talia, biodra
-    for(let i=0;i<=24;i++){const s=i/24,w=s<.3?3.3+.3*(s/.3):s<.62?3.6-1.7*((s-.3)/.32):1.9+2.3*((s-.62)/.38);for(let o=-w;o<=w+.01;o+=.5){const p=at(s,o);px(p[0],p[1],Math.abs(o)>w-.6?'edge':'body')}}
-    [-1,1].forEach(sd=>{const a=at(.3,1.7*sd),b=at(.34,1.1*sd);px(a[0],a[1],'core');px(b[0],b[1],'core')});
-    for(let o=-3.6;o<=3.6;o+=.5){const p=at(.9,o);px(p[0],p[1],'acc')}
-    {const e=at(.14,0),pulse=f%20<10;[[0,0],[0,-1],[0,1],[-1,0],[1,0]].forEach(([dx,dy],i)=>{if(i===0||pulse)px(e[0]+dx,e[1]+dy,i===0?'core':'acc')})}
-    for(let i=0;i<=8;i++){const p=at(.2+i*.08,0);if(i%2===0)px(p[0],p[1],'core')}
+    const prof=s=>s<.25?6.4+.6*(s/.25):s<.6?7-3.3*((s-.25)/.35):3.7+4.6*((s-.6)/.4);
+    for(let i=0;i<=46;i++){const s=i/46,w=prof(s);for(let o=-w;o<=w+.01;o+=.5){const p=at(s,o);px(p[0],p[1],tone(o,w))}}
+    [-1,1].forEach(sd=>{for(let a=-3;a<=3;a++){const p=at(.29+Math.abs(a)*.006,sd*3.4+a*.6);px(p[0],p[1]-(3-Math.abs(a))*.4,Math.abs(a)<2?'core':'body')}for(let a=-2;a<=2;a++){const p=at(.37,sd*3.4+a*.8);px(p[0],p[1],'shade')}});
+    [-1,1].forEach(sd=>{for(let i=0;i<5;i++){const p=at(.04+i*.004,sd*(1.5+i));px(p[0],p[1],'core')}});
+    for(let i=0;i<14;i++){const s=.4+i*.037;[-1,1].forEach(sd=>{if(i%2===0){const p=at(s,sd*(prof(s)-2.2));px(p[0],p[1],'acc')}})}
+    for(let o=-8;o<=8;o+=.5){const p=at(.88,o);px(p[0],p[1],'acc');const p2=at(.9,o);px(p2[0],p2[1],'lip')}
+    {const e=at(.15,0),pl=f%20<10;[[0,0],[0,-1],[0,1],[-1,0],[1,0],[0,-2],[0,2]].forEach(([dx,dy],i)=>{if(i<5||pl)px(e[0]+dx,e[1]+dy,i===0?'core':'acc')})}
     // szyja
-    seg([N[0],N[1]+1],[N[0]+tx*3,N[1]+ty*3],.9,.9);
+    seg([N[0],N[1]+2],[N[0]+tx*7,N[1]+ty*7],1.7,1.5);
+    // przednie pasma włosów wzdłuż twarzy
+    strand(Hd[0]-8,Hd[1]-3,22,-.02,1.3,true);strand(Hd[0]-7,Hd[1]-4,18,-.04,2.1,true);
+    strand(Hd[0]+8,Hd[1]-3,24,.02,3.4,true);strand(Hd[0]+7,Hd[1]-4,19,.04,4.2,true);
     // ręce
     let [a0,a1,b0,b1]=[q.la0,q.la1,q.ra0,q.ra1];if(P.wave)b1+=Math.sin(f*.7)*28;
     const hands=[];
-    [[shoulder(-1),a0,a1],[shoulder(1),b0,b1]].forEach(([s,u,v])=>{const [ux,uy]=dir(u),e=[s[0]+ux*7.5,s[1]+uy*7.5],[vx,vy]=dir(u+v),hd=[e[0]+vx*7,e[1]+vy*7];
-      seg(s,e,1.3,1);seg(e,hd,1,.6);const wr=[e[0]+vx*5.6,e[1]+vy*5.6];px(wr[0],wr[1],'acc');px(hd[0],hd[1],'core');px(hd[0]+vx,hd[1]+vy,'edge');hands.push(hd)});
-    // głowa: owal zwężający się ku brodzie
-    for(let y=-5;y<=6;y++)for(let x=-5;x<=5;x++){const rx=y>0?4.2*(1-.32*(y/6)):4.2,d=(x*x)/(rx*rx)+(y*y)/(y>0?36:28);if(d>1)continue;px(Hd[0]+x,Hd[1]+y,d>.72?'edge':'body')}
-    // grzywka
-    for(let x=-4;x<=4;x++){const y=-4-(Math.abs(x)<2?1:0)+((x+Math.floor(f/8))%3===0?1:0);px(Hd[0]+x,Hd[1]+y,'hairA');px(Hd[0]+x,Hd[1]+y-1,'hairM')}
-    // wizjer, oczy z rzęsami, usta
-    for(let x=-4;x<=4;x++){px(Hd[0]+x,Hd[1],'visor');px(Hd[0]+x,Hd[1]+1,'visor');if(Math.abs(x)<4)px(Hd[0]+x,Hd[1]-1,'visor')}
-    const blink=f%46>=43,ex=P.face==='look'?1:0;
-    [[-2.5,-1],[1.5,1]].forEach(([x,sd])=>{const X=Hd[0]+x+ex,Y=Hd[1];
-      if(P.face==='closed'||blink){px(X,Y+1,'core');px(X+1,Y+1,'core');px(X+(sd>0?2:-1),Y,'acc');return}
-      if(P.face==='happy'||P.face==='joy'){px(X,Y+1,'core');px(X+.5,Y,'core');px(X+1.5,Y+1,'core');px(X+(sd>0?2.5:-1),Y-1,'acc');return}
-      px(X,Y,'core');px(X+1,Y,'core');px(X,Y+1,'core');px(X+1,Y+1,'core');px(X+(sd>0?2:-1),Y-1,'acc')});
-    px(Hd[0]-.5,Hd[1]+3.5,'acc');px(Hd[0]+.5,Hd[1]+3.5,'acc');if(P.face==='joy')px(Hd[0],Hd[1]+4.5,'acc');
-    // pasma danych unoszące się nad głową
-    const strands=[[-1,1.3,13],[-1,1,11],[-1,.75,14],[-1,.5,10],[-1,.25,12],[0,0,9],[1,.25,12],[1,.5,10],[1,.75,14],[1,1,11],[1,1.3,13]];
-    strands.forEach(([sd,sp,L],i)=>{for(let k=2;k<L;k++){if(k>L-4&&(k+f+i)%2)continue;const wv=Math.sin(f*.2+k*.45+i*.7)*(.3+k*.06);
-      const x=Hd[0]+sd*(1.2+sp*k*.55)+wv,y=Hd[1]-5-k*(1.1-sp*.15)+k*k*(.02+sp*.04)+(P.nod?k*.2:0);px(x,y,k<L*.35?'hairA':k<L*.75?'hairM':'hairB')}});
-    // efekty
-    if(P.fx==='zzz'){const b=(f%30)/30;[[0,0],[3,-4],[6,-8]].forEach(([dx,dy],i)=>{const x=Hd[0]+7+dx,y=Hd[1]-4+dy-b*3;if((f+i*7)%30<24){px(x,y,'core');px(x+1,y,'core');px(x+1,y+1,'core');px(x,y+2,'core');px(x+1,y+2,'core')}})}
-    if(P.fx==='spark'){[[Hd[0]-10,Hd[1]-6],[Hd[0]+10,Hd[1]-3],[Hd[0]+8,Hd[1]+8]].forEach(([x,y],i)=>{if((f+i*3)%8<5){px(x,y,'spark');px(x-1,y,'spark');px(x+1,y,'spark');px(x,y-1,'spark');px(x,y+1,'spark')}})}
-    if(P.fx==='q'){const x=Hd[0]+7,y=Hd[1]-9;[[0,0],[1,0],[2,1],[1,2],[1,4]].forEach(([dx,dy])=>px(x+dx,y+dy,'spark'))}
-    if(P.fx==='orb'){const hd=hands[1],yy=hd[1]-3-Math.abs(Math.sin(f*.25))*8;for(let y=-1;y<=1;y++)for(let x=-1;x<=1;x++)if(Math.abs(x)+Math.abs(y)<2)px(hd[0]+x,yy+y,x===0&&y===0?'core':'acc')}
-    if(P.peek){for(let x=0;x<W;x++){px(x,H-2,'edge');px(x,H-1,'edge')}}
-    for(let i=0;i<3;i++){const yy=(H-((f*.4+i*17)%H)),xx=7+i*15+Math.sin(f*.1+i)*2;px(xx,yy,(f+i)%6<3?'hairB':'hairA')}
-    if(f%37<2){const y0=8+((f*7)%34),img=c.getImageData(0,y0,W,3);c.clearRect(0,y0,W,3);c.putImageData(img,(f%2?2:-2),y0)}
+    [[shoulder(-1),a0,a1],[shoulder(1),b0,b1]].forEach(([s,u,v])=>{const [ux,uy]=dir(u),e=[s[0]+ux*15,s[1]+uy*15],[vx,vy]=dir(u+v),hd=[e[0]+vx*14,e[1]+vy*14];
+      seg(s,e,2.4,1.9);seg(e,hd,1.8,1.1);const wr=[e[0]+vx*11.5,e[1]+vy*11.5];for(let o=-2;o<=2;o++)px(wr[0]+vy*o,wr[1]-vx*o,'acc');
+      for(let k=0;k<4;k++){px(hd[0]+vx*k,hd[1]+vy*k,k<2?'body':'shade');px(hd[0]+vx*k+vy,hd[1]+vy*k-vx,'edge')}px(hd[0]+vx*1-vy*2,hd[1]+vy*1+vx*2,'shade');hands.push([hd[0]+vx*3,hd[1]+vy*3])});
+    // głowa: owal z linią żuchwy, cień na policzku
+    const ey=Hd[1]-1;
+    for(let y=-11;y<=12;y++)for(let x=-9;x<=9;x++){const rx=y>2?8.2*(1-.4*((y-2)/10)):8.2,ry=y>0?12:11,d=(x*x)/(rx*rx)+(y*y)/(ry*ry);if(d>1)continue;
+      px(Hd[0]+x,Hd[1]+y,d>.84?'edge':(x>rx*.5&&y>-3)||y>9?'shade':(x<-rx*.45&&y<-2&&y>-8)?'core':'body')}
+    // czapka włosów i grzywka zaczesana na bok
+    for(let y=-12;y<=-5;y++)for(let x=-9;x<=9;x++){const d=(x*x)/72+(y*y)/130;if(d>1.02||y>-5-(x<0?0:2))continue;px(Hd[0]+x,Hd[1]+y,(x+y+Math.floor(f/6))%5===0?'hairM':y<-9?'hairD':'hairA')}
+    for(let t=0;t<=1;t+=.04){const x=Hd[0]-9+t*15,y=Hd[1]-8+t*5+Math.sin(t*3)*1;for(let w=0;w<3;w++)px(x,y+w,w===0?'hairM':'hairA')}
+    // brwi, oczy, rzęsy
+    const look=P.face==='look'?1:0,blink=f%46>=43;
+    [-1,1].forEach(sd=>{const cx=Hd[0]+sd*4;
+      for(let dx=-2;dx<=2;dx++)px(cx+dx,ey-4-(Math.abs(dx)<2?1:0)+(dx*sd>1?1:0),'edge');
+      if(P.face==='closed'||blink){for(let dx=-2;dx<=2;dx++)px(cx+dx,ey+(Math.abs(dx)===2?-1:0),'edge');px(cx+sd*3,ey-1,'edge');return}
+      if(P.face==='happy'||P.face==='joy'){for(let dx=-2;dx<=2;dx++)px(cx+dx,ey-1+(Math.abs(dx)===2?1:0),'edge');for(let dx=-1;dx<=1;dx++)px(cx+dx,ey,'core');px(cx+sd*3,ey-2,'edge');return}
+      for(let dx=-2;dx<=2;dx++){px(cx+dx,ey-2,'edge');px(cx+dx,ey-1,'core')}for(let dx=-1;dx<=1;dx++)px(cx+dx,ey,'core');
+      px(cx+look,ey-1,'acc');px(cx+look,ey,'acc');px(cx+look-1,ey-1,'core');px(cx+sd*3,ey-3,'edge');px(cx+sd*3,ey-2,'edge');px(cx+sd*4,ey-3,'edge')});
+    // nos, usta, cyfrowe piegi
+    px(Hd[0]+.5,ey+3,'shade');px(Hd[0]+.5,ey+4,'shade');px(Hd[0]+1.5,ey+5,'edge');
+    const smile=P.face==='happy'||P.face==='joy';
+    for(let dx=-2;dx<=2;dx++)px(Hd[0]+dx,ey+7,'lip');for(let dx=-1;dx<=1;dx++)px(Hd[0]+dx,ey+8,'acc');
+    if(smile){px(Hd[0]-3,ey+6,'lip');px(Hd[0]+3,ey+6,'lip')}if(P.face==='joy')px(Hd[0],ey+8,'edge');
+    [[-6,2],[-5,3],[-6,4]].forEach(([dx,dy])=>px(Hd[0]+dx,ey+dy,'acc'));
+    // efekty (piksele 2×2)
+    const p2=(x,y,n)=>{px(x,y,n);px(x+1,y,n);px(x,y+1,n);px(x+1,y+1,n)};
+    if(P.fx==='zzz'){const b=(f%30)/30;[[0,0],[6,-8],[12,-16]].forEach(([dx,dy],i)=>{const x=Hd[0]+13+dx,y=Hd[1]-8+dy-b*6;if((f+i*7)%30<24){p2(x,y,'core');p2(x+2,y,'core');p2(x+2,y+2,'core');p2(x,y+4,'core');p2(x+2,y+4,'core')}})}
+    if(P.fx==='spark'){[[Hd[0]-20,Hd[1]-12],[Hd[0]+20,Hd[1]-6],[Hd[0]+16,Hd[1]+16]].forEach(([x,y],i)=>{if((f+i*3)%8<5){p2(x,y,'spark');p2(x-2,y,'spark');p2(x+2,y,'spark');p2(x,y-2,'spark');p2(x,y+2,'spark')}})}
+    if(P.fx==='q'){const x=Hd[0]+13,y=Hd[1]-20;[[0,0],[2,0],[4,2],[2,4],[2,8]].forEach(([dx,dy])=>p2(x+dx,y+dy,'spark'))}
+    if(P.fx==='orb'){const hd=hands[1],yy=hd[1]-8-Math.abs(Math.sin(f*.25))*16;for(let y=-3;y<=3;y++)for(let x=-3;x<=3;x++){const d=x*x+y*y;if(d<=9)px(hd[0]+x,yy+y,d<=1?'core':d<=4?'acc':'lip')}}
+    if(P.peek){for(let x=0;x<W;x++)for(let y=H-4;y<H;y++)px(x,y,y===H-4?'core':'edge')}
+    for(let i=0;i<6;i++){const yy=(H-((f*.8+i*21)%H)),xx=8+i*15+Math.sin(f*.1+i)*3;px(xx,yy,(f+i)%6<3?'hairB':'hairA')}
+    if(f%37<2){const y0=16+((f*13)%70),img=c.getImageData(0,y0,W,5);c.clearRect(0,y0,W,5);c.putImageData(img,(f%2?3:-3),y0)}
   }
   return{draw,POSES,PALETTES,flat,KEYS,W,H};
 })();
@@ -2047,7 +2066,7 @@ const Asst=(()=>{
     let bub;
     if(!tp)bub='<p class="pxtxt">Wszystko gra. Nie mam teraz żadnych pytań. Zajrzę, gdy coś zauważę.</p>';
     else bub='<p class="pxtxt">'+esc(tp.text)+'</p><div class="pxact">'+(tp.actions[0]&&tp.actions[0].mood?tp.actions.map((a,j)=>'<button class="mb md'+a.mood+'" data-asst="do" data-j="'+j+'" aria-label="'+esc(a.l)+'"><b>'+a.mood+'</b></button>').join(''):tp.actions.map((a,j)=>'<button class="btn main" data-asst="do" data-j="'+j+'">'+esc(a.l)+'</button>').join(''))+'</div><div class="pxfoot"><button class="link" data-asst="later">Nie teraz</button><button class="link" data-asst="never">Nie pokazuj takich</button>'+(tipsCache.length>1?'<button class="link pxnext" data-asst="next">'+(idx+1)+'/'+tipsCache.length+' ›</button>':'')+'</div>';
-    root.innerHTML='<div class="pxpanel" role="dialog" aria-label="Pixa, asystentka"><canvas class="pxav" width="44" height="58" data-asst="poke" role="img" aria-label="Pixa"></canvas><div class="pxbub"><div class="pxname">Pixa</div>'+bub+'</div><button class="pxclose" data-asst="close" aria-label="Zamknij asystentkę">×</button></div>';
+    root.innerHTML='<div class="pxpanel" role="dialog" aria-label="Pixa, asystentka"><canvas class="pxav" width="88" height="116" data-asst="poke" role="img" aria-label="Pixa"></canvas><div class="pxbub"><div class="pxname">Pixa</div>'+bub+'</div><button class="pxclose" data-asst="close" aria-label="Zamknij asystentkę">×</button></div>';
     const cv=root.querySelector('.pxav');
     setCtx(tp);
     if(reduced()){PixaArt.draw(cv,0,ctxPose||'stand',null,S.settings.pixaPal);return}
