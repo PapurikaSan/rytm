@@ -1964,9 +1964,9 @@ const PixaArt=(()=>{
     // pasma danych w górę, zawsze w ruchu, z odrywającymi się drobinkami
     const st=STATE.get(cv)||{p:[],last:-1};STATE.set(cv,st);
     const tips=[];
-    for(let i=0;i<18;i++){const r=i/17,bxx=-9+r*18,base=[Hd[0]+bxx,Hd[1]-Math.sqrt(Math.max(0,1-(bxx/8.6)**2))*10.5];
-      const sg=r<.5?1:-1,off=Math.abs(r-.5)*2,L=26+((i*5)%4)*3+Math.round(Math.sin(f*.08+i)*3)+Math.round(off*3);let a=sg*(1+off*5)+Math.sin(f*.15+i*1.3)*1.5,x=base[0],y=base[1];
-      for(let k=0;k<L;k++){a+=sg*(.04+off*.1)+Math.sin(f*.2+k*.25+i)*.6;a=sg*Math.max(.5,Math.min(10,a*sg));const[ddx,ddy]=dir(180+a);x+=ddx;y+=ddy;
+    for(let i=0;i<19;i++){const r=i/18,bxx=-9+r*18,base=[Hd[0]+bxx,Hd[1]-Math.sqrt(Math.max(0,1-(bxx/8.6)**2))*10.5];
+      const sg=r<.5?1:-1,off=Math.abs(r-.5)*2,L=26+((i*5)%4)*3+Math.round(Math.sin(f*.08+i)*3)+Math.round(off*3);let a=sg*off*6+Math.sin(f*.15+i*1.3)*1.5*off,x=base[0],y=base[1];
+      for(let k=0;k<L;k++){a+=sg*off*.14+Math.sin(f*.2+k*.25+i)*.6*Math.max(.25,off);a=off<.06?Math.max(-1,Math.min(1,a)):sg*Math.max(0,Math.min(10,a*sg));const[ddx,ddy]=dir(180+a);x+=ddx;y+=ddy;
         const n=k<L*.3?'hairA':k<L*.68?'hairM':'hairB';
         if(k<L*.4){px(x,y,n);px(x+(r<.5?-1:1),y,k%4===0?'hairD':n)}
         else if(((k-f*1.3+i*5)%6+6)%6<4)px(x,y,n);
