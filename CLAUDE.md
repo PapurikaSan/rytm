@@ -28,7 +28,7 @@
   - Typy celów: `do` (zaznaczanie, dzień/tydzień/miesiąc, opcjonalnie bez celu, rodzaje `variants`), `qty` (ilość dziennie; `dir: 'max'` = „najwyżej X”, np. czas przed ekranem, kawa; 0 to prawidłowy wpis), `range` (wartość ± tolerancja), `limit` (maks. dni, wagi poziomów `w`), `contact` (spotkania/rozmowy z długością), `measure` (pomiar, np. waga). Priorytety `prio`: `main` ×3, `imp` ×1, `extra` ×0.
 - `sw.js`: offline (najpierw sieć, potem pamięć) oraz obsługa powiadomień push. Zapytania do Supabase nie są cache'owane. Przy zmianach w `sw.js` podbij `CACHE`.
 - `manifest.webmanifest` + ikony: instalacja na ekranie głównym iPhone'a.
-- `supabase/sql/`: historia zmian w bazie (01 dane, 02 przypomnienia, 03 znajomi, 04 kopie). Nowe zmiany dopisuj jako kolejne pliki i stosuj przez konektor (`apply_migration`).
+- `supabase/sql/`: historia zmian w bazie (01 dane, 02 przypomnienia, 03 znajomi, 04 kopie, 05 dłuższy czas oczekiwania na przypomnienia: 30 s). Nowe zmiany dopisuj jako kolejne pliki i stosuj przez konektor (`apply_migration`).
 - `supabase/functions/rytm-push/index.ts`: wysyłanie przypomnień. Wdrożona z `verify_jwt: false` (wywołuje ją pg_cron co 5 minut, job `rytm-przypomnienia`). Klucze VAPID generuje sama i trzyma w `rytm_config`. Po zmianie kodu wdrażaj przez konektor `deploy_edge_function` z `verify_jwt: false`.
 
 ## Baza (wszystkie tabele z RLS)
