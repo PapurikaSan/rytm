@@ -313,7 +313,7 @@ input,select,textarea{font-size:16px}
 @keyframes halglow{0%,100%{filter:brightness(.95);box-shadow:0 0 6px rgba(255,45,28,.45)}50%{filter:brightness(1.4);box-shadow:0 0 18px 4px rgba(255,45,28,.7)}}
 .pxav{image-rendering:pixelated;image-rendering:crisp-edges;cursor:pointer}
 .pxpanel{position:fixed;left:max(10px,env(safe-area-inset-left,0px));right:max(10px,env(safe-area-inset-right,0px));bottom:calc(64px + env(safe-area-inset-bottom,0px));max-width:620px;margin:0 auto;z-index:15;display:flex;gap:10px;align-items:flex-end;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:10px 10px 10px 8px;box-shadow:0 8px 24px rgba(0,0,0,.18)}
-.pxav{flex:none;width:72px;height:92px;margin:-6px 0 -4px}
+.pxav{flex:none;width:88px;height:116px;margin:-10px -4px -6px -6px}
 .pxbub{flex:1;min-width:0;background:var(--bg);border-radius:12px 12px 12px 4px;padding:8px 10px}
 .pxname{font:700 11px var(--font-body);color:#e0362f;letter-spacing:.06em;text-transform:uppercase}
 .pxtxt{margin:2px 0 8px;font-size:13.5px;line-height:1.4}
@@ -326,6 +326,9 @@ input,select,textarea{font-size:16px}
 .pxclose{position:absolute;top:4px;right:6px;width:30px;height:30px;border-radius:50%;font-size:20px;color:var(--muted)}
 .wrap{padding-bottom:180px}
 @media (prefers-reduced-motion:reduce){.hal.on .lens{animation:none;filter:brightness(1.3)}}
+.pxpick{display:flex;gap:12px;align-items:center}
+.pxpick canvas{flex:none;width:66px;height:87px;image-rendering:pixelated;background:var(--bg);border-radius:10px}
+.pxsw{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px;box-shadow:0 0 0 1px rgba(0,0,0,.15)}
 </style>
 </head>
 <body>
@@ -430,6 +433,7 @@ function fixState(o){
   o.goals.forEach(g=>{if((g.type==='do'||g.type==='limit')&&!Array.isArray(g.variants))g.variants=[];if(g.type==='limit'&&!g.w)g.w={};if(!g.prio)g.prio='imp';if(!Array.isArray(g.groups))g.groups=[];if(g.act===undefined){const m=matchAct(g.name);if(m[0]&&m[0].s===100&&(!m[1]||m[1].s<100))g.act=m[0].c.k}});
   if(typeof o.settings.mainReq!=='boolean')o.settings.mainReq=true;if(typeof o.settings.mainSoft!=='boolean')o.settings.mainSoft=false;
   if(typeof o.settings.asst!=='boolean')o.settings.asst=true;
+  if(!o.settings.pixaPal)o.settings.pixaPal='turkus';
   o.asst=o.asst||{};o.asst.snooze=o.asst.snooze||{};o.asst.off=o.asst.off||{};
   if(!Array.isArray(o.settings.reminders))o.settings.reminders=[{id:'r1',kind:'missing',time:'21:00',days:[0,1,2,3,4,5,6],on:true},{id:'r2',kind:'review',time:'20:00',days:[6],on:true}];
   try{o.settings.tz=Intl.DateTimeFormat().resolvedOptions().timeZone||'Europe/Warsaw'}catch(e){}
@@ -1310,7 +1314,7 @@ function remindersCard(){
 function viewSettings(){
   const st=S.settings;
   let h='<div class="datebar"><div class="d">Ustawienia</div></div>';
-  h+='<div class="card"><h3>Asystentka Pixa</h3><p class="sub">Czerwona kropka w rogu ekranu. Pulsuje, gdy Pixa ma dla Ciebie pytanie albo propozycję. Nigdy nie otwiera się sama i niczego nie zmienia bez Twojej zgody.</p><div class="offbar" style="margin:0"><button class="sw'+(S.settings.asst?' on':'')+'" data-act="sasst" role="switch" aria-checked="'+!!S.settings.asst+'" aria-label="Asystentka"></button><span><b style="color:var(--fg)">Pokazuj asystentkę</b>'+(Object.keys(S.asst.off).length?' · <button class="link" data-act="asstreset">przywróć ukryte rodzaje podpowiedzi</button>':'')+'</span></div></div>';
+  h+='<div class="card"><h3>Asystentka Pixa</h3><p class="sub">Czerwona soczewka w lewym dolnym rogu. Świeci mocniej, gdy Pixa ma dla Ciebie pytanie albo propozycję. Nigdy nie otwiera się sama i niczego nie zmienia bez Twojej zgody.</p><div class="offbar" style="margin:0"><button class="sw'+(S.settings.asst?' on':'')+'" data-act="sasst" role="switch" aria-checked="'+!!S.settings.asst+'" aria-label="Asystentka"></button><span><b style="color:var(--fg)">Pokazuj asystentkę</b>'+(Object.keys(S.asst.off).length?' · <button class="link" data-act="asstreset">przywróć ukryte rodzaje podpowiedzi</button>':'')+'</span></div><span class="fl">Kolory Pixy</span><div class="pxpick"><canvas id="pxprev" width="44" height="58" aria-label="Podgląd Pixy"></canvas><div class="chips">'+Object.keys(PixaArt.PALETTES).map(k=>'<button class="pill'+(S.settings.pixaPal===k?' on':'')+'" data-act="pxpal" data-k="'+k+'"><i class="pxsw" style="background:'+PixaArt.PALETTES[k].body+'"></i>'+PixaArt.PALETTES[k].n+'</button>').join('')+'</div></div></div>';
   h+=remindersCard();
   h+='<div class="card"><h3>Wygląd</h3><p class="sub">Auto dopasowuje się do ustawień telefonu.</p><div class="seg" style="margin:0">'+[['auto','Auto'],['light','Jasny'],['dark','Ciemny']].map(x=>'<button class="'+(ui.theme===x[0]?'on':'')+'" data-act="theme" data-v="'+x[0]+'">'+x[1]+'</button>').join('')+'</div></div>';
   h+='<div class="card"><h3>Seria i wynik dnia</h3><p class="sub">Wynik dnia to średnia z celów ważona priorytetem: główne liczą się potrójnie, ważne pojedynczo, dodatkowe wcale. Cel tygodniowy liczy się jako zaliczony, dopóki da się go jeszcze w tym tygodniu zrobić. Dni wolne nie przerywają serii. Dobry dzień to wynik co najmniej:</p><div class="seg" style="margin:0">'+[.5,.6,.7,.8,.9,1].map(v=>'<button class="'+(Math.abs(st.streak-v)<.01?'on':'')+'" data-act="sstreak" data-v="'+v+'">'+Math.round(v*100)+'%</button>').join('')+'</div><div class="offbar" style="margin:12px 0 0"><button class="sw'+(st.mainReq?' on':'')+'" data-act="smain" role="switch" aria-checked="'+!!st.mainReq+'" aria-label="Wymagaj głównych celów"></button><span><b style="color:var(--fg)">Wszystkie główne cele muszą być zaliczone.</b> Bez tego nawet wysoki wynik nie da dobrego dnia.</span></div><div class="offbar" style="margin:8px 0 0'+(st.mainReq?'':';opacity:.5')+'"><button class="sw'+(st.mainSoft?' on':'')+'" data-act="ssoft" role="switch" aria-checked="'+!!st.mainSoft+'" aria-label="Złagodzenie dla głównych celów"'+(st.mainReq?'':' disabled')+'></button><span><b style="color:var(--fg)">Złagodzenie:</b> główny cel „trochę obok” (np. sen 6,5 h przy celu 7,5 h) albo zrobiony co najmniej w połowie (np. 10 z 20 stron) też się liczy. Dzień psuje dopiero „mocno obok” albo brak wpisu.'+(st.mainReq?'':' Działa tylko przy włączonym przełączniku wyżej.')+'</span></div></div>';
@@ -1497,6 +1501,7 @@ function act(a,ds){
     case'rday':{const r=S.settings.reminders[+ds.i],j=+ds.j;r.days=r.days||[];if(r.days.includes(j))r.days=r.days.filter(x=>x!==j);else r.days.push(j);r.days.sort();save();render();break}
     case'radd':S.settings.reminders.push({id:'r'+Date.now(),kind:'custom',time:'09:00',days:[0,1,2,3,4,5,6],on:true,text:''});save();render();break;
     case'rdel':S.settings.reminders.splice(+ds.i,1);save();render();break;
+    case'pxpal':S.settings.pixaPal=ds.k;save();render();break;
     case'sasst':S.settings.asst=!S.settings.asst;ui.asstOpen=false;save();render();break;
     case'asstreset':S.asst.off={};S.asst.snooze={};save();render();toast('Przywrócono wszystkie podpowiedzi.');break;
     case'csel':ui.catSel[ds.c]=ds.d;render();break;
@@ -1874,72 +1879,93 @@ const Social=(()=>{
 })();
 function viewFriends(){return Social.view()}
 
-/* Pixa: oryginalna, abstrakcyjna postać z linii światła i pikseli (siatka 36×40). Pozy liczone ze szkieletu. */
+/* Pixa: oryginalna, abstrakcyjna kobieca postać z linii światła (siatka 44×58). Pozy liczone ze szkieletu. */
 const PixaArt=(()=>{
-  const W=36,H=46,OY=6;
-  const C={core:'#effffd',body:'#3ee6d6',edge:'#178c88',hairA:'#b197fc',hairB:'#5eead4',visor:'#071f26',eye:'#ffffff',acc:'#ff6fb5',spark:'#ffe58a',shadow:'rgba(20,40,60,.28)'};
+  const W=44,H=58,K=1.25,OY=8,CX=22;
+  const PALETTES={
+    turkus:{n:'Turkus',body:'#3ee6d6',edge:'#147f7b',core:'#f0fffd',hairA:'#b197fc',hairM:'#8fb8f6',hairB:'#5eead4',acc:'#ff6fb5',spark:'#ffe58a',visor:'#071f26'},
+    ultra:{n:'Ultrafiolet',body:'#b794ff',edge:'#5b30b8',core:'#f6efff',hairA:'#ff7ad9',hairM:'#c084fc',hairB:'#7dd3fc',acc:'#5ef0ff',spark:'#ffe58a',visor:'#1a0b33'},
+    bursztyn:{n:'Bursztyn',body:'#ffb347',edge:'#a24c0b',core:'#fff7e6',hairA:'#ff5e7a',hairM:'#ff8a5c',hairB:'#ffd166',acc:'#ff3b5c',spark:'#fff1a8',visor:'#2a1204'},
+    sygnal:{n:'Czerwony sygnał',body:'#ff5a4e',edge:'#9c140c',core:'#ffecea',hairA:'#ffa94d',hairM:'#ff7b6b',hairB:'#ffd6a5',acc:'#ffd166',spark:'#fff1a8',visor:'#2b0402'},
+    lod:{n:'Lód',body:'#9ff0fb',edge:'#25809a',core:'#ffffff',hairA:'#e0f2fe',hairM:'#93c5fd',hairB:'#c4b5fd',acc:'#3b82f6',spark:'#ffffff',visor:'#06202b'},
+    holo:{n:'Hologram',holo:1,body:'#c4f1ff',edge:'#3f5f9a',core:'#ffffff',hairA:'#c7b8ff',hairM:'#9fd0ff',hairB:'#8ff0e6',acc:'#ffffff',spark:'#fff1a8',visor:'#101828'}
+  };
   // kąty: 0 = w dół, 90 = w prawo, -90 = w lewo, 180 = w górę
   const POSES={
-    stand:{px:18,py:24,t:0,la:[-14,-6],ra:[14,6],ll:[-7,-2],rl:[7,2],face:'calm'},
+    stand:{px:18,py:24,t:0,la:[-12,-6],ra:[12,6],ll:[-5,-2],rl:[5,2],face:'calm'},
     float:{px:18,py:27,t:0,la:[-40,-30],ra:[40,30],ll:[-72,150],rl:[72,-150],face:'calm',fx:'shadow',hov:1},
-    wave:{px:18,py:24,t:-5,la:[-14,-8],ra:[140,175],ll:[-7,-2],rl:[7,2],face:'happy',wave:1},
-    think:{px:18,py:24,t:-6,la:[-25,35],ra:[25,-150],ll:[-5,0],rl:[14,6],face:'look',fx:'q'},
+    wave:{px:18,py:24,t:-5,la:[-12,-8],ra:[140,175],ll:[-5,-2],rl:[9,4],face:'happy',wave:1},
+    think:{px:18,py:24,t:-6,la:[-25,35],ra:[25,-150],ll:[-4,0],rl:[14,6],face:'look',fx:'q'},
     sleep:{px:18,py:30,t:0,nod:1,la:[-30,-35],ra:[30,35],ll:[-72,150],rl:[72,-150],face:'closed',fx:'zzz'},
     jump:{px:18,py:22,t:0,la:[-150,-170],ra:[150,170],ll:[-28,15],rl:[28,-15],face:'joy',fx:'spark',hop:1},
-    orb:{px:18,py:24,t:4,la:[-16,-10],ra:[140,165],ll:[-7,-2],rl:[7,2],face:'happy',fx:'orb'},
+    orb:{px:18,py:24,t:4,la:[-14,-10],ra:[140,165],ll:[-5,-2],rl:[5,2],face:'happy',fx:'orb'},
     peek:{px:18,py:46,t:0,la:[-125,-75],ra:[125,75],ll:[0,0],rl:[0,0],face:'look',peek:1},
-    perch:{px:18,py:29,t:0,la:[-35,-15],ra:[35,15],ll:[-22,-4],rl:[22,4],face:'calm',swing:1}
+    perch:{px:18,py:29,t:0,la:[-35,-15],ra:[35,15],ll:[-20,-4],rl:[20,4],face:'calm',swing:1}
   };
   const KEYS=['px','py','t','la0','la1','ra0','ra1','ll0','ll1','rl0','rl1'];
   const flat=p=>({px:p.px,py:p.py,t:p.t,la0:p.la[0],la1:p.la[1],ra0:p.ra[0],ra1:p.ra[1],ll0:p.ll[0],ll1:p.ll[1],rl0:p.rl[0],rl1:p.rl[1]});
   const rad=d=>d*Math.PI/180,dir=a=>[Math.sin(rad(a)),Math.cos(rad(a))];
-  function draw(cv,f,pname,cur){
+  function draw(cv,f,pname,cur,palName){
     const c=cv.getContext('2d');c.clearRect(0,0,W,H);
-    const P=POSES[pname]||POSES.stand,q=cur||flat(P);
-    const px=(x,y,col)=>{x=Math.round(x);y=Math.round(y);if(x<0||y<0||x>=W||y>=H)return;c.fillStyle=col;c.fillRect(x,y,1,1)};
-    const line=(x0,y0,x1,y1,col,th)=>{const n=Math.ceil(Math.max(Math.abs(x1-x0),Math.abs(y1-y0))*2)+1;for(let i=0;i<=n;i++){const k=i/n,x=x0+(x1-x0)*k,y=y0+(y1-y0)*k;px(x,y,col);if(th>1)px(x+1,y,col)}};
-    let pyv=q.py+OY;if(P.hov)pyv+=Math.round(Math.sin(f*.15));if(P.hop)pyv-=Math.round(Math.abs(Math.sin(f*.3))*3);
-    const Pv=[q.px,pyv],[tx,ty]=dir(180+q.t),N=[Pv[0]+tx*9,Pv[1]+ty*9],perp=[-ty,tx],Hd=[N[0]+tx*5+(P.nod?1:0),N[1]+ty*5+(P.nod?1+Math.round(Math.sin(f*.12)*.6):0)];
-    const shoulder=s=>[N[0]+perp[0]*3*s,N[1]+perp[1]*3*s+1],hip=s=>[Pv[0]+perp[0]*2*s,Pv[1]+perp[1]*2*s];
-    // cień
-    if(P.fx==='shadow')for(let x=-6;x<=6;x++)px(q.px+x,Math.min(H-1,q.py+OY+12),C.shadow);
-    // pasma danych zamiast włosów
-    const strands=[[-1,1.25,14],[-1,1,12],[-1,.75,15],[-1,.5,11],[-1,.25,13],[0,0,10],[1,.25,13],[1,.5,11],[1,.75,15],[1,1,12],[1,1.25,14]];
-    strands.forEach(([sd,sp,L],i)=>{for(let k=0;k<L;k++){if(k>L-4&&(k+f+i)%2)continue;const wv=Math.sin(f*.2+k*.45+i*.7)*(.3+k*.06);
-      const sx=Hd[0]+sd*(1+sp*k*.5)+wv,sy=Hd[1]-4-k*(1.15-sp*.15)+k*k*(.018+sp*.04)+(P.nod?k*.2:0);
-      px(sx,sy,k<L*.35?C.hairA:k<L*.75?'#8fb8f6':C.hairB)}});
+    const PL=PALETTES[palName]||PALETTES.turkus,P=POSES[pname]||POSES.stand,q=cur||flat(P);
+    const holo=(x,y,light)=>{const t=((y*7+x*3+f*6)%220)/220,h=175+Math.abs(t*2-1)*105;return'hsl('+h+','+(light?'100%,90%':'80%,72%')+')'};
+    const col=(n,x,y)=>PL.holo&&(n==='body'||n==='core')?holo(x,y,n==='core'):PL[n];
+    const px=(x,y,n)=>{x=Math.round(x);y=Math.round(y);if(x<0||y<0||x>=W||y>=H)return;c.fillStyle=n.charAt(0)==='#'||n.startsWith('rgba')?n:col(n,x,y);c.fillRect(x,y,1,1)};
+    // odcinek ciała o zmiennej szerokości (obrys + wypełnienie)
+    const seg=(a,b,w0,w1,fill)=>{const dx=b[0]-a[0],dy=b[1]-a[1],len=Math.hypot(dx,dy)||1,nx=-dy/len,ny=dx/len,n=Math.ceil(len*2);
+      for(let i=0;i<=n;i++){const s=i/n,cx=a[0]+dx*s,cy=a[1]+dy*s,w=w0+(w1-w0)*s;for(let o=-w;o<=w+.01;o+=.5)px(cx+nx*o,cy+ny*o,Math.abs(o)>w-.6?'edge':(fill||'body'))}};
+    const sx=x=>CX+(x-18)*K;
+    let pyv=q.py*K+OY;if(P.hov)pyv+=Math.round(Math.sin(f*.15));if(P.hop)pyv-=Math.round(Math.abs(Math.sin(f*.3))*3);
+    const Pv=[sx(q.px),pyv],[tx,ty]=dir(180+q.t),perp=[-ty,tx];
+    const N=[Pv[0]+tx*11.5,Pv[1]+ty*11.5],Hd=[N[0]+tx*6.2+(P.nod?1:0),N[1]+ty*6.2+(P.nod?1+Math.round(Math.sin(f*.12)*.6):0)];
+    const at=(s,o)=>[N[0]+(Pv[0]-N[0])*s+perp[0]*o,N[1]+(Pv[1]-N[1])*s+perp[1]*o];
+    const shoulder=sd=>at(.08,3.1*sd),hip=sd=>at(.95,2.4*sd);
+    if(P.fx==='shadow')for(let x=-8;x<=8;x++)px(Pv[0]+x,Math.min(H-1,Pv[1]+15),'rgba(20,40,60,.25)');
+    // długie pasma za plecami (za ciałem)
+    [-1,1].forEach(sd=>[0,1].forEach(j=>{const L=13+j*3;for(let k=0;k<L;k++){if(k>L-4&&(k+f+j)%2)continue;const w=Math.sin(f*.18+k*.4+j+sd)*(.4+k*.05);px(Hd[0]+sd*(3.6+j*1.2+k*.12)+w,Hd[1]-1+k*1.05,k<L*.4?'hairA':k<L*.75?'hairM':'hairB')}}));
     // nogi
     let [l0,l1,r0,r1]=[q.ll0,q.ll1,q.rl0,q.rl1];if(P.swing){const w=Math.sin(f*.3)*14;l1+=w;r1-=w}
-    [[hip(-1),l0,l1],[hip(1),r0,r1]].forEach(([h,a0,a1])=>{const [d0x,d0y]=dir(a0),k=[h[0]+d0x*7,h[1]+d0y*7],[d1x,d1y]=dir(a0+a1),ft=[k[0]+d1x*7,k[1]+d1y*7];line(h[0],h[1],k[0],k[1],C.body,2);line(k[0],k[1],ft[0],ft[1],C.body,2);px(k[0],k[1],C.core)});
-    // tułów (talia węższa niż ramiona i biodra)
-    for(let i=0;i<=14;i++){const s=i/14,cx=N[0]+(Pv[0]-N[0])*s,cy=N[1]+(Pv[1]-N[1])*s,w=s<.25?3.2-(.4*s/.25):s<.62?2.8-(1.3*(s-.25)/.37):1.5+2.1*(s-.62)/.38;for(let o=-w;o<=w;o+=.5)px(cx+perp[0]*o,cy+perp[1]*o,Math.abs(o)>w-.7?C.edge:C.body)}
-    line(N[0],N[1]+1,Pv[0],Pv[1]-1,C.core,1);
+    [[hip(-1),l0,l1],[hip(1),r0,r1]].forEach(([h,a0,a1])=>{const [d0x,d0y]=dir(a0),kn=[h[0]+d0x*9,h[1]+d0y*9],[d1x,d1y]=dir(a0+a1),an=[kn[0]+d1x*9,kn[1]+d1y*9],[fx,fy]=dir(a0+a1+(h[0]<Pv[0]?-35:35));
+      seg(h,kn,2.4,1.5);seg(kn,an,1.4,.8);px(an[0]+fx*1.5,an[1]+fy*1.5,'edge');px(an[0]+fx*2.5,an[1]+fy*2.5,'edge');px(kn[0],kn[1],'core');px(an[0],an[1]-1,'acc')});
+    // tułów: ramiona, biust, talia, biodra
+    for(let i=0;i<=24;i++){const s=i/24,w=s<.3?3.3+.3*(s/.3):s<.62?3.6-1.7*((s-.3)/.32):1.9+2.3*((s-.62)/.38);for(let o=-w;o<=w+.01;o+=.5){const p=at(s,o);px(p[0],p[1],Math.abs(o)>w-.6?'edge':'body')}}
+    [-1,1].forEach(sd=>{const a=at(.3,1.7*sd),b=at(.34,1.1*sd);px(a[0],a[1],'core');px(b[0],b[1],'core')});
+    for(let o=-3.6;o<=3.6;o+=.5){const p=at(.9,o);px(p[0],p[1],'acc')}
+    {const e=at(.14,0),pulse=f%20<10;[[0,0],[0,-1],[0,1],[-1,0],[1,0]].forEach(([dx,dy],i)=>{if(i===0||pulse)px(e[0]+dx,e[1]+dy,i===0?'core':'acc')})}
+    for(let i=0;i<=8;i++){const p=at(.2+i*.08,0);if(i%2===0)px(p[0],p[1],'core')}
+    // szyja
+    seg([N[0],N[1]+1],[N[0]+tx*3,N[1]+ty*3],.9,.9);
     // ręce
     let [a0,a1,b0,b1]=[q.la0,q.la1,q.ra0,q.ra1];if(P.wave)b1+=Math.sin(f*.7)*28;
     const hands=[];
-    [[shoulder(-1),a0,a1],[shoulder(1),b0,b1]].forEach(([s,u,v])=>{const [ux,uy]=dir(u),e=[s[0]+ux*6,s[1]+uy*6],[vx,vy]=dir(u+v),hd=[e[0]+vx*6,e[1]+vy*6];line(s[0],s[1],e[0],e[1],C.body,2);line(e[0],e[1],hd[0],hd[1],C.body,1);px(hd[0],hd[1],C.core);hands.push(hd)});
-    // głowa z wizjerem
-    for(let y=-4;y<=4;y++)for(let x=-3;x<=3;x++){const d=(x*x)/12.5+(y*y)/20;if(d>1)continue;px(Hd[0]+x,Hd[1]+y,d>.72?C.edge:C.body)}
-    for(let x=-3;x<=3;x++){px(Hd[0]+x,Hd[1],C.visor);if(Math.abs(x)<3)px(Hd[0]+x,Hd[1]-1,C.visor)}
+    [[shoulder(-1),a0,a1],[shoulder(1),b0,b1]].forEach(([s,u,v])=>{const [ux,uy]=dir(u),e=[s[0]+ux*7.5,s[1]+uy*7.5],[vx,vy]=dir(u+v),hd=[e[0]+vx*7,e[1]+vy*7];
+      seg(s,e,1.3,1);seg(e,hd,1,.6);const wr=[e[0]+vx*5.6,e[1]+vy*5.6];px(wr[0],wr[1],'acc');px(hd[0],hd[1],'core');px(hd[0]+vx,hd[1]+vy,'edge');hands.push(hd)});
+    // głowa: owal zwężający się ku brodzie
+    for(let y=-5;y<=6;y++)for(let x=-5;x<=5;x++){const rx=y>0?4.2*(1-.32*(y/6)):4.2,d=(x*x)/(rx*rx)+(y*y)/(y>0?36:28);if(d>1)continue;px(Hd[0]+x,Hd[1]+y,d>.72?'edge':'body')}
+    // grzywka
+    for(let x=-4;x<=4;x++){const y=-4-(Math.abs(x)<2?1:0)+((x+Math.floor(f/8))%3===0?1:0);px(Hd[0]+x,Hd[1]+y,'hairA');px(Hd[0]+x,Hd[1]+y-1,'hairM')}
+    // wizjer, oczy z rzęsami, usta
+    for(let x=-4;x<=4;x++){px(Hd[0]+x,Hd[1],'visor');px(Hd[0]+x,Hd[1]+1,'visor');if(Math.abs(x)<4)px(Hd[0]+x,Hd[1]-1,'visor')}
     const blink=f%46>=43,ex=P.face==='look'?1:0;
-    const eye=(x)=>{const X=Hd[0]+x+ex,Y=Hd[1];
-      if(P.face==='closed'||blink){px(X,Y,C.edge);px(X+1,Y,C.edge);return}
-      if(P.face==='happy'||P.face==='joy'){px(X-.5,Y,C.eye);px(X+.5,Y-1,C.eye);px(X+1.5,Y,C.eye);return}
-      px(X,Y-1,C.eye);px(X+1,Y-1,C.eye);px(X,Y,C.eye)};
-    eye(-2.5);eye(1);
-    if(P.face==='joy'||P.face==='happy')px(Hd[0],Hd[1]+2,C.acc);
+    [[-2.5,-1],[1.5,1]].forEach(([x,sd])=>{const X=Hd[0]+x+ex,Y=Hd[1];
+      if(P.face==='closed'||blink){px(X,Y+1,'core');px(X+1,Y+1,'core');px(X+(sd>0?2:-1),Y,'acc');return}
+      if(P.face==='happy'||P.face==='joy'){px(X,Y+1,'core');px(X+.5,Y,'core');px(X+1.5,Y+1,'core');px(X+(sd>0?2.5:-1),Y-1,'acc');return}
+      px(X,Y,'core');px(X+1,Y,'core');px(X,Y+1,'core');px(X+1,Y+1,'core');px(X+(sd>0?2:-1),Y-1,'acc')});
+    px(Hd[0]-.5,Hd[1]+3.5,'acc');px(Hd[0]+.5,Hd[1]+3.5,'acc');if(P.face==='joy')px(Hd[0],Hd[1]+4.5,'acc');
+    // pasma danych unoszące się nad głową
+    const strands=[[-1,1.3,13],[-1,1,11],[-1,.75,14],[-1,.5,10],[-1,.25,12],[0,0,9],[1,.25,12],[1,.5,10],[1,.75,14],[1,1,11],[1,1.3,13]];
+    strands.forEach(([sd,sp,L],i)=>{for(let k=2;k<L;k++){if(k>L-4&&(k+f+i)%2)continue;const wv=Math.sin(f*.2+k*.45+i*.7)*(.3+k*.06);
+      const x=Hd[0]+sd*(1.2+sp*k*.55)+wv,y=Hd[1]-5-k*(1.1-sp*.15)+k*k*(.02+sp*.04)+(P.nod?k*.2:0);px(x,y,k<L*.35?'hairA':k<L*.75?'hairM':'hairB')}});
     // efekty
-    if(P.fx==='zzz'){const b=(f%30)/30;[[0,0],[3,-4],[6,-8]].forEach(([dx,dy],i)=>{const x=Hd[0]+5+dx,y=Hd[1]-3+dy-b*3;if((f+i*7)%30<24){px(x,y,C.core);px(x+1,y,C.core);px(x+1,y+1,C.core);px(x,y+2,C.core);px(x+1,y+2,C.core)}})}
-    if(P.fx==='spark'){[[Hd[0]-8,Hd[1]-6],[Hd[0]+8,Hd[1]-3],[Hd[0]+6,Hd[1]+6]].forEach(([x,y],i)=>{if((f+i*3)%8<5){px(x,y,C.spark);px(x-1,y,C.spark);px(x+1,y,C.spark);px(x,y-1,C.spark);px(x,y+1,C.spark)}})}
-    if(P.fx==='q'){const x=Hd[0]+6,y=Hd[1]-7;[[0,0],[1,0],[2,1],[1,2],[1,4]].forEach(([dx,dy])=>px(x+dx,y+dy,C.spark))}
-    if(P.fx==='orb'){const hd=hands[1],yy=hd[1]-3-Math.abs(Math.sin(f*.25))*7;for(let y=-1;y<=1;y++)for(let x=-1;x<=1;x++)if(Math.abs(x)+Math.abs(y)<2)px(hd[0]+x,yy+y,x===0&&y===0?C.core:C.acc)}
-    if(P.peek){for(let x=0;x<W;x++){px(x,H-2,C.edge);px(x,H-1,C.edge)}}
-    // drobinki
-    for(let i=0;i<3;i++){const yy=(H-((f*.4+i*13)%H)),xx=6+i*12+Math.sin(f*.1+i)*2;px(xx,yy,(f+i)%6<3?C.hairB:C.hairA)}
-    // zakłócenie sygnału co kilka sekund
-    if(f%37<2){const y0=6+((f*7)%26),img=c.getImageData(0,y0,W,3);c.clearRect(0,y0,W,3);c.putImageData(img,(f%2?2:-2),y0)}
+    if(P.fx==='zzz'){const b=(f%30)/30;[[0,0],[3,-4],[6,-8]].forEach(([dx,dy],i)=>{const x=Hd[0]+7+dx,y=Hd[1]-4+dy-b*3;if((f+i*7)%30<24){px(x,y,'core');px(x+1,y,'core');px(x+1,y+1,'core');px(x,y+2,'core');px(x+1,y+2,'core')}})}
+    if(P.fx==='spark'){[[Hd[0]-10,Hd[1]-6],[Hd[0]+10,Hd[1]-3],[Hd[0]+8,Hd[1]+8]].forEach(([x,y],i)=>{if((f+i*3)%8<5){px(x,y,'spark');px(x-1,y,'spark');px(x+1,y,'spark');px(x,y-1,'spark');px(x,y+1,'spark')}})}
+    if(P.fx==='q'){const x=Hd[0]+7,y=Hd[1]-9;[[0,0],[1,0],[2,1],[1,2],[1,4]].forEach(([dx,dy])=>px(x+dx,y+dy,'spark'))}
+    if(P.fx==='orb'){const hd=hands[1],yy=hd[1]-3-Math.abs(Math.sin(f*.25))*8;for(let y=-1;y<=1;y++)for(let x=-1;x<=1;x++)if(Math.abs(x)+Math.abs(y)<2)px(hd[0]+x,yy+y,x===0&&y===0?'core':'acc')}
+    if(P.peek){for(let x=0;x<W;x++){px(x,H-2,'edge');px(x,H-1,'edge')}}
+    for(let i=0;i<3;i++){const yy=(H-((f*.4+i*17)%H)),xx=7+i*15+Math.sin(f*.1+i)*2;px(xx,yy,(f+i)%6<3?'hairB':'hairA')}
+    if(f%37<2){const y0=8+((f*7)%34),img=c.getImageData(0,y0,W,3);c.clearRect(0,y0,W,3);c.putImageData(img,(f%2?2:-2),y0)}
   }
-  return{draw,POSES,flat,KEYS};
+  return{draw,POSES,PALETTES,flat,KEYS,W,H};
 })();
 
 /* ---------- asystentka Pixa (podpowiedzi oparte na regułach, bez AI) ---------- */
@@ -1958,7 +1984,7 @@ const Asst=(()=>{
     else if(poseT>hold)choose(ctxPose&&Math.random()<.35?ctxPose:pick());
     const tf=PixaArt.flat(PixaArt.POSES[pose]);
     if(!cur)cur=Object.assign({},tf);else PixaArt.KEYS.forEach(k=>{cur[k]+=(tf[k]-cur[k])*.35});
-    PixaArt.draw(cv,frame,pose,cur);
+    PixaArt.draw(cv,frame,pose,cur,S.settings.pixaPal);
   }
   let tipsCache=[],idx=0;
   const reduced=()=>window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -2007,6 +2033,7 @@ const Asst=(()=>{
   }
   function snooze(tp){const days=tp.kind==='mood'||tp.kind==='missing'?1:tp.kind==='adjust'||tp.kind==='limit'?7:14;S.asst.snooze[tp.id]=addDays(todayS(),days);save()}
   function paint(){
+    const pv=document.getElementById('pxprev');if(pv&&S)PixaArt.draw(pv,14,'wave',null,S.settings.pixaPal);
     const root=document.getElementById('asst');if(!root)return;
     if(anim){cancelAnimationFrame(anim);anim=null}
     if(!S||!S.settings.asst||ui.sheet){root.innerHTML='';return}
@@ -2020,10 +2047,10 @@ const Asst=(()=>{
     let bub;
     if(!tp)bub='<p class="pxtxt">Wszystko gra. Nie mam teraz żadnych pytań. Zajrzę, gdy coś zauważę.</p>';
     else bub='<p class="pxtxt">'+esc(tp.text)+'</p><div class="pxact">'+(tp.actions[0]&&tp.actions[0].mood?tp.actions.map((a,j)=>'<button class="mb md'+a.mood+'" data-asst="do" data-j="'+j+'" aria-label="'+esc(a.l)+'"><b>'+a.mood+'</b></button>').join(''):tp.actions.map((a,j)=>'<button class="btn main" data-asst="do" data-j="'+j+'">'+esc(a.l)+'</button>').join(''))+'</div><div class="pxfoot"><button class="link" data-asst="later">Nie teraz</button><button class="link" data-asst="never">Nie pokazuj takich</button>'+(tipsCache.length>1?'<button class="link pxnext" data-asst="next">'+(idx+1)+'/'+tipsCache.length+' ›</button>':'')+'</div>';
-    root.innerHTML='<div class="pxpanel" role="dialog" aria-label="Pixa, asystentka"><canvas class="pxav" width="36" height="46" data-asst="poke" role="img" aria-label="Pixa"></canvas><div class="pxbub"><div class="pxname">Pixa</div>'+bub+'</div><button class="pxclose" data-asst="close" aria-label="Zamknij asystentkę">×</button></div>';
+    root.innerHTML='<div class="pxpanel" role="dialog" aria-label="Pixa, asystentka"><canvas class="pxav" width="44" height="58" data-asst="poke" role="img" aria-label="Pixa"></canvas><div class="pxbub"><div class="pxname">Pixa</div>'+bub+'</div><button class="pxclose" data-asst="close" aria-label="Zamknij asystentkę">×</button></div>';
     const cv=root.querySelector('.pxav');
     setCtx(tp);
-    if(reduced()){PixaArt.draw(cv,0,ctxPose||'stand');return}
+    if(reduced()){PixaArt.draw(cv,0,ctxPose||'stand',null,S.settings.pixaPal);return}
     let last=0;const loop=ts=>{if(ts-last>100){last=ts;step(cv)}anim=requestAnimationFrame(loop)};anim=requestAnimationFrame(loop);
   }
   document.addEventListener('click',e=>{
