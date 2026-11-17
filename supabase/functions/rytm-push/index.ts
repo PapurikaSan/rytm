@@ -1,5 +1,5 @@
 // Rytm: wysyłanie przypomnień (Supabase Edge Function)
-// Akcje: "public-key" (klucz publiczny dla telefonu), "run" (co 5 minut z harmonogramu),
+// Akcje: "public-key" (klucz publiczny dla telefonu), "run" (co 5 minut z harmonogramu; rodzaje przypomnień: missing, review, weekly, custom),
 // "test" (próbne powiadomienie dla zalogowanego użytkownika), "kudos" (piątka dla znajomego z tej samej grupy).
 import webpush from "npm:web-push@3.6.7";
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
@@ -85,6 +85,14 @@ export function message(r: any, d: any, day: string) {
   if (r.kind === "review") {
     if (d.reviews && d.reviews[weekStart(day)]) return null;
     return { title: "Podsumuj tydzień", body: "Co poszło dobrze, co poprawić? Zajmie minutę.", url: APP_URL + "#week" };
+  }
+  if (r.kind === "weekly") {
+    // Podsumowanie zeszłego tygodnia liczy aplikacja przy każdym zapisie (data.wsum), serwer tylko je wysyła.
+    if (new Date(day + "T12:00:00Z").getUTCDay() !== 1) return null;
+    const prev = addDay(weekStart(day), -7);
+    const w = d.wsum && d.wsum[prev];
+    if (w && w.t) return { title: w.t, body: w.b || "Zobacz, jak poszło.", url: APP_URL + "#pixa-week" };
+    return { title: "Nowy tydzień", body: "Zeszły tydzień był bez wpisów. Zacznijmy nowy: zaznacz dziś pierwszy cel.", url: APP_URL };
   }
   return { title: "Rytm", body: r.text || "Przypomnienie", url: APP_URL };
 }

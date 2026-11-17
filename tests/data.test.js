@@ -8,7 +8,7 @@ const fake=fs.readFileSync(path.join(__dirname,'fake-supabase.js'),'utf8');
   const p=await ctx.newPage();p.on('pageerror',e=>errs.push(String(e)));
   await p.goto('http://localhost:8765/');await p.evaluate(()=>localStorage.clear());await p.reload();await p.waitForTimeout(300);
   await p.fill('#a-email','jan@example.com');await p.fill('#a-pass','dobrehaslo1');await p.click('#authform button[type=submit]');await p.waitForTimeout(400);
-  await p.click('[data-act=start][data-k=template]');await p.waitForTimeout(1300);
+  await p.click('[data-act=start][data-k=template]');await p.waitForTimeout(1300);await p.evaluate(()=>{ui.tour=null;S.tour='done';render()}); // przewodnik ma osobny test
   // 1) łączenie: „inne urządzenie” zmienia bazę (nastrój wczoraj, nowy cel), a tu zmieniamy co innego
   const res=await p.evaluate(async()=>{
     const row=window.__db.t.rytm_state.find(r=>r.user_id==='u1'),y=addDays(todayS(),-1);
