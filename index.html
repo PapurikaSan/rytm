@@ -580,6 +580,7 @@ function fixState(o){
   if(o.settings.pixaTone!=='hard')o.settings.pixaTone='soft';
   if(typeof o.settings.pixaChat!=='boolean')o.settings.pixaChat=true;
   if(!Array.isArray(o.settings.msGroups))o.settings.msGroups=[];
+  if(!Array.isArray(o.settings.msGen))o.settings.msGen=o.settings.msGroups.slice(); // kamienie ogólne (dobre dni, seria): dotąd szły razem z resztą
   o.asst=o.asst||{};o.asst.snooze=o.asst.snooze||{};o.asst.off=o.asst.off||{};o.asst.ck=o.asst.ck||{};o.asst.plan=o.asst.plan||{};{const lim=addDays(todayS(),-14);Object.keys(o.asst.ck).forEach(k=>{if(k<lim)delete o.asst.ck[k]});Object.keys(o.asst.plan).forEach(k=>{if(k<lim)delete o.asst.plan[k]})}
   if(!Array.isArray(o.settings.reminders))o.settings.reminders=[{id:'r1',kind:'missing',time:'21:00',days:[0,1,2,3,4,5,6],on:true},{id:'r2',kind:'review',time:'20:00',days:[6],on:true}];
   if(!o.settings.remW){o.settings.remW=1;if(!o.settings.reminders.some(r=>r.kind==='weekly'))o.settings.reminders.push({id:'r3',kind:'weekly',time:'09:00',days:[0],on:true})}
@@ -2177,8 +2178,10 @@ const Social=(()=>{
   }
   function queueShares(){clearTimeout(timer);timer=setTimeout(syncShares,1500)}
   // Kamienie milowe do pokazania grupie: tylko z celów, które wolno udostępniać (ruch, umysł), plus dobre dni i seria. Ostatnie 30 dni.
-  function msList(){const out=[],t=todayS();Object.keys(S.ms||{}).forEach(k=>{const m=S.ms[k];if(!m||!m.d||diffDays(m.d,t)>30)return;let ok=/^(gd|st)-/.test(k);
-    if(!ok){const mm=/^(.*)-[csr]-[\d.]+$/.exec(k),g=mm&&S.goals.find(x=>x.id===mm[1]);ok=!!(g&&g.act&&CAT_BY[g.act]&&CAT_BY[g.act].share)}
+  // Kamienie dla danej grupy: tylko z celów udostępnionych tej grupie (i tylko z aktywności, które wolno udostępniać),
+  // a ogólne (dobre dni, seria) tylko gdy włączone osobno, bo liczą się ze wszystkich celów.
+  function msList(gid){const out=[],t=todayS(),gen=(S.settings.msGen||[]).includes(gid);Object.keys(S.ms||{}).forEach(k=>{const m=S.ms[k];if(!m||!m.d||diffDays(m.d,t)>30)return;let ok=gen&&/^(gd|st)-/.test(k);
+    if(!/^(gd|st)-/.test(k)){const mm=/^(.*)-[csr]-[\d.]+$/.exec(k),g=mm&&S.goals.find(x=>x.id===mm[1]);ok=!!(g&&g.act&&CAT_BY[g.act]&&CAT_BY[g.act].share&&(g.groups||[]).includes(gid))}
     if(ok)out.push({k,t:m.t,d:m.d})});return out.sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:0).slice(0,12)}
   const kLabel=a=>a&&a.indexOf('ms:')===0?'kamień milowy':(CAT_BY[a]||{n:a}).n;
   function msCard(g){
@@ -2197,7 +2200,7 @@ const Social=(()=>{
     if(!D.profile){add('soc-prof',tn('Ustaw imię albo ksywkę, pod którą zobaczą Cię znajomi.','Najpierw ksywka dla znajomych. Pole jest wyżej.'),[],'wave');return out}
     if(!D.groups.length){add('soc-nogrp',tn('Razem łatwiej. Załóż grupę i wyślij znajomym kod albo dołącz kodem od kogoś.','Sam dasz radę, ale z ekipą szybciej. Załóż grupę.'),[],'love');return out}
     D.kudos.filter(k=>k.to_user===me()&&diffDays(k.day,t)<=3).slice(0,2).forEach(k=>add('soc-kin-'+k.from_user+k.act+k.day,(D.profiles[k.from_user]||'Znajomy')+' przybija Ci piątkę: '+kLabel(k.act)+'!',[],'clap'));
-    D.shares.filter(x=>x.act==='_ms'&&x.user_id!==me()).forEach(x=>((x.data&&x.data.list)||[]).filter(m=>diffDays(m.d,t)<=7).slice(0,2).forEach(m=>{const a=('ms:'+m.k).slice(0,30);if(sentToday(x.user_id,a))return;add('soc-ms-'+x.user_id+m.k,name(x.user_id)+' zdobywa kamień milowy: '+m.t+'. '+tn('Przybijesz piątkę?','Doceń. Piątka?'),[kud(x.user_id,a,m.t)],'cheer')}));
+    const msSeen={};D.shares.filter(x=>x.act==='_ms'&&x.user_id!==me()).forEach(x=>((x.data&&x.data.list)||[]).filter(m=>diffDays(m.d,t)<=7).slice(0,2).forEach(m=>{const a=('ms:'+m.k).slice(0,30);if(sentToday(x.user_id,a)||msSeen[x.user_id+m.k])return;msSeen[x.user_id+m.k]=1;add('soc-ms-'+x.user_id+m.k,name(x.user_id)+' zdobywa kamień milowy: '+m.t+'. '+tn('Przybijesz piątkę?','Doceń. Piątka?'),[kud(x.user_id,a,m.t)],'cheer')}));
     D.shares.filter(x=>x.user_id!==me()&&CAT_BY[x.act]&&((x.data&&x.data.days)||[]).includes(t)).slice(0,3).forEach(x=>{if(sentToday(x.user_id,x.act))return;add('soc-act-'+x.user_id+x.act+t,name(x.user_id)+' dziś: '+CAT_BY[x.act].n+'. '+tn('Przybijesz piątkę?','Doceń. Piątka?'),[kud(x.user_id,x.act,CAT_BY[x.act].n)],'clap')});
     D.groups.forEach(g=>{const sh=groupShares(g.id),m=sh.find(x=>x.user_id===me()&&CAT_BY[x.act]);if(!m)return;
       const rows=sh.filter(x=>x.act===m.act).map(x=>({uid:x.user_id,v:weekStreak(x)}));if(rows.length<2)return;
@@ -2215,7 +2218,7 @@ const Social=(()=>{
     if(!D.loaded||!me()||!S)return;
     const mine=D.groups.map(x=>x.id);
     const rows=S.goals.filter(g=>catOk(g)&&CAT_BY[g.act].share&&!isPaused(g)).map(g=>({user_id:me(),goal_id:g.id,act:g.act,name:g.name,groups:(g.groups||[]).filter(id=>mine.includes(id)),data:shareData(g)})).filter(r=>r.groups.length);
-    {const mg=(S.settings.msGroups||[]).filter(id=>mine.includes(id));if(mg.length)rows.push({user_id:me(),goal_id:'_ms',act:'_ms',name:'Kamienie milowe',groups:mg,data:{list:msList()}})}
+    (S.settings.msGroups||[]).filter(id=>mine.includes(id)).forEach(gid=>{const l=msList(gid);if(l.length)rows.push({user_id:me(),goal_id:'_ms:'+gid,act:'_ms',name:'Kamienie milowe',groups:[gid],data:{list:l}})});
     const sig=JSON.stringify(rows);if(sig===lastSig)return;
     try{
       const now=new Date().toISOString();rows.forEach(r=>{r.updated_at=now});
@@ -2242,7 +2245,7 @@ const Social=(()=>{
     const unit=v=>mt==='streak'?(v===1?'tydzień':(v%10>=2&&v%10<=4&&(v%100<12||v%100>14))?'tygodnie':'tygodni'):(v===1?'dzień':'dni');
     let h='<div class="card"><h3>Ranking</h3><div class="chips" style="margin:8px 0 10px">'+acts.map(a=>'<button class="pill'+(a===act?' on':'')+'" data-soc="act" data-a="'+a+'">'+esc(CAT_BY[a].n)+'</button>').join('')+'</div>';
     h+='<div class="seg">'+[['streak','Seria tygodni'],['week','Ten tydzień'],['month','Ten miesiąc']].map(o=>'<button class="'+(mt===o[0]?'on':'')+'" data-soc="metric" data-m="'+o[0]+'">'+o[1]+'</button>').join('')+'</div>';
-    h+='<p class="sub">'+(mt==='streak'?'Tygodnie z rzędu z wykonanym własnym celem. Uczciwe przy różnych celach, bo liczy się regularność. Obok widać cel każdej osoby.':'Liczba dni z aktywnością.')+'</p>';
+    h+='<p class="sub">'+(mt==='streak'?'Tygodnie z rzędu z wykonanym własnym celem.':'Liczba dni z aktywnością.')+'</p>';
     let pos=0,prev=null;
     h+=rows.map((r,i)=>{if(r.v!==prev){pos=i+1;prev=r.v}const stale=r.x.updated_at&&diffDays(String(r.x.updated_at).slice(0,10),t)>=3;
       return'<div class="rk'+(r.uid===me()?' me':'')+'"><span class="rkn">'+pos+'</span><div class="rkm"><b>'+esc(name(r.uid))+'</b><small>cel: '+esc(r.x.data.target||'?')+(stale?' · dane sprzed '+diffDays(String(r.x.updated_at).slice(0,10),t)+' dni':'')+'</small></div><span class="rkv">'+r.v+' <small>'+unit(r.v)+'</small></span>'+(r.uid===me()?'<span class="rkk"></span>':'<button class="btn rkk" data-soc="kudos" data-to="'+r.uid+'" data-a="'+act+'"'+(sentToday(r.uid,act)?' disabled':'')+'>'+(sentToday(r.uid,act)?'Wysłano':'Piątka')+'</button>')+'</div>'}).join('');
@@ -2274,7 +2277,8 @@ const Social=(()=>{
       const mem=D.members.filter(m=>m.group_id===g.id),owner=g.created_by===me();
       h+='<div class="card"><h3>'+esc(g.name)+'</h3><p class="sub">'+mem.length+' '+plOs(mem.length)+': '+mem.map(m=>esc(name(m.user_id))+(m.user_id===g.created_by?' (założyciel)':'')).join(', ')+'</p><div class="invite"><span>Kod zaproszenia: <b>'+esc(g.code)+'</b></span><button class="btn" data-soc="invite" data-code="'+esc(g.code)+'" data-n="'+esc(g.name)+'">Zaproś</button></div>'+(owner&&mem.length>1?'<button class="link" style="margin-top:10px" data-soc="xferask" data-id="'+g.id+'">Przekaż grupę innej osobie</button>':'')+'</div>';
       h+=rankingCard(g)+challengesCard(g)+msCard(g);
-      h+='<div class="card"><h3>Co udostępniasz tej grupie</h3>'+(()=>{const mine=S.goals.filter(x=>(x.groups||[]).includes(g.id));return mine.length?'<p class="sub" style="margin:0">'+mine.map(x=>esc(x.name)).join(', ')+'. Zmienisz to w edytorze celu.</p>':'<p class="sub" style="margin:0">Nic. Udostępnisz cel w <b>Cele → wybierz cel → Widoczne dla grup znajomych</b>.</p>'})()+(()=>{const on=(S.settings.msGroups||[]).includes(g.id);return'<div class="offbar" style="margin:10px 0 0"><button class="sw'+(on?' on':'')+'" data-soc="msshare" data-g="'+g.id+'" role="switch" aria-checked="'+on+'" aria-label="Kamienie milowe dla tej grupy"></button><span><b style="color:var(--fg)">Moje kamienie milowe</b>: z ruchu i nauki oraz liczba dobrych dni i seria. Bez notatek i szczegółów.</span></div>'})()+'</div>';
+      h+='<div class="card"><h3>Co udostępniasz tej grupie</h3>'+(()=>{const mine=S.goals.filter(x=>(x.groups||[]).includes(g.id));return mine.length?'<p class="sub" style="margin:0">'+mine.map(x=>esc(x.name)).join(', ')+'. Zmienisz to w edytorze celu.</p>':'<p class="sub" style="margin:0">Nic. Udostępnisz cel w <b>Cele → wybierz cel → Widoczne dla grup znajomych</b>.</p>'})()+(()=>{const on=(S.settings.msGroups||[]).includes(g.id),gen=(S.settings.msGen||[]).includes(g.id),n=on?msList(g.id).length:0;
+        return'<div class="offbar" style="margin:10px 0 0"><button class="sw'+(on?' on':'')+'" data-soc="msshare" data-g="'+g.id+'" role="switch" aria-checked="'+on+'" aria-label="Kamienie milowe dla tej grupy"></button><span><b style="color:var(--fg)">Kamienie milowe</b> tylko z celów udostępnionych tej grupie'+(on?' · widzą teraz '+n+' z ostatnich 30 dni':'')+'</span></div>'+(on?'<div class="offbar" style="margin:6px 0 0"><button class="sw'+(gen?' on':'')+'" data-soc="msgen" data-g="'+g.id+'" role="switch" aria-checked="'+gen+'" aria-label="Także dobre dni i seria"></button><span><b style="color:var(--fg)">Także dobre dni i seria</b> (liczone ze wszystkich celów)</span></div>':'')})()+'</div>';
       h+='<p style="text-align:center;margin:4px 0 16px"><button class="link" style="color:var(--bad)" data-soc="'+(ui.confirm==='leave'+g.id?(owner?'delgroup':'leave'):'askleave')+'" data-id="'+g.id+'">'+(ui.confirm==='leave'+g.id?(owner?'Na pewno usunąć grupę dla wszystkich?':'Na pewno opuścić grupę?'):(owner?'Usuń grupę':'Opuść grupę'))+'</button></p>';
     }else h+='<div class="card"><h3>Zacznij od grupy</h3><p class="sub" style="margin:0">Utwórz grupę, np. „Ekipa ze ścianki”, i wyślij znajomym kod. Albo dołącz do grupy kodem, który od kogoś dostałeś. Możesz należeć do kilku grup.</p></div>';
     h+='<div class="card"><h3>Nowa grupa albo dołączenie</h3><label class="fl" for="soc-gname">Utwórz grupę</label><div class="row2"><input class="inp" id="soc-gname" maxlength="60" placeholder="np. Ekipa ze ścianki"><button class="btn" style="flex:none" data-soc="create">Utwórz</button></div><label class="fl" for="soc-code">Dołącz kodem</label><div class="row2"><input class="inp" id="soc-code" maxlength="10" autocomplete="off" autocapitalize="characters" placeholder="np. K7PQ2M"><button class="btn" style="flex:none" data-soc="join">Dołącz</button></div></div>';
@@ -2296,6 +2300,7 @@ const Social=(()=>{
           if(x.leave){const d=await sb().from('rytm_member').delete().eq('group_id',x.gid).eq('user_id',me());if(d.error)throw d.error;S.goals.forEach(g=>{g.groups=(g.groups||[]).filter(id=>id!==x.gid)});S.settings.msGroups=(S.settings.msGroups||[]).filter(id=>id!==x.gid);save();ui.grp=null}
           const who=name(x.to);ui.sheet=null;renderSheet();D.loading=false;await load();toast(x.leave?'Przekazano grupę: '+who+'. Opuściłeś ją.':'Przekazano grupę: '+who+'. Jesteś teraz zwykłym członkiem.')}
         catch(e){x.busy=false;renderSheet();throw e}}
+      if(a==='msgen'){const cur=S.settings.msGen||[],was=cur.includes(ds.g);S.settings.msGen=was?cur.filter(x=>x!==ds.g):cur.concat([ds.g]);save();lastSig='';render();await syncShares();toast(was?'Dobre dni i seria ukryte przed grupą.':'Grupa zobaczy też dobre dni i serię.')}
       if(a==='msshare'){const cur=S.settings.msGroups||[],was=cur.includes(ds.g);S.settings.msGroups=was?cur.filter(x=>x!==ds.g):cur.concat([ds.g]);save();lastSig='';render();await syncShares();toast(was?'Kamienie milowe ukryte przed grupą.':'Grupa zobaczy Twoje kamienie milowe.')}
       if(a==='act'){ui.grpAct=ds.a;render()}
       if(a==='metric'){ui.grpMetric=ds.m;render()}

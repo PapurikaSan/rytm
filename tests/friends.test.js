@@ -50,10 +50,12 @@ const fake=fs.readFileSync(path.join(__dirname,'fake-supabase.js'),'utf8');const
   await p.click('.nav [data-t=goals]');await p.click('[data-act=editgoal][data-g=sleep]');console.log('13 sen prywatny:',(await p.textContent('.sheet')).includes('prywatna i nie da się jej udostępnić'));
   // kamienie milowe w grupie: Jan włącza, Ola widzi i przybija piątkę
   await p.click('.sheet .btn[data-act=close]').catch(()=>{});await p.evaluate(()=>{ui.sheet=null;render()});
+  await p.evaluate(()=>{const t=addDays(todayS(),-2);S.ms['gym-c-50']={d:t,t:'Trening: 50 razy',at:t,q:1};S.ms['read-c-50']={d:t,t:'Czytanie: 50 dni z celem',at:t,q:1};save()});await p.waitForTimeout(300);
   await p.click('.nav [data-t=friends]');await p.waitForTimeout(400);await p.click('[data-soc=msshare]');await p.waitForTimeout(800);
   const db3=await p.evaluate(()=>localStorage.getItem('__fakedb'));await q.evaluate(d=>localStorage.setItem('__fakedb',d),db3);await q.reload();await q.waitForTimeout(600);
   await q.click('.nav [data-t=friends]');await q.waitForTimeout(800);
   console.log('14 Ola widzi kamienie Jana:',(await q.isVisible('.card:has(h3:text("Kamienie milowe w grupie"))'))?(await q.textContent('.card:has(h3:text("Kamienie milowe w grupie"))')).replace(/\s+/g,' ').slice(0,140):'(brak)');
+  console.log('   tylko z udostępnionego Treningu:',await q.evaluate(()=>{const c=[...document.querySelectorAll('.card')].find(x=>/Kamienie milowe w grupie/.test(x.textContent));return !!c&&/Trening/.test(c.textContent)&&!/Czytanie|Nauka|Medytacja|Kroki|dobrych dni|Seria/.test(c.textContent)}));
   console.log('   bez prywatnych (alkohol, sen, kalorie):',!/Słodycze|Sen|Waga|Rozmowy|Czas przed/.test(await q.textContent('#app')));
   console.log('   Pixa u Oli:',await q.evaluate(()=>Social.chat((a,b)=>a).map(x=>x.text).filter(t=>/kamień|piątk/i.test(t)).slice(0,2).join(' | ')));
   await q.click('.card:has(h3:text("Kamienie milowe w grupie")) [data-soc=kudos]');await q.waitForTimeout(300);

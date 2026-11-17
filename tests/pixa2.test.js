@@ -79,9 +79,15 @@ const fake=fs.readFileSync(path.join(__dirname,'fake-supabase.js'),'utf8');
   await p.click('.nav [data-t=friends]');await w(1200);
   if(await p.isVisible('#soc-name')){await p.fill('#soc-name','Jan');await p.click('[data-soc=saveprofile]');await w(400)}
   await p.fill('#soc-gname','Ekipa');await p.click('[data-soc=create]');await w(800);
+  // grupie udostępniamy tylko czytanie: kamienie z siłowni nie powinny do niej trafić
+  await p.evaluate(()=>{S.goals.find(g=>g.id==='g-read').groups=[Social.groups()[0].id];save();render()});await w(1500);
   await p.click('[data-soc=msshare]');await w(2500);
-  const row=await p.evaluate(()=>{const db=JSON.parse(localStorage.getItem('__fakedb'));return JSON.stringify(((db.t.rytm_share)||[]).filter(r=>r.goal_id==='_ms').map(r=>({groups:r.groups.length,list:r.data.list.map(x=>x.t)})))});
-  console.log('6 udostępnione kamienie:',row);
+  const rowOf=()=>p.evaluate(()=>{const db=JSON.parse(localStorage.getItem('__fakedb'));return JSON.stringify(((db.t.rytm_share)||[]).filter(r=>r.goal_id.indexOf('_ms')===0).map(r=>({groups:r.groups.length,list:r.data.list.map(x=>x.t)})))});
+  console.log('6 bez ogólnych:',await rowOf());
+  await p.click('[data-soc=msgen]');await w(2500);
+  const row=await rowOf();
+  console.log('  z dobrymi dniami i serią:',row);
+  console.log('  bez siłowni (nieudostępniona):',!/Siłownia/.test(row),'| licznik w karcie:',(await p.textContent('[data-soc=msshare] + span')).trim());
   console.log('  karta w grupie:',(await p.isVisible('.card:has(h3:text("Kamienie milowe w grupie"))'))?(await p.textContent('.card:has(h3:text("Kamienie milowe w grupie"))')).replace(/\s+/g,' ').slice(0,160):'(brak)');
   console.log('  prywatne nie wychodzą (sen, jedzenie):',!/Sen|jedzenie/.test(row));
   await p.screenshot({path:path.join(os.tmpdir(),'rytm-friends-ms.png'),fullPage:true});
