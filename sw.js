@@ -1,7 +1,7 @@
 // Rytm: praca offline. Najpierw sieć (żeby zawsze była najnowsza wersja), a bez internetu kopia z pamięci.
 // Zapytania do bazy (Supabase) nigdy nie trafiają do pamięci podręcznej.
-const CACHE = 'rytm-v2';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
+const CACHE = 'rytm-v3';
+const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './fonts/jersey10-latin.woff2', './fonts/jersey10-latin-ext.woff2'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
