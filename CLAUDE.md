@@ -31,13 +31,13 @@
   - Typy celów: `do` (zaznaczanie, dzień/tydzień/miesiąc, opcjonalnie bez celu, rodzaje `variants`), `qty` (ilość dziennie; `dir: 'max'` = „najwyżej X”, np. czas przed ekranem, kawa; 0 to prawidłowy wpis), `range` (wartość ± tolerancja), `limit` (maks. dni, wagi poziomów `w`), `contact` (spotkania/rozmowy z długością), `measure` (pomiar, np. waga). Priorytety `prio`: `main` ×3, `imp` ×1, `extra` ×0.
 - `sw.js`: offline (najpierw sieć, potem pamięć) oraz obsługa powiadomień push. Zapytania do Supabase nie są cache'owane. Przy zmianach w `sw.js` podbij `CACHE`.
 - `manifest.webmanifest` + ikony: instalacja na ekranie głównym iPhone'a.
-- `supabase/sql/`: historia zmian w bazie (01 dane, 02 przypomnienia, 03 znajomi, 04 kopie, 05 dłuższy czas oczekiwania na przypomnienia: 30 s). Nowe zmiany dopisuj jako kolejne pliki i stosuj przez konektor (`apply_migration`).
+- `supabase/sql/`: historia zmian w bazie (01 dane, 02 przypomnienia, 03 znajomi, 04 kopie, 05 dłuższy czas oczekiwania na przypomnienia: 30 s, 06 przekazanie grupy). Nowe zmiany dopisuj jako kolejne pliki i stosuj przez konektor (`apply_migration`).
 - `supabase/functions/rytm-push/index.ts`: wysyłanie przypomnień. Wdrożona z `verify_jwt: false` (wywołuje ją pg_cron co 5 minut, job `rytm-przypomnienia`). Klucze VAPID generuje sama i trzyma w `rytm_config`. Po zmianie kodu wdrażaj przez konektor `deploy_edge_function` z `verify_jwt: false`.
 
 ## Baza (wszystkie tabele z RLS)
 - `rytm_state`: jeden wiersz na użytkownika, dostęp tylko do własnego.
 - `rytm_push`: urządzenia z włączonymi powiadomieniami, dostęp tylko do własnych.
-- `rytm_profile` (wyświetlana nazwa), `rytm_group` (kod zaproszenia), `rytm_member`, `rytm_share` (podsumowanie udostępnionego celu: dni z aktywnością z ostatnich 120 dni, zaliczone tygodnie, opis celu), `rytm_challenge`, `rytm_kudos`. Zasady: widzisz tylko swoje grupy, ich członków i to, co udostępniono tym grupom. Tworzenie grup i dołączanie wyłącznie przez funkcje `rytm_create_group`, `rytm_join_group`. Piątki dodaje tylko funkcja `rytm-push` (akcja `kudos`). Ostrzeżenie „SECURITY DEFINER executable by authenticated” dla `rytm_my_groups`, `rytm_create_group`, `rytm_join_group` jest oczekiwane: działają tylko na koncie wywołującego.
+- `rytm_profile` (wyświetlana nazwa), `rytm_group` (kod zaproszenia), `rytm_member`, `rytm_share` (podsumowanie udostępnionego celu: dni z aktywnością z ostatnich 120 dni, zaliczone tygodnie, opis celu), `rytm_challenge`, `rytm_kudos`. Zasady: widzisz tylko swoje grupy, ich członków i to, co udostępniono tym grupom. Tworzenie grup, dołączanie i przekazanie grupy wyłącznie przez funkcje `rytm_create_group`, `rytm_join_group`, `rytm_transfer_group` (tylko założyciel, tylko osobie z grupy; w aplikacji „Przekaż grupę innej osobie” w karcie grupy, arkusz `xfer`, opcja „Po przekazaniu opuść grupę”; przy resecie z wyjściem z grup grupy z innymi przechodzą na osobę najdłużej w grupie). Założyciela pokazujemy wg `created_by`. Piątki dodaje tylko funkcja `rytm-push` (akcja `kudos`). Ostrzeżenie „SECURITY DEFINER executable by authenticated” dla `rytm_my_groups`, `rytm_create_group`, `rytm_join_group`, `rytm_transfer_group` jest oczekiwane: działają tylko na koncie wywołującego.
 - `rytm_backup`: kopie danych, użytkownik może tylko czytać swoje (tworzy i usuwa serwer).
 - `rytm_push_log`, `rytm_config`: bez zasad, czyli dostęp wyłącznie z serwera (to celowe, ostrzeżenie „RLS enabled no policy” jest oczekiwane).
 
@@ -56,6 +56,7 @@
   node tests/reset.test.js        # Pixa zostaje otwarta przy przejściach i oknach, pełny reset konta
   node tests/pixa2.test.js        # dymki w zakładkach, charakter, #pixa-fill, podsumowanie miesiąca, kamienie w grupie, wszystkie pozy
   ```
+  Atrapa `tests/fake-supabase.js` naśladuje RLS dla `rytm_group` i `rytm_member` (widać tylko swoje grupy) i ma funkcje create/join/transfer.
   Wszystkie powinny kończyć się `errors []`. Testy, które zakładają nowe konto, pomijają przewodnik przez `ui.tour=null;S.tour='done'`. Testy niezwiązane z dymkami wyłączają je (`S.settings.pixaChat=false`), bo dymek zmienia, co pokazuje panel po kliknięciu soczewki. Po zmianach w interfejsie zrób też zrzut ekranu w szerokości telefonu (390 px) w jasnym i ciemnym motywie.
 - Prawdziwych powiadomień i logowania nie da się sprawdzić z kontenera. Poproś użytkownika o test („Wyślij próbne” w Ustawieniach) i sprawdź logi funkcji przez konektor.
 

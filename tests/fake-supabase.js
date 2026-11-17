@@ -28,7 +28,9 @@
         persist();return{data:null,error:null};
       }
       if(this.op==='delete'){db.t[this.t]=tb.filter(r=>!this.f.every(f=>f(r)));persist();return{error:null}}
-      const rows=tb.filter(r=>this.f.every(f=>f(r))).map(r=>JSON.parse(JSON.stringify(r)));
+      // jak zasady RLS: grupy i członków widać tylko w grupach, do których się należy
+      const mine=T('rytm_member').filter(m=>m.user_id===uid()).map(m=>m.group_id),vis=r=>this.t==='rytm_group'?mine.includes(r.id):this.t==='rytm_member'?mine.includes(r.group_id):true;
+      const rows=tb.filter(r=>vis(r)&&this.f.every(f=>f(r))).map(r=>JSON.parse(JSON.stringify(r)));
       return{data:this.one?(rows[0]||null):rows,error:null};
     }
   }
@@ -46,6 +48,7 @@
       async rpc(fn,args){
         if(fn==='rytm_create_group'){const id='g'+Math.random().toString(36).slice(2,8),code='K'+Math.random().toString(36).slice(2,7).toUpperCase();T('rytm_group').push({id,name:args.p_name,code,created_by:uid()});T('rytm_member').push({group_id:id,user_id:uid(),role:'owner'});persist();return{data:id,error:null}}
         if(fn==='rytm_join_group'){const g=T('rytm_group').find(x=>x.code===args.p_code);if(!g)return{data:null,error:{message:'Nie ma grupy z takim kodem'}};if(!T('rytm_member').some(m=>m.group_id===g.id&&m.user_id===uid()))T('rytm_member').push({group_id:g.id,user_id:uid(),role:'member'});persist();return{data:g.id,error:null}}
+        if(fn==='rytm_transfer_group'){const g=T('rytm_group').find(x=>x.id===args.p_group);if(!g||g.created_by!==uid())return{data:null,error:{message:'Tylko założyciel może przekazać grupę'}};if(args.p_to===uid()||!T('rytm_member').some(m=>m.group_id===g.id&&m.user_id===args.p_to))return{data:null,error:{message:'Tej osoby nie ma w grupie'}};g.created_by=args.p_to;T('rytm_member').forEach(m=>{if(m.group_id===g.id&&(m.user_id===args.p_to||m.user_id===uid()))m.role=m.user_id===args.p_to?'owner':'member'});persist();return{data:null,error:null}}
         return{data:null,error:{message:'unknown rpc'}};
       },
       functions:{async invoke(n,{body}){

@@ -28,6 +28,9 @@ const fake=fs.readFileSync(path.join(__dirname,'fake-supabase.js'),'utf8');
   await p.click('.nav [data-t=friends]');await p.waitForTimeout(800);await p.fill('#soc-name','Jan');await p.click('[data-soc=saveprofile]');await p.waitForTimeout(300);
   await p.fill('#soc-gname','Ekipa');await p.click('[data-soc=create]');await p.waitForTimeout(600);await p.click('[data-soc=msshare]');await p.waitForTimeout(1500);
   const cnt=()=>p.evaluate(()=>{const d=JSON.parse(localStorage.getItem('__fakedb')).t,u='u1';return['rytm_state','rytm_share','rytm_member'].map(t=>t+':'+((d[t]||[]).filter(r=>r.user_id===u).length)).join(' ')+' rytm_group:'+((d.rytm_group||[]).filter(r=>r.created_by===u).length)});
+  // druga grupa, w której jest też Ola (u2): po resecie ma przejść na nią
+  await p.evaluate(async()=>{const r=await Sync.client().rpc('rytm_create_group',{p_name:'Duo'});const d=JSON.parse(localStorage.getItem('__fakedb'));d.t.rytm_member.push({group_id:r.data,user_id:'u2',role:'member',joined_at:'2026-01-01'});localStorage.setItem('__fakedb',JSON.stringify(d))});
+  await p.reload();await p.waitForTimeout(800);
   console.log('2 przed resetem w bazie:',await cnt());
   // 3) reset
   await p.evaluate(()=>{ui.asstOpen=false;render()});await p.click('.top [data-t=settings]');await p.evaluate(()=>{ui.setSec='data';render()});await p.waitForTimeout(200);
@@ -38,6 +41,7 @@ const fake=fs.readFileSync(path.join(__dirname,'fake-supabase.js'),'utf8');
   await p.click('[data-act=resetleave]');await p.waitForTimeout(100);
   await Promise.all([p.waitForNavigation(),p.click('#rs-go')]);await p.waitForTimeout(900);
   console.log('  po resecie:',(await p.textContent('#app')).replace(/\s+/g,' ').slice(0,140));
+  console.log('  grupa „Duo”:',await p.evaluate(()=>{const d=JSON.parse(localStorage.getItem('__fakedb')).t;const g=(d.rytm_group||[]).find(x=>x.name==='Duo');return g?'zostaje, założyciel '+g.created_by+', członkowie '+d.rytm_member.filter(m=>m.group_id===g.id).map(m=>m.user_id+':'+m.role).join(','):'usunięta'}));
   console.log('  w bazie:',await cnt(),'| pamięć urządzenia:',await p.evaluate(()=>Object.keys(localStorage).filter(k=>k.startsWith('rytm')).join(',')||'pusto'));
   await p.click('[data-act=start][data-k=template]');await p.waitForTimeout(500);
   console.log('  nowy start: cele',await p.evaluate(()=>S.goals.length),'| przewodnik',await p.isVisible('#tour .pxpanel'),'| kamienie',await p.evaluate(()=>Object.keys(S.ms).length));

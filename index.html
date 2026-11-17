@@ -1518,7 +1518,7 @@ function sheetHtml(){
   const s=ui.sheet;if(!s)return'';
   if(s.kind==='reset'){
     const ok=s.txt.trim().toUpperCase()==='RESET';
-    return'<div class="scrim" data-act="close"></div><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="rs-h"><h2 id="rs-h">Pełny reset konta</h2><p class="sub">Aplikacja wróci do stanu jak po pierwszym logowaniu i zobaczysz ekran powitalny.</p><div class="rsl"><b>Zniknie</b><ul><li>wszystkie cele, kategorie, wpisy, nastrój, notatki i osoby</li><li>kamienie milowe, podsumowania i plany</li><li>ustawienia: wynik dnia, przypomnienia, Pixa i motyw wracają do domyślnych</li><li>to, co udostępniasz znajomym</li></ul><b>Zostanie</b><ul><li>konto, e-mail i hasło</li><li>kopie automatyczne z ostatnich 10 tygodni: po resecie możesz z nich wrócić w Ustawieniach → Dane i kopie</li><li>włączone powiadomienia na Twoich urządzeniach</li></ul></div><div class="offbar" style="margin:12px 0"><button class="sw'+(s.leave?' on':'')+'" data-act="resetleave" role="switch" aria-checked="'+s.leave+'" aria-label="Opuść też grupy"></button><span><b style="color:var(--fg)">Opuść też wszystkie grupy znajomych</b>. Twoje grupy, w których jesteś sam, zostaną usunięte, a te z innymi osobami zostaną dla nich. Bez tego zostajesz w grupach, tylko bez udostępnionych celów.</span></div><label class="fl" for="rs-txt">Żeby potwierdzić, wpisz <b>RESET</b></label><input class="inp" id="rs-txt" data-inp="rstxt" autocomplete="off" autocapitalize="characters" value="'+esc(s.txt)+'" placeholder="RESET"><div class="actions"><button class="btn danger" id="rs-go" data-act="resetgo"'+(ok&&!s.busy?'':' disabled')+'>'+(s.busy?'Resetuję…':'Resetuj konto')+'</button><button class="btn" data-act="close">Anuluj</button></div></div>';
+    return'<div class="scrim" data-act="close"></div><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="rs-h"><h2 id="rs-h">Pełny reset konta</h2><p class="sub">Aplikacja wróci do stanu jak po pierwszym logowaniu i zobaczysz ekran powitalny.</p><div class="rsl"><b>Zniknie</b><ul><li>wszystkie cele, kategorie, wpisy, nastrój, notatki i osoby</li><li>kamienie milowe, podsumowania i plany</li><li>ustawienia: wynik dnia, przypomnienia, Pixa i motyw wracają do domyślnych</li><li>to, co udostępniasz znajomym</li></ul><b>Zostanie</b><ul><li>konto, e-mail i hasło</li><li>kopie automatyczne z ostatnich 10 tygodni: po resecie możesz z nich wrócić w Ustawieniach → Dane i kopie</li><li>włączone powiadomienia na Twoich urządzeniach</li></ul></div><div class="offbar" style="margin:12px 0"><button class="sw'+(s.leave?' on':'')+'" data-act="resetleave" role="switch" aria-checked="'+s.leave+'" aria-label="Opuść też grupy"></button><span><b style="color:var(--fg)">Opuść też wszystkie grupy znajomych</b>. Twoje grupy, w których jesteś sam, zostaną usunięte, a te z innymi osobami przejmie osoba, która jest w nich najdłużej. Bez tego zostajesz w grupach, tylko bez udostępnionych celów.</span></div><label class="fl" for="rs-txt">Żeby potwierdzić, wpisz <b>RESET</b></label><input class="inp" id="rs-txt" data-inp="rstxt" autocomplete="off" autocapitalize="characters" value="'+esc(s.txt)+'" placeholder="RESET"><div class="actions"><button class="btn danger" id="rs-go" data-act="resetgo"'+(ok&&!s.busy?'':' disabled')+'>'+(s.busy?'Resetuję…':'Resetuj konto')+'</button><button class="btn" data-act="close">Anuluj</button></div></div>';
   }
   if(s.kind==='contact'){
     const g=S.goals.find(x=>x.id===s.gid),L=S.settings.len[g.kind];
@@ -1530,6 +1530,7 @@ function sheetHtml(){
     return'<div class="scrim" data-act="close"></div><div class="sheet" role="dialog" aria-modal="true">'+h+'</div>';
   }
   if(s.kind==='challenge')return Social.chSheet();
+  if(s.kind==='xfer')return Social.xferSheet();
   if(s.kind==='lt'){
     const x=s.x,opts=ltOpts(x.kind);
     let h='<h2>'+(s.isNew?'Nowy cel długoterminowy':'Zmień cel długoterminowy')+'</h2>';
@@ -1963,9 +1964,12 @@ const Sync=(()=>{
         // Grupy założone przez tę osobę, w których nie ma nikogo innego, usuwamy (inaczej zostałyby puste i nikt nie mógłby ich skasować).
         const g=await sb.from('rytm_group').select('id').eq('created_by',uid);if(g.error)throw g.error;
         const ids=(g.data||[]).map(x=>x.id);
-        if(ids.length){const m=await sb.from('rytm_member').select('group_id,user_id').in('group_id',ids);if(m.error)throw m.error;
+        if(ids.length){const m=await sb.from('rytm_member').select('group_id,user_id,joined_at').in('group_id',ids);if(m.error)throw m.error;
           const solo=ids.filter(id=>!(m.data||[]).some(x=>x.group_id===id&&x.user_id!==uid));
-          if(solo.length){r=await sb.from('rytm_group').delete().in('id',solo);if(r.error)throw r.error}}
+          if(solo.length){r=await sb.from('rytm_group').delete().in('id',solo);if(r.error)throw r.error}
+          // grupy z innymi: przekazujemy osobie, która jest w nich najdłużej
+          for(const id of ids.filter(x=>!solo.includes(x))){const next=(m.data||[]).filter(x=>x.group_id===id&&x.user_id!==uid).sort((a,b)=>String(a.joined_at||'').localeCompare(String(b.joined_at||'')))[0];
+            if(next){r=await sb.rpc('rytm_transfer_group',{p_group:id,p_to:next.user_id});if(r.error)throw r.error}}}
         r=await sb.from('rytm_member').delete().eq('user_id',uid);if(r.error)throw r.error;
       }
     }catch(e){resetting=false;throw e}
@@ -2127,7 +2131,7 @@ const Social=(()=>{
       const g=D.groups.find(x=>x.id===ui.grp)||D.groups[0];ui.grp=g.id;
       if(D.groups.length>1)h+='<div class="chips" style="margin-bottom:12px">'+D.groups.map(x=>'<button class="pill'+(x.id===g.id?' on':'')+'" data-soc="grp" data-id="'+x.id+'">'+esc(x.name)+'</button>').join('')+'</div>';
       const mem=D.members.filter(m=>m.group_id===g.id),owner=g.created_by===me();
-      h+='<div class="card"><h3>'+esc(g.name)+'</h3><p class="sub">'+mem.length+' '+plOs(mem.length)+': '+mem.map(m=>esc(name(m.user_id))+(m.role==='owner'?' (założyciel)':'')).join(', ')+'</p><div class="invite"><span>Kod zaproszenia: <b>'+esc(g.code)+'</b></span><button class="btn" data-soc="invite" data-code="'+esc(g.code)+'" data-n="'+esc(g.name)+'">Zaproś</button></div></div>';
+      h+='<div class="card"><h3>'+esc(g.name)+'</h3><p class="sub">'+mem.length+' '+plOs(mem.length)+': '+mem.map(m=>esc(name(m.user_id))+(m.user_id===g.created_by?' (założyciel)':'')).join(', ')+'</p><div class="invite"><span>Kod zaproszenia: <b>'+esc(g.code)+'</b></span><button class="btn" data-soc="invite" data-code="'+esc(g.code)+'" data-n="'+esc(g.name)+'">Zaproś</button></div>'+(owner&&mem.length>1?'<button class="link" style="margin-top:10px" data-soc="xferask" data-id="'+g.id+'">Przekaż grupę innej osobie</button>':'')+'</div>';
       h+=rankingCard(g)+challengesCard(g)+msCard(g);
       h+='<div class="card"><h3>Co udostępniasz tej grupie</h3>'+(()=>{const mine=S.goals.filter(x=>(x.groups||[]).includes(g.id));return mine.length?'<p class="sub" style="margin:0">'+mine.map(x=>esc(x.name)).join(', ')+'. Zmienisz to w edytorze celu.</p>':'<p class="sub" style="margin:0">Nic. Udostępnisz cel w <b>Cele → wybierz cel → Widoczne dla grup znajomych</b>.</p>'})()+(()=>{const on=(S.settings.msGroups||[]).includes(g.id);return'<div class="offbar" style="margin:10px 0 0"><button class="sw'+(on?' on':'')+'" data-soc="msshare" data-g="'+g.id+'" role="switch" aria-checked="'+on+'" aria-label="Kamienie milowe dla tej grupy"></button><span><b style="color:var(--fg)">Moje kamienie milowe</b>: z ruchu i nauki oraz liczba dobrych dni i seria. Bez notatek i szczegółów.</span></div>'})()+'</div>';
       h+='<p style="text-align:center;margin:4px 0 16px"><button class="link" style="color:var(--bad)" data-soc="'+(ui.confirm==='leave'+g.id?(owner?'delgroup':'leave'):'askleave')+'" data-id="'+g.id+'">'+(ui.confirm==='leave'+g.id?(owner?'Na pewno usunąć grupę dla wszystkich?':'Na pewno opuścić grupę?'):(owner?'Usuń grupę':'Opuść grupę'))+'</button></p>';
@@ -2143,6 +2147,14 @@ const Social=(()=>{
       if(a==='cancelname'){ui.socEditName=false;render()}
       if(a==='saveprofile'){const n=(document.getElementById('soc-name').value||'').trim();if(!n){toast('Wpisz imię albo ksywkę.');return}const r=await sb().from('rytm_profile').upsert({user_id:me(),name:n.slice(0,40)});if(r.error)throw r.error;D.profile={user_id:me(),name:n};D.profiles[me()]=n;ui.socEditName=false;render();toast('Zapisano.')}
       if(a==='grp'){ui.grp=ds.id;render()}
+      if(a==='xferask'){ui.sheet={kind:'xfer',gid:ds.id,to:null,leave:false,busy:false};renderSheet()}
+      if(a==='xfersel'&&ui.sheet&&ui.sheet.kind==='xfer'){ui.sheet.to=ds.u;renderSheet()}
+      if(a==='xferleave'&&ui.sheet&&ui.sheet.kind==='xfer'){ui.sheet.leave=!ui.sheet.leave;renderSheet()}
+      if(a==='xfergo'&&ui.sheet&&ui.sheet.kind==='xfer'&&ui.sheet.to){const x=ui.sheet;x.busy=true;renderSheet();
+        try{const r=await sb().rpc('rytm_transfer_group',{p_group:x.gid,p_to:x.to});if(r.error)throw r.error;
+          if(x.leave){const d=await sb().from('rytm_member').delete().eq('group_id',x.gid).eq('user_id',me());if(d.error)throw d.error;S.goals.forEach(g=>{g.groups=(g.groups||[]).filter(id=>id!==x.gid)});S.settings.msGroups=(S.settings.msGroups||[]).filter(id=>id!==x.gid);save();ui.grp=null}
+          const who=name(x.to);ui.sheet=null;renderSheet();D.loading=false;await load();toast(x.leave?'Przekazano grupę: '+who+'. Opuściłeś ją.':'Przekazano grupę: '+who+'. Jesteś teraz zwykłym członkiem.')}
+        catch(e){x.busy=false;renderSheet();throw e}}
       if(a==='msshare'){const cur=S.settings.msGroups||[],was=cur.includes(ds.g);S.settings.msGroups=was?cur.filter(x=>x!==ds.g):cur.concat([ds.g]);save();lastSig='';render();await syncShares();toast(was?'Kamienie milowe ukryte przed grupą.':'Grupa zobaczy Twoje kamienie milowe.')}
       if(a==='act'){ui.grpAct=ds.a;render()}
       if(a==='metric'){ui.grpMetric=ds.m;render()}
@@ -2164,6 +2176,11 @@ const Social=(()=>{
     }catch(e){toast(errText(e))}
     finally{busy=false}
   }
+  function xferSheet(){
+    const x=ui.sheet,g=D.groups.find(y=>y.id===x.gid);if(!g)return'';
+    const others=D.members.filter(m=>m.group_id===g.id&&m.user_id!==me());
+    return'<div class="scrim" data-act="close"></div><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="xf-h"><h2 id="xf-h">Przekaż grupę „'+esc(g.name)+'”</h2><p class="sub">Nowy założyciel będzie mógł usunąć grupę i ją przekazać dalej. Ty zostaniesz zwykłym członkiem i możesz od razu wyjść.</p><span class="fl">Komu?</span>'+others.map(m=>'<button class="opt'+(x.to===m.user_id?' on':'')+'" data-soc="xfersel" data-u="'+m.user_id+'"><b>'+esc(name(m.user_id))+'</b></button>').join('')+'<div class="offbar" style="margin:12px 0"><button class="sw'+(x.leave?' on':'')+'" data-soc="xferleave" role="switch" aria-checked="'+x.leave+'" aria-label="Po przekazaniu opuść grupę"></button><span><b style="color:var(--fg)">Po przekazaniu opuść grupę</b></span></div><div class="actions"><button class="btn main" data-soc="xfergo"'+(x.to&&!x.busy?'':' disabled')+'>'+(x.busy?'Przekazuję…':'Przekaż'+(x.leave?' i opuść':''))+'</button><button class="btn" data-act="close">Anuluj</button></div></div>';
+  }
   const chOk=x=>x.name.trim()&&x.target>0&&x.start_day&&x.end_day&&x.end_day>=x.start_day&&diffDays(x.start_day,x.end_day)<=92;
   function chSheet(){
     const x=ui.sheet.x,acts=CAT.filter(c=>c.share);
@@ -2171,7 +2188,7 @@ const Social=(()=>{
   }
   document.addEventListener('click',e=>{const el=e.target.closest('[data-soc]');if(!el||el.disabled)return;act(el.dataset.soc,el.dataset)});
   ['input','change'].forEach(ev=>document.addEventListener(ev,e=>{const el=e.target,f=el.dataset&&el.dataset.chi;if(!f||!ui.sheet||ui.sheet.kind!=='challenge')return;const x=ui.sheet.x;x[f]=f==='target'?(parseInt(el.value,10)||0):el.value;const b=document.getElementById('chsave');if(b)b.disabled=!chOk(x)}));
-  return{chat,load,queueShares,view,chSheet,groups:()=>D.loaded?D.groups:[],reset:()=>{D=fresh();lastSig=''},get pendingJoin(){return pendingJoin},data:()=>D};
+  return{chat,load,queueShares,view,chSheet,xferSheet,groups:()=>D.loaded?D.groups:[],reset:()=>{D=fresh();lastSig=''},get pendingJoin(){return pendingJoin},data:()=>D};
 })();
 function viewFriends(){return Social.view()}
 
