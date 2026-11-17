@@ -27,7 +27,7 @@ const fake=fs.readFileSync(path.join(__dirname,'fake-supabase.js'),'utf8');
   // 2) znajomi: grupa i udostępnienie, żeby sprawdzić czyszczenie
   await p.click('.nav [data-t=friends]');await p.waitForTimeout(800);await p.fill('#soc-name','Jan');await p.click('[data-soc=saveprofile]');await p.waitForTimeout(300);
   await p.fill('#soc-gname','Ekipa');await p.click('[data-soc=create]');await p.waitForTimeout(600);await p.click('[data-soc=msshare]');await p.waitForTimeout(1500);
-  const cnt=()=>p.evaluate(()=>{const d=JSON.parse(localStorage.getItem('__fakedb')).t,u='u1';return['rytm_state','rytm_share','rytm_member'].map(t=>t+':'+((d[t]||[]).filter(r=>r.user_id===u).length)).join(' ')});
+  const cnt=()=>p.evaluate(()=>{const d=JSON.parse(localStorage.getItem('__fakedb')).t,u='u1';return['rytm_state','rytm_share','rytm_member'].map(t=>t+':'+((d[t]||[]).filter(r=>r.user_id===u).length)).join(' ')+' rytm_group:'+((d.rytm_group||[]).filter(r=>r.created_by===u).length)});
   console.log('2 przed resetem w bazie:',await cnt());
   // 3) reset
   await p.evaluate(()=>{ui.asstOpen=false;render()});await p.click('.top [data-t=settings]');await p.evaluate(()=>{ui.setSec='data';render()});await p.waitForTimeout(200);

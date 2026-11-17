@@ -1518,7 +1518,7 @@ function sheetHtml(){
   const s=ui.sheet;if(!s)return'';
   if(s.kind==='reset'){
     const ok=s.txt.trim().toUpperCase()==='RESET';
-    return'<div class="scrim" data-act="close"></div><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="rs-h"><h2 id="rs-h">Pełny reset konta</h2><p class="sub">Aplikacja wróci do stanu jak po pierwszym logowaniu i zobaczysz ekran powitalny.</p><div class="rsl"><b>Zniknie</b><ul><li>wszystkie cele, kategorie, wpisy, nastrój, notatki i osoby</li><li>kamienie milowe, podsumowania i plany</li><li>ustawienia: wynik dnia, przypomnienia, Pixa i motyw wracają do domyślnych</li><li>to, co udostępniasz znajomym</li></ul><b>Zostanie</b><ul><li>konto, e-mail i hasło</li><li>kopie automatyczne z ostatnich 10 tygodni: po resecie możesz z nich wrócić w Ustawieniach → Dane i kopie</li><li>włączone powiadomienia na Twoich urządzeniach</li></ul></div><div class="offbar" style="margin:12px 0"><button class="sw'+(s.leave?' on':'')+'" data-act="resetleave" role="switch" aria-checked="'+s.leave+'" aria-label="Opuść też grupy"></button><span><b style="color:var(--fg)">Opuść też wszystkie grupy znajomych</b>. Bez tego zostajesz w grupach, tylko bez udostępnionych celów.</span></div><label class="fl" for="rs-txt">Żeby potwierdzić, wpisz <b>RESET</b></label><input class="inp" id="rs-txt" data-inp="rstxt" autocomplete="off" autocapitalize="characters" value="'+esc(s.txt)+'" placeholder="RESET"><div class="actions"><button class="btn danger" id="rs-go" data-act="resetgo"'+(ok&&!s.busy?'':' disabled')+'>'+(s.busy?'Resetuję…':'Resetuj konto')+'</button><button class="btn" data-act="close">Anuluj</button></div></div>';
+    return'<div class="scrim" data-act="close"></div><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="rs-h"><h2 id="rs-h">Pełny reset konta</h2><p class="sub">Aplikacja wróci do stanu jak po pierwszym logowaniu i zobaczysz ekran powitalny.</p><div class="rsl"><b>Zniknie</b><ul><li>wszystkie cele, kategorie, wpisy, nastrój, notatki i osoby</li><li>kamienie milowe, podsumowania i plany</li><li>ustawienia: wynik dnia, przypomnienia, Pixa i motyw wracają do domyślnych</li><li>to, co udostępniasz znajomym</li></ul><b>Zostanie</b><ul><li>konto, e-mail i hasło</li><li>kopie automatyczne z ostatnich 10 tygodni: po resecie możesz z nich wrócić w Ustawieniach → Dane i kopie</li><li>włączone powiadomienia na Twoich urządzeniach</li></ul></div><div class="offbar" style="margin:12px 0"><button class="sw'+(s.leave?' on':'')+'" data-act="resetleave" role="switch" aria-checked="'+s.leave+'" aria-label="Opuść też grupy"></button><span><b style="color:var(--fg)">Opuść też wszystkie grupy znajomych</b>. Twoje grupy, w których jesteś sam, zostaną usunięte, a te z innymi osobami zostaną dla nich. Bez tego zostajesz w grupach, tylko bez udostępnionych celów.</span></div><label class="fl" for="rs-txt">Żeby potwierdzić, wpisz <b>RESET</b></label><input class="inp" id="rs-txt" data-inp="rstxt" autocomplete="off" autocapitalize="characters" value="'+esc(s.txt)+'" placeholder="RESET"><div class="actions"><button class="btn danger" id="rs-go" data-act="resetgo"'+(ok&&!s.busy?'':' disabled')+'>'+(s.busy?'Resetuję…':'Resetuj konto')+'</button><button class="btn" data-act="close">Anuluj</button></div></div>';
   }
   if(s.kind==='contact'){
     const g=S.goals.find(x=>x.id===s.gid),L=S.settings.len[g.kind];
@@ -1959,7 +1959,15 @@ const Sync=(()=>{
       const uid=user.id;
       let r=await sb.from('rytm_state').delete().eq('user_id',uid);if(r.error)throw r.error;
       r=await sb.from('rytm_share').delete().eq('user_id',uid);if(r.error)throw r.error;
-      if(leave){r=await sb.from('rytm_member').delete().eq('user_id',uid);if(r.error)throw r.error}
+      if(leave){
+        // Grupy założone przez tę osobę, w których nie ma nikogo innego, usuwamy (inaczej zostałyby puste i nikt nie mógłby ich skasować).
+        const g=await sb.from('rytm_group').select('id').eq('created_by',uid);if(g.error)throw g.error;
+        const ids=(g.data||[]).map(x=>x.id);
+        if(ids.length){const m=await sb.from('rytm_member').select('group_id,user_id').in('group_id',ids);if(m.error)throw m.error;
+          const solo=ids.filter(id=>!(m.data||[]).some(x=>x.group_id===id&&x.user_id!==uid));
+          if(solo.length){r=await sb.from('rytm_group').delete().in('id',solo);if(r.error)throw r.error}}
+        r=await sb.from('rytm_member').delete().eq('user_id',uid);if(r.error)throw r.error;
+      }
     }catch(e){resetting=false;throw e}
     try{['rytm-cache-'+user.id,'rytm-focus','rytm-chat-seen','rytm-asst-opened','rytm-theme'].forEach(k=>localStorage.removeItem(k));sessionStorage.setItem('rytm-reset','1')}catch(e){}
     location.replace(location.pathname+location.search);
