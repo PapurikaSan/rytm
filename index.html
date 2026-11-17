@@ -369,6 +369,9 @@ input,select,textarea{font-size:16px}
 @keyframes haltalk{50%{filter:brightness(1.5)}}
 @keyframes pxsayin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.pxsay{animation:none}.hal.talk .lens{animation:none;filter:brightness(1.3)}}
+/* arkusz resetu */
+.rsl{font-size:13.5px;line-height:1.45}
+.rsl ul{margin:4px 0 10px;padding-left:20px;color:var(--muted)}
 /* przewodnik i kamienie milowe */
 #tour .pxpanel{z-index:25}
 .tour.up{bottom:calc(126px + env(safe-area-inset-bottom,0px))}
@@ -1503,7 +1506,7 @@ function viewSettings(){
   const cCats='<div class="card"><h3>Kategorie</h3><p class="sub">Zmień nazwę albo kolejność. Nowe kategorie tworzysz przy dodawaniu celu.</p>'+cats().map((c,i)=>'<div class="srow"><input class="inp" id="cat-'+i+'" value="'+esc(c)+'" data-chg="renc" data-c="'+esc(c)+'" aria-label="Nazwa kategorii"><div class="mv"><button data-act="cmove" data-i="'+i+'" data-dir="-1" aria-label="Wyżej">↑</button><button data-act="cmove" data-i="'+i+'" data-dir="1" aria-label="Niżej">↓</button></div></div>').join('')+'</div>';
   const cAcc='<div class="card"><h3>Konto</h3><p class="sub">Zalogowano jako <b style="color:var(--fg)">'+esc(Sync.email())+'</b>. Dane zapisują się automatycznie i są takie same na każdym urządzeniu, na którym się zalogujesz.</p><div class="actions" style="margin-top:0"><button class="btn" data-auth="changepw">Zmień hasło</button><button class="btn" data-auth="logout">Wyloguj</button></div></div>';
   const cBk='<div class="card"><h3>Kopie automatyczne</h3><p class="sub">Raz w tygodniu serwer sam zapisuje kopię Twoich danych. Trzyma ok. 10 ostatnich. Przywrócenie podmienia obecne dane, ale zawsze możesz to cofnąć.</p><div id="bkbox"><p class="gs" style="margin:0">Wczytuję…</p></div></div>';
-  const cData='<div class="card"><h3>Dane</h3><p class="sub">Dane są w Twoim koncie. Dodatkowo możesz zrobić kopię: skopiuj dane i zachowaj je np. w notatkach. Żeby je przywrócić, wklej je w pole i kliknij „Wczytaj”.</p><div class="actions" style="margin-top:0"><button class="btn" data-act="copy">Kopiuj dane</button><button class="btn" data-act="'+(ui.confirm==='reseed'?'reseed':'askreseed')+'">'+(ui.confirm==='reseed'?'Na pewno? Zastąpi wszystkie Twoje dane':'Wczytaj dane przykładowe')+'</button></div><textarea class="inp" id="imp" style="margin-top:10px" placeholder="Wklej tu kopię danych"></textarea><div class="actions"><button class="btn" data-act="import">Wczytaj z pola</button><button class="btn danger" data-act="'+(ui.confirm==='wipe'?'wipe':'askwipe')+'">'+(ui.confirm==='wipe'?'Na pewno usuń wszystko':'Usuń wszystkie dane')+'</button></div></div>';
+  const cData='<div class="card"><h3>Dane</h3><p class="sub">Dane są w Twoim koncie. Dodatkowo możesz zrobić kopię: skopiuj dane i zachowaj je np. w notatkach. Żeby je przywrócić, wklej je w pole i kliknij „Wczytaj”.</p><div class="actions" style="margin-top:0"><button class="btn" data-act="copy">Kopiuj dane</button><button class="btn" data-act="'+(ui.confirm==='reseed'?'reseed':'askreseed')+'">'+(ui.confirm==='reseed'?'Na pewno? Zastąpi wszystkie Twoje dane':'Wczytaj dane przykładowe')+'</button></div><textarea class="inp" id="imp" style="margin-top:10px" placeholder="Wklej tu kopię danych"></textarea><div class="actions"><button class="btn" data-act="import">Wczytaj z pola</button></div></div><div class="card"><h3>Czyszczenie i reset</h3><p class="sub"><b style="color:var(--fg)">Wyczyść wpisy</b>: znikają wpisy, nastrój, notatki i osoby, a cele i ustawienia zostają. Można to cofnąć zaraz po kliknięciu.</p><div class="actions" style="margin-top:0"><button class="btn" data-act="'+(ui.confirm==='clear'?'clear':'askclear')+'">'+(ui.confirm==='clear'?'Na pewno wyczyścić wpisy?':'Wyczyść wpisy')+'</button></div><p class="sub" style="margin-top:14px"><b style="color:var(--fg)">Pełny reset konta</b>: wszystko wraca do ustawień domyślnych i pojawia się ekran powitalny, jak przy pierwszym logowaniu. Konto, e-mail i hasło zostają.</p><div class="actions" style="margin-top:0"><button class="btn danger" data-act="resetask">Pełny reset konta…</button></div></div>';
   const sec=(k,title,sum,inner)=>{const open=ui.setSec===k;return'<button class="secbtn'+(open?' on':'')+'" data-act="setsec" data-k="'+k+'" aria-expanded="'+open+'"><span class="secm"><b>'+title+'</b><small>'+sum+'</small></span><span class="chev" aria-hidden="true">'+(open?'−':'+')+'</span></button>'+(open?'<div class="secbody">'+inner+'</div>':'')};
   const nc=cats().length,plK=n=>n===1?'kategoria':(n%10>=2&&n%10<=4&&(n%100<12||n%100>14))?'kategorie':'kategorii',remN=(st.reminders||[]).filter(r=>r.on).length;
   h+='<p class="gs" style="margin:-4px 0 12px">Dotknij sekcji, żeby ją rozwinąć.</p>';
@@ -1518,6 +1521,10 @@ function viewSettings(){
 /* ---------- arkusze ---------- */
 function sheetHtml(){
   const s=ui.sheet;if(!s)return'';
+  if(s.kind==='reset'){
+    const ok=s.txt.trim().toUpperCase()==='RESET';
+    return'<div class="scrim" data-act="close"></div><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="rs-h"><h2 id="rs-h">Pełny reset konta</h2><p class="sub">Aplikacja wróci do stanu jak po pierwszym logowaniu i zobaczysz ekran powitalny.</p><div class="rsl"><b>Zniknie</b><ul><li>wszystkie cele, kategorie, wpisy, nastrój, notatki i osoby</li><li>kamienie milowe, podsumowania i plany</li><li>ustawienia: wynik dnia, przypomnienia, Pixa i motyw wracają do domyślnych</li><li>to, co udostępniasz znajomym</li></ul><b>Zostanie</b><ul><li>konto, e-mail i hasło</li><li>kopie automatyczne z ostatnich 10 tygodni: po resecie możesz z nich wrócić w Ustawieniach → Dane i kopie</li><li>włączone powiadomienia na Twoich urządzeniach</li></ul></div><div class="offbar" style="margin:12px 0"><button class="sw'+(s.leave?' on':'')+'" data-act="resetleave" role="switch" aria-checked="'+s.leave+'" aria-label="Opuść też grupy"></button><span><b style="color:var(--fg)">Opuść też wszystkie grupy znajomych</b>. Bez tego zostajesz w grupach, tylko bez udostępnionych celów.</span></div><label class="fl" for="rs-txt">Żeby potwierdzić, wpisz <b>RESET</b></label><input class="inp" id="rs-txt" data-inp="rstxt" autocomplete="off" autocapitalize="characters" value="'+esc(s.txt)+'" placeholder="RESET"><div class="actions"><button class="btn danger" id="rs-go" data-act="resetgo"'+(ok&&!s.busy?'':' disabled')+'>'+(s.busy?'Resetuję…':'Resetuj konto')+'</button><button class="btn" data-act="close">Anuluj</button></div></div>';
+  }
   if(s.kind==='contact'){
     const g=S.goals.find(x=>x.id===s.gid),L=S.settings.len[g.kind];
     let h='<h2>'+(s.edit!=null?'Zmień wpis: ':'')+esc(g.name)+'</h2><span class="fl">Jak długo?</span>'+['s','m','l'].map(k=>'<button class="opt'+(s.l===k?' on':'')+'" data-act="clen" data-k="'+k+'"><b>'+lenL(k)+'</b><span>'+esc(L[k])+'</span></button>').join('');
@@ -1725,11 +1732,15 @@ function act(a,ds){
       ui.sheet=null;save();render();toast('Zapisano cel.');break;
     }
     case'delp':{const u=withUndo('Usunięto osobę z listy.');setTimeout(u,0);const p=S.people[+ds.i];S.people.splice(+ds.i,1);if(ui.sheet&&ui.sheet.kind==='people'){ui.sheet.del=null;if(ui.sheet.back)ui.sheet.back.p=ui.sheet.back.p.filter(x=>x!==p)}save();render();break}
-    case'clear':{const u=withUndo('Wyczyszczono wpisy. Cele zostały.');S.log={};S.off={};S.people=[];S.notes={};S.reviews={};S.mood={};S.lt.forEach(x=>{if(x.kind==='manual')x.count=0});S.sample=false;S.ms={};S.msInit=false;save();render();u();break}
+    case'clear':{ui.confirm=null;const u=withUndo('Wyczyszczono wpisy. Cele zostały.');S.log={};S.off={};S.people=[];S.notes={};S.reviews={};S.mood={};S.lt.forEach(x=>{if(x.kind==='manual')x.count=0});S.sample=false;S.ms={};S.msInit=false;save();render();u();break}
     case'askreseed':ui.confirm='reseed';render();break;
     case'start':Sync.start(ds.k);window.scrollTo(0,0);break;
     case'reseed':{const u=withUndo('Wczytano dane przykładowe.');ui.confirm=null;S=seed();save();render();u();break}
     case'askwipe':ui.confirm='wipe';render();break;
+    case'askclear':ui.confirm='clear';render();break;
+    case'resetask':ui.sheet={kind:'reset',txt:'',leave:false,busy:false};renderSheet();break;
+    case'resetleave':ui.sheet.leave=!ui.sheet.leave;renderSheet();break;
+    case'resetgo':{const sh=ui.sheet;if(!sh||sh.txt.trim().toUpperCase()!=='RESET'||sh.busy)break;sh.busy=true;renderSheet();Sync.resetAll(sh.leave).catch(e=>{sh.busy=false;renderSheet();toast('Nie udało się zresetować. Sprawdź internet i spróbuj ponownie.')});break}
     case'wipe':{const u=withUndo('Usunięto wszystkie dane.');S={goals:[],people:[],log:{},off:{},notes:{},reviews:{},mood:{},lt:[],sample:false,settings:JSON.parse(JSON.stringify(DEF_SET))};ui.confirm=null;save();render();u();break}
     case'copy':{
       const txt=JSON.stringify(S);
@@ -1774,6 +1785,7 @@ document.addEventListener('input',e=>{
   const el=e.target,f=el.dataset&&el.dataset.inp;if(!f)return;
   if(f==='mpq'){ui.pq=el.value;const l=document.getElementById('mplist');if(l)l.innerHTML=monthPickList();return}
   if(!ui.sheet)return;
+  if(f==='rstxt'&&ui.sheet.kind==='reset'){ui.sheet.txt=el.value;const b=document.getElementById('rs-go');if(b)b.disabled=el.value.trim().toUpperCase()!=='RESET'||ui.sheet.busy;return}
   if(ui.sheet.kind==='contact'||ui.sheet.kind==='people'){
     if(f==='newp')ui.sheet.np=el.value;
     if(f==='pq'){ui.sheet.q=el.value;const l=document.getElementById('plist');if(l)l.innerHTML=contactPickList()}
@@ -1863,7 +1875,7 @@ const Sync=(()=>{
       if(/rytm_state|PGRST205|42P01/.test(String(e.message||e)))toast(errText(e));
     }
   }
-  function save(){if(!S||!user)return;pending=true;cacheWrite();setStatus('Zapisywanie…');clearTimeout(timer);timer=setTimeout(push,800)}
+  function save(){if(!S||!user||resetting)return;pending=true;cacheWrite();setStatus('Zapisywanie…');clearTimeout(timer);timer=setTimeout(push,800)}
   async function pull(){const {data,error}=await sb.from('rytm_state').select('data,updated_at').eq('user_id',user.id).maybeSingle();if(error)throw error;return data}
   async function afterLogin(){
     navHash();
@@ -1891,7 +1903,8 @@ const Sync=(()=>{
   function page(inner){document.getElementById('sheet').innerHTML='';document.getElementById('app').innerHTML='<div class="top"><div class="brand">Rytm</div></div>'+inner}
   function welcome(){
     ui.tab='welcome';
-    page('<div class="card"><h3 style="font-size:20px">Witaj w Rytmie</h3><p class="sub">Jak chcesz zacząć? Później wszystko możesz zmienić.</p>'+
+    let rs=false;try{rs=sessionStorage.getItem('rytm-reset')==='1';sessionStorage.removeItem('rytm-reset')}catch(e){}
+    page((rs?'<div class="note"><p><b>Konto zresetowane.</b> Zacznij od nowa. Gdybyś chciał wrócić do starych danych, po starcie wejdź w Ustawienia → Dane i kopie.</p></div>':'')+'<div class="card"><h3 style="font-size:20px">Witaj w Rytmie</h3><p class="sub">Jak chcesz zacząć? Później wszystko możesz zmienić.</p>'+
       '<button class="opt" data-act="start" data-k="template"><b>Podstawowy zestaw</b><span>4 cele na start: siłownia 3 razy w tygodniu, sen 7,5 h, zdrowe jedzenie i 10 stron czytania dziennie. Resztę dodasz w Celach. Polecam.</span></button>'+
       '<button class="opt" data-act="start" data-k="zero"><b>Od zera</b><span>Pusta aplikacja. Sam dodajesz kategorie i cele.</span></button>'+
       '<button class="opt" data-act="start" data-k="sample"><b>Najpierw rozejrzę się na przykładowych danych</b><span>110 wymyślonych dni. Potem jednym kliknięciem wyczyścisz wpisy i zostaną same cele.</span></button></div>');
@@ -1943,6 +1956,19 @@ const Sync=(()=>{
     document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refresh()});
     window.addEventListener('online',()=>{if(pending)push()});
   }
+  // Pełny reset: usuwa dane z bazy (stan i udostępnienia, opcjonalnie członkostwo w grupach) i pamięć na tym urządzeniu, potem ekran powitalny.
+  let resetting=false;
+  async function resetAll(leave){
+    if(!user)return;resetting=true;clearTimeout(timer);clearTimeout(window.save.mt);pending=false;Social.reset();
+    try{
+      const uid=user.id;
+      let r=await sb.from('rytm_state').delete().eq('user_id',uid);if(r.error)throw r.error;
+      r=await sb.from('rytm_share').delete().eq('user_id',uid);if(r.error)throw r.error;
+      if(leave){r=await sb.from('rytm_member').delete().eq('user_id',uid);if(r.error)throw r.error}
+    }catch(e){resetting=false;throw e}
+    try{['rytm-cache-'+user.id,'rytm-focus','rytm-chat-seen','rytm-asst-opened','rytm-theme'].forEach(k=>localStorage.removeItem(k));sessionStorage.setItem('rytm-reset','1')}catch(e){}
+    location.replace(location.pathname+location.search);
+  }
   async function logout(){
     try{if(pending)await push()}catch(e){}
     try{localStorage.removeItem(ck())}catch(e){}
@@ -1960,7 +1986,7 @@ const Sync=(()=>{
   });
   async function backups(){const {data,error}=await sb.from('rytm_backup').select('day').eq('user_id',user.id).order('day',{ascending:false});if(error)throw error;return data||[]}
   async function backupData(day){const {data,error}=await sb.from('rytm_backup').select('data').eq('user_id',user.id).eq('day',day).maybeSingle();if(error)throw error;return data&&data.data}
-  return{boot,save,start,backups,backupData,client:()=>sb,uid:()=>user&&user.id,badge:()=>'<span class="sync '+status.c+'" id="sync">'+esc(status.t)+'</span>',email:()=>user?user.email:''};
+  return{boot,save,start,resetAll,backups,backupData,client:()=>sb,uid:()=>user&&user.id,badge:()=>'<span class="sync '+status.c+'" id="sync">'+esc(status.t)+'</span>',email:()=>user?user.email:''};
 })();
 
 /* ---------- znajomi: grupy, udostępnianie, ranking, wyzwania, piątki ---------- */
@@ -2443,21 +2469,21 @@ const Asst=(()=>{
     // kamienie milowe z ostatniego tygodnia
     if(S.ms){const lim=addDays(t,-7),CH=tn(['Jestem z Ciebie dumna!','Tak trzymaj!','To jest rytm!'],['Tak się to robi.','Dalej, nie zwalniaj.','Zasłużone.']);Object.keys(S.ms).forEach(k=>{const m=S.ms[k];if(!m||m.q||!m.at||m.at<lim)return;add('ms-'+k,'milestone',85,'Kamień milowy! '+m.t+'. '+CH[k.length%3],[{l:'Dzięki!',f:()=>{}}],k.length%2?'cheer':'dance')})}
     {const dm=+t.slice(8);if(dm<=3){const pm=mstart(addDays(mstart(t),-1));let s=null;try{s=monthRecap(pm)}catch(e){}
-      if(s)add('mon-'+pm,'monthly',74,s.t+'. '+(s.b?s.b+' ':'')+(s.g>=s.n*.7?tn('Piękny miesiąc!','Mocny miesiąc. Podnieś poprzeczkę.'):tn('Nowy miesiąc, nowa szansa.','Ten miesiąc ma być lepszy.')),[{l:'Zobacz miesiąc',f:()=>{ui.asstOpen=false;ui.tab='month';ui.calLast='month';ui.mo=-1;render();window.scrollTo(0,0)}}],s.g>=s.n*.7?'cheer':'point')}}
+      if(s)add('mon-'+pm,'monthly',74,s.t+'. '+(s.b?s.b+' ':'')+(s.g>=s.n*.7?tn('Piękny miesiąc!','Mocny miesiąc. Podnieś poprzeczkę.'):tn('Nowy miesiąc, nowa szansa.','Ten miesiąc ma być lepszy.')),[{l:'Zobacz miesiąc',f:()=>{ui.tab='month';ui.calLast='month';ui.mo=-1;render();window.scrollTo(0,0)}}],s.g>=s.n*.7?'cheer':'point')}}
     // podsumowanie zeszłego tygodnia (poniedziałek i wtorek)
     {const dw=new Date().getDay();if(dw===1||dw===2){const pw=addDays(ws,-7);let s=null;try{s=weekRecap(pw)}catch(e){}
-      if(s){const go=f=>()=>{ui.asstOpen=false;ui.tab='week';ui.calLast='week';ui.wk=-1;render();window.scrollTo(0,0);if(f)setTimeout(()=>{const el=document.getElementById('rv-good');if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.focus({preventScroll:true})}},50)};
+      if(s){const go=f=>()=>{ui.tab='week';ui.calLast='week';ui.wk=-1;render();window.scrollTo(0,0);if(f)setTimeout(()=>{const el=document.getElementById('rv-good');if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.focus({preventScroll:true})}},50)};
         const acts=[{l:'Zobacz tydzień',f:go(false)}];if(!(S.reviews[pw]&&(S.reviews[pw].good||S.reviews[pw].improve)))acts.push({l:'Dopisz wnioski',f:go(true)});
         add('wk-'+pw,'weekly',75,'Zeszły tydzień: dobre dni '+s.g+' z '+s.n+'. '+(s.b?s.b+' ':'')+(s.g>=5?tn('Świetna robota!','Dobra robota. Utrzymaj to.'):s.g>=3?tn('Solidnie. Ten tydzień może być jeszcze lepszy.','Średnio. Stać Cię na więcej.'):tn('Nowy tydzień to nowy start. Jestem z Tobą.','Słaby tydzień. Ten będzie lepszy, bo tak postanowiłeś.')),acts,s.g>=5?'cheer':s.g>=3?'wave':'comfort')}}}
-    if(!S.goals.length)add('first','start',100,'Cześć! Jestem Pixa. Zacznijmy od pierwszego celu. Co chcesz robić regularnie?',[{l:'Dodaj cel',f:()=>{ui.asstOpen=false;openGoal(null)}}]);
+    if(!S.goals.length)add('first','start',100,'Cześć! Jestem Pixa. Zacznijmy od pierwszego celu. Co chcesz robić regularnie?',[{l:'Dodaj cel',f:()=>{openGoal(null)}}]);
     if(S.mood[t]==null&&!S.off[t])add('mood-'+t,'mood',80,tn('Jak się dziś czujesz?','Raport: jak się dziś czujesz?'),MOODS.map((m,i)=>({l:(i+1)+' '+m.toLowerCase(),mood:i+1,f:()=>{S.mood[t]=i+1;save();toast('Zapisano nastrój.');if(i+1<=2)ui.breath={offer:true}}})));
-    if(hour>=17){const rs=rescue(t);if(rs){const ckable=rs.set.every(ckTypes);add('streak-'+t,'streak',90,tn('Seria '+rs.n+' dni jest zagrożona. Do dobrego dnia brakuje: '+names(rs.set)+'.','Seria '+rs.n+' dni wisi na włosku. Zrób: '+names(rs.set)+'. Bez wymówek.'),ckable?[{l:'Uzupełnij z Pixą',f:()=>startCk(t,rs.set)}]:[{l:'Pokaż',f:()=>{ui.asstOpen=false;ui.tab='today';ui.date=t;render();setTimeout(()=>act('jump',{g:rs.set[0].id}),50)}}])}}
+    if(hour>=17){const rs=rescue(t);if(rs){const ckable=rs.set.every(ckTypes);add('streak-'+t,'streak',90,tn('Seria '+rs.n+' dni jest zagrożona. Do dobrego dnia brakuje: '+names(rs.set)+'.','Seria '+rs.n+' dni wisi na włosku. Zrób: '+names(rs.set)+'. Bez wymówek.'),ckable?[{l:'Uzupełnij z Pixą',f:()=>startCk(t,rs.set)}]:[{l:'Pokaż',f:()=>{ui.tab='today';ui.date=t;render();setTimeout(()=>act('jump',{g:rs.set[0].id}),50)}}])}}
     {const y=addDays(t,-1),my=missingFor(y);if(my.length&&firstDay()<=y)add('yest-'+y,'yesterday',78,tn('Wczoraj nie było wpisu przy: '+names(my)+'. Nie pominąłeś czegoś?','Wczoraj pusto przy: '+names(my)+'. Zrobione czy nie?'),[{l:'Uzupełnij',f:()=>startCk(y,my)},{l:'Nic więcej nie było',f:()=>{my.forEach(g=>answered(y,g.id));toast('OK, wczoraj zamknięty.')}}])}
     if(hour>=18&&!S.off[t]){
       const miss=missingFor(t);
-      if(miss.length)add('miss-'+t,'missing',70,tn('Do uzupełnienia na dziś: '+names(miss)+'.','Dzień niedomknięty. Brakuje: '+names(miss)+'.'),[{l:'Uzupełnij z Pixą',f:()=>startCk(t,miss,true)},{l:'Pokaż',f:()=>{ui.asstOpen=false;ui.tab='today';ui.date=t;render();setTimeout(()=>act('jump',{g:miss[0].id}),50)}}]);
+      if(miss.length)add('miss-'+t,'missing',70,tn('Do uzupełnienia na dziś: '+names(miss)+'.','Dzień niedomknięty. Brakuje: '+names(miss)+'.'),[{l:'Uzupełnij z Pixą',f:()=>startCk(t,miss,true)},{l:'Pokaż',f:()=>{ui.tab='today';ui.date=t;render();setTimeout(()=>act('jump',{g:miss[0].id}),50)}}]);
     }
-    if(new Date().getDay()===0&&hour>=17&&!(S.reviews[ws]&&(S.reviews[ws].good||S.reviews[ws].improve)))add('rev-'+ws,'review',60,'Koniec tygodnia. Podsumujesz go w minutę? Co poszło dobrze, co poprawić?',[{l:'Podsumuj',f:()=>{ui.asstOpen=false;ui.tab='week';ui.wk=0;render();setTimeout(()=>{const el=document.getElementById('rv-good');if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.focus({preventScroll:true})}},50)}}]);
+    if(new Date().getDay()===0&&hour>=17&&!(S.reviews[ws]&&(S.reviews[ws].good||S.reviews[ws].improve)))add('rev-'+ws,'review',60,'Koniec tygodnia. Podsumujesz go w minutę? Co poszło dobrze, co poprawić?',[{l:'Podsumuj',f:()=>{ui.tab='week';ui.wk=0;render();setTimeout(()=>{const el=document.getElementById('rv-good');if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.focus({preventScroll:true})}},50)}}]);
     S.goals.forEach(g=>{
       if(isPaused(g)){const from=g.pauses[g.pauses.length-1].from,n=diffDays(from,t);if(n>=30)add('paused-'+g.id+'-'+from,'paused',30,g.name+' jest wstrzymany od '+n+' dni. Wznowić?',[{l:'Wznów',f:()=>{g.pauses[g.pauses.length-1].to=t;save();toast('Wznowiono: '+g.name+'.')}}]);return}
       // cele tygodniowe: podnieść albo zmniejszyć
@@ -2476,7 +2502,7 @@ const Asst=(()=>{
       }
       // limity przekraczane regularnie
       if(g.type==='limit'&&g.period==='week'){const over=[1,2,3,4].filter(k=>{const a=addDays(ws,-7*k);return a>=wstart(fd)&&sumRange(g.id,a,addDays(a,6))>g.target}).length;
-        if(over>=3)add('over-'+g.id+'-'+ws,'limit',40,'„'+g.name+'” był ponad limitem w '+over+' z ostatnich 4 tygodni. Chcesz zobaczyć, w które dni najczęściej?',[{l:'Pokaż miesiąc',f:()=>{ui.asstOpen=false;ui.tab='month';ui.mo=0;ui.oc['m:'+g.cat]=true;ui.ser[g.cat]=[{k:g.id,slot:1}];render()}}])}
+        if(over>=3)add('over-'+g.id+'-'+ws,'limit',40,'„'+g.name+'” był ponad limitem w '+over+' z ostatnich 4 tygodni. Chcesz zobaczyć, w które dni najczęściej?',[{l:'Pokaż miesiąc',f:()=>{ui.tab='month';ui.mo=0;ui.oc['m:'+g.cat]=true;ui.ser[g.cat]=[{k:g.id,slot:1}];render()}}])}
       // rekord serii
       const r=goalRuns(g);if(r&&r.cur>=3&&r.cur===r.best)add('rec-'+g.id+'-'+r.cur,'record',35,'„'+g.name+'”: '+r.cur+' '+r.u+' z rzędu. '+tn('To Twój rekord!','Rekord. Teraz go pobij.'),[{l:'Dzięki!',f:()=>{}}]);
     });
@@ -2489,7 +2515,7 @@ const Asst=(()=>{
     const pv=document.getElementById('pxprev');if(pv&&S)PixaArt.draw(pv,14,'wave',null,S.settings.pixaPal);
     const root=document.getElementById('asst');if(!root)return;
     if(anim){cancelAnimationFrame(anim);anim=null}
-    if(!S||!S.settings.asst||ui.sheet||ui.tab==='settings'||(ui.tour!=null&&!ui.tourLens)){root.innerHTML='';return}
+    if(!S||!S.settings.asst||(ui.tour!=null&&!ui.tourLens)||(!ui.asstOpen&&(ui.sheet||ui.tab==='settings'))){root.innerHTML='';return}
     if(ui.asstFill&&ui.asstOpen){ui.asstFill=false;const d=new Date().getHours()<5?addDays(todayS(),-1):todayS(),l=missingFor(d);if(l.length||(S.mood[d]==null&&!S.off[d]))startCk(d,l,true)}
     tipsCache=tips();if(ui.chatTip&&ui.asstOpen){const c=ui.chatTip;tipsCache.unshift({id:'chat-'+c.id,kind:'chat',pr:999,text:c.text,actions:c.acts&&c.acts.length?c.acts:[{l:'OK',f:()=>{}}],pose:c.pose});idx=0}
     if(idx>=tipsCache.length)idx=0;
@@ -2555,7 +2581,8 @@ const Asst=(()=>{
   const grpOf=t=>t==='week'||t==='month'?'cal':t;
   function sayHtml(it){return'<div class="pxsay" role="status"><button class="pxsayx" data-asst="sayx" aria-label="Zamknij dymek">×</button><p class="pxsayt" data-asst="sayopen"><b>Pixa</b> '+esc(it.text)+'</p>'+(it.acts&&it.acts.length?'<div class="pxsayact">'+it.acts.slice(0,2).map((x,j)=>'<button class="btn'+(j===0?' main':'')+'" data-asst="sayact" data-j="'+j+'">'+esc(x.l)+'</button>').join('')+'</div>':'')+'</div>'}
   function chat(tab,force){
-    if(!S||!S.settings.asst||!S.settings.pixaChat||ui.asstOpen||ui.sheet||ui.tour!=null||tab==='settings')return false;
+    if(!S||!S.settings.asst||!S.settings.pixaChat||ui.sheet||ui.tour!=null||tab==='settings')return false;
+    if(ui.asstOpen&&(ui.ck||ui.fset||ui.fdone||ui.breath||focus))return false;
     const g=grpOf(tab);if(!force&&g===lastGrp&&Date.now()-lastAt<20000)return false;
     if(g==='friends'&&!Social.data().loaded){ui.chatWait=true;return false}
     let items=[];try{items=chatItems(g)}catch(e){console.warn('chat',e)}
@@ -2563,6 +2590,7 @@ const Asst=(()=>{
     const seen=seenGet(),now=Date.now();
     const it=items.map((x,i)=>({x,i,s:seen[x.id]||0})).sort((a,b)=>((a.s>0)-(b.s>0))||(a.s-b.s)||(a.i-b.i))[0].x;
     seen[it.id]=now;Object.keys(seen).forEach(k=>{if(now-seen[k]>4*864e5)delete seen[k]});seenSet(seen);
+    if(ui.asstOpen){ui.chatTip=it;idx=0;choose(it.pose||'wave');pokeT=0;paint();return true}
     ui.say=it;lastSay={it,at:Date.now()};sayY=window.scrollY;choose(it.pose||'wave');pokeT=0;paint();
     clearTimeout(sayT);sayT=setTimeout(()=>{if(ui.say===it){ui.say=null;paint()}},it.acts&&it.acts.length?15000:9000);
     return true;
