@@ -54,8 +54,10 @@ export function missing(d: any, day: string): string[] {
   if (!d.mood || d.mood[day] == null) out.push("nastrój");
   // deno-lint-ignore no-explicit-any
   const paused = (g: any) => (g.pauses || []).some((p: any) => day >= p.from && (!p.to || day < p.to));
+  // cele, przy których użytkownik już odpowiedział (np. „Nie” w „Domknij dzień”), nie są brakami
+  const ans: string[] = (d.asst && d.asst.ck && d.asst.ck[day]) || [];
   for (const g of d.goals || []) {
-    if (paused(g)) continue;
+    if (paused(g) || ans.includes(g.id)) continue;
     const v = log[g.id];
     if (g.type === "qty" || g.type === "range" || (g.type === "measure" && g.period === "day")) {
       if (v == null) out.push(g.name);
@@ -80,7 +82,7 @@ export function message(r: any, d: any, day: string) {
   if (r.kind === "missing") {
     const m = missing(d, day);
     if (!m.length) return null;
-    return { title: "Uzupełnij dzień", body: "Brakuje: " + list(m) + ". Dotknij, a Pixa zapyta po kolei.", url: APP_URL + "#pixa-fill" };
+    return { title: "Uzupełnij dzień", body: "Brakuje: " + list(m) + ". Dotknij i domknij dzień na jednym ekranie.", url: APP_URL + "#pixa-fill" };
   }
   if (r.kind === "review") {
     if (d.reviews && d.reviews[weekStart(day)]) return null;

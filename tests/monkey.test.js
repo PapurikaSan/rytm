@@ -29,6 +29,8 @@ const SKIP=new Set(['resetgo','logout','wipe','delgroup','leave','xfergo']);
     await p.evaluate(()=>{ui.tab='charts';S.goals.forEach(g=>{ui.cg=g.id;render()})});
     for(let i=0;i<14;i++)await p.evaluate(()=>{ui.tab='week';ui.wk=-Math.floor(Math.random()*20);render();ui.tab='month';ui.mo=-Math.floor(Math.random()*6);render();ui.tab='today';ui.date=addDays(todayS(),-Math.floor(Math.random()*120));render()});
     await p.evaluate(()=>{S.goals.forEach(g=>{openGoal(g.id);renderSheet()});ui.sheet=null;render();openGoal(null);ui.sheet=null;render()});
+    // plan tygodnia, „Domknij dzień”, cele długoterminowe
+    await p.evaluate(()=>{wpOpen(wstart(todayS()));wpOpen(addDays(wstart(todayS()),7));ui.sheet=null;dcOpen(todayS());dcOpen(addDays(todayS(),-1));ui.sheet=null;S.lt.forEach(x=>act('editlt',{id:x.id}));ui.sheet=null;render()});
     // 3) Pixa: każda podpowiedź, narzędzia
     await p.evaluate(()=>{ui.tab='today';ui.date=todayS();ui.sheet=null;ui.asstOpen=true;render()});await p.waitForTimeout(200);
     for(let i=0;i<12&&await p.isVisible('[data-asst=next]');i++){await p.click('[data-asst=next]');await p.waitForTimeout(60)}

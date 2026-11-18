@@ -529,6 +529,37 @@ body{background:radial-gradient(var(--dot) 1px,transparent 1.3px) 0 0/16px 16px,
 .rkn{font:400 20px var(--font-pixel)}.rkv{font:400 24px var(--font-pixel)}
 .seg button.on{box-shadow:0 1px 3px rgba(0,0,0,.18)}
 @media (prefers-reduced-motion:reduce){.hst.hot .pix,.hal.on .lens,.hal.talk .lens{animation:none}}
+.pgr{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--line)}
+.pgr:first-of-type{border-top:0}
+.pgn{flex:1;min-width:0;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pgv{display:flex;flex-direction:column;align-items:flex-end;line-height:1.15;flex:none}
+.pgv b{font:400 19px var(--font-pixel)}.pgv small{font-size:11px;color:var(--muted)}
+.pgc{flex:none;min-width:58px;text-align:right;font-size:12.5px;font-weight:700}
+.pgc.up{color:var(--good)}.pgc.dn{color:var(--bad)}.pgc.eq{color:var(--muted)}
+.pgsep{height:8px}
+.yr{background:linear-gradient(135deg,color-mix(in srgb,#ffe066 14%,var(--surface)),var(--surface) 60%)}
+.yrl{margin:10px 0 0;padding-left:18px;font-size:13.5px;line-height:1.75}
+.wpg{padding:12px 0;border-top:1px solid var(--line)}
+.wpt{display:flex;align-items:center;gap:8px;margin-bottom:8px}.wpt b{flex:1;min-width:0}.wpt small{color:var(--muted);font-size:12px}
+.wpt .gi{color:var(--c)}
+.wpd{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin-bottom:8px}
+.wpday{height:36px;border-radius:9px;border:1px solid var(--line);background:var(--bg);font-size:12.5px;font-weight:600;color:var(--muted)}
+.wpday.on{background:var(--c,var(--accent));border-color:var(--c,var(--accent));color:#fff}
+.wpday:disabled{opacity:.4}
+.wps .pill{padding:5px 10px;font-size:12.5px}
+.wpn p{flex:1;min-width:0;margin:0}
+.dcbtn{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 14px;margin:0 0 12px;border-radius:14px;border:1px solid color-mix(in srgb,var(--pxc,#ff2d1c) 45%,var(--line));background:color-mix(in srgb,var(--pxc,#ff2d1c) 10%,var(--surface));color:var(--fg)}
+.dcbtn span:nth-child(2){flex:1;min-width:0;display:flex;flex-direction:column}.dcbtn small{color:var(--muted);font-size:12px}
+.dcgo{font-size:22px;color:var(--muted)}
+.dclens{width:30px;height:30px;flex:none;display:block;image-rendering:pixelated}.dclens svg{width:100%;height:100%;display:block}
+.dch{display:flex;align-items:center;gap:12px;margin-bottom:6px}.dch h2{margin:0}.dch .sub{margin:2px 0 0}
+.dcst{font-size:13.5px;padding:9px 12px;border-radius:12px;background:color-mix(in srgb,var(--muted) 9%,var(--surface));margin:8px 0 4px}
+.dcst.gd{background:var(--good-soft)}.dcst.pf{background:color-mix(in srgb,#ffb347 22%,var(--surface))}
+.dcg{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.dcg .gi{flex:none}.dcn{flex:1;min-width:0;font-size:14px}.dcg .num{width:72px}.dcg .num::placeholder{font:400 13px var(--font-display,inherit);color:var(--muted)}
+.dcb{display:flex;gap:6px;align-items:center;flex:none}
+.dcb .pill{padding:6px 12px}.dcb .pill.on.ok{background:var(--good);border-color:var(--good);color:#fff}
+.lth{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-top:8px}.lth .gs{margin-right:2px}.lth .chip{margin-top:0}
 </style>
 </head>
 <body>
@@ -624,9 +655,16 @@ function seed(){
   const lt=[
     {id:'lt1',name:'Trening: 40 razy',kind:'sum',goal:'gym',target:40,from:addDays(t,-75),to:addDays(t,45)},
     {id:'lt2',name:'Waga 72 kg',kind:'value',goal:'weight',target:72,from:addDays(t,-100),to:addDays(t,120),start:wd?log[wd].weight:76},
-    {id:'lt3',name:'Książki w '+y,kind:'manual',target:12,unit:'książek',count:9,from:y+'-01-01',to:y+'-12-31'}
+    {id:'lt3',name:'Książki w '+y,kind:'manual',target:12,unit:'książek',count:9,from:y+'-01-01',to:y+'-12-31',helps:['read']},
+    {id:'lt4',name:'Angielski na B2',kind:'done',target:0,from:addDays(t,-60),to:addDays(t,150),helps:['lang']}
   ];
-  return {goals,people,log,off,notes,reviews,mood,lt,sample:true,settings:JSON.parse(JSON.stringify(DEF_SET))};
+  // plany z odpowiedzi dla Pixy (osobne losowanie, żeby nie zmieniać reszty danych): rano trening wychodzi częściej niż wieczorem
+  const plan={},why={},r2=rng(23);
+  for(let i=45;i>=1;i--){const d=addDays(t,-i),L=log[d]||{},dw=(parse(d).getDay()+6)%7;if(off[d])continue;
+    const P=plan[d]={};
+    if(L.gym)P.gym=r2()<.6?'r':'w';else if((dw===0||dw===2||dw===4)||r2()<.25){P.gym=r2()<.2?'r':'w';(why[d]=why[d]||{}).gym=L.sleep!=null&&L.sleep<7?'zm':['czas','zm','czas','zap'][Math.floor(r2()*4)]}
+    P.eat=L.eat?(r2()<.7?'p':'w'):(r2()<.6?'w':'p')}
+  return {goals,people,log,off,notes,reviews,mood,lt,asst:{plan,why},sample:true,settings:JSON.parse(JSON.stringify(DEF_SET))};
 }
 function fixState(o){
   o.settings=o.settings||{};
@@ -646,7 +684,8 @@ function fixState(o){
   if(typeof o.settings.pixaChat!=='boolean')o.settings.pixaChat=true;
   if(!Array.isArray(o.settings.msGroups))o.settings.msGroups=[];
   if(!Array.isArray(o.settings.msGen))o.settings.msGen=o.settings.msGroups.slice(); // kamienie ogólne (dobre dni, seria): dotąd szły razem z resztą
-  o.asst=o.asst||{};o.asst.snooze=o.asst.snooze||{};o.asst.off=o.asst.off||{};o.asst.ck=o.asst.ck||{};o.asst.plan=o.asst.plan||{};o.asst.why=o.asst.why||{};{const lim=addDays(todayS(),-14);Object.keys(o.asst.ck).forEach(k=>{if(k<lim)delete o.asst.ck[k]});Object.keys(o.asst.plan).forEach(k=>{if(k<lim)delete o.asst.plan[k]})}
+  o.asst=o.asst||{};o.asst.snooze=o.asst.snooze||{};o.asst.off=o.asst.off||{};o.asst.ck=o.asst.ck||{};o.asst.plan=o.asst.plan||{};o.asst.why=o.asst.why||{};{const lim=addDays(todayS(),-14);Object.keys(o.asst.ck).forEach(k=>{if(k<lim)delete o.asst.ck[k]});{const l2=addDays(todayS(),-120);Object.keys(o.asst.plan).forEach(k=>{if(k<l2)delete o.asst.plan[k]});Object.keys(o.asst.why).forEach(k=>{if(k<l2)delete o.asst.why[k]})}}
+  o.wplan=o.wplan||{};{const l3=addDays(todayS(),-120);Object.keys(o.wplan).forEach(k=>{if(k<l3)delete o.wplan[k]})}
   if(!Array.isArray(o.settings.reminders))o.settings.reminders=[{id:'r1',kind:'missing',time:'21:00',days:[0,1,2,3,4,5,6],on:true},{id:'r2',kind:'review',time:'20:00',days:[6],on:true}];
   if(!o.settings.remW){o.settings.remW=1;if(!o.settings.reminders.some(r=>r.kind==='weekly'))o.settings.reminders.push({id:'r3',kind:'weekly',time:'09:00',days:[0],on:true})}
   if(!o.ms||typeof o.ms!=='object'){o.ms={};o.msInit=false}
@@ -851,15 +890,188 @@ function ltCalc(x){
   const unit=x.kind==='manual'?(x.unit||''):g.type==='qty'?g.unit:'razy';
   return{cur,pr:Math.min(1,cur/x.target),frac,txt:fmt(cur)+' / '+fmt(x.target)+' '+unit,exp:x.target*frac};
 }
+function ltHabitsHtml(x){const t=todayS(),ids=ltIds(x);if(!ids.length||!(x.helps||[]).length)return'';
+  return'<div class="lth"><span class="gs">Prowadzą do tego:</span>'+ids.map(id=>{const g=S.goals.find(y=>y.id===id),c=goalCompletion(g,addDays(t,-27),t);return'<span class="chip '+(c==null?'var':c>=.7?'ok':c>=.4?'warn':'bad')+'">'+esc(g.name)+(c==null?'':' '+P100(c))+'</span>'}).join('')+'</div>'}
 function ltHtml(x){
+  const t=todayS(),head=extra=>'<div class="ltt"><button class="gn ltn" data-act="editlt" data-id="'+x.id+'">'+esc(x.name)+' ›</button>'+extra+'</div>';
+  if(x.kind==='done'){
+    const hc=ltHabits(x),total=Math.max(1,diffDays(x.from,x.to)),frac=Math.max(0,Math.min(1,diffDays(x.from,t)/total)),left=diffDays(t,x.to);
+    const pace=x.doneAt?{s:'ok',t:'Osiągnięte!'}:hc==null?{s:'var',t:'Dodaj nawyki, które Cię do tego prowadzą'}:hc>=.7?{s:'ok',t:'Na dobrej drodze'}:hc>=.4?{s:'warn',t:'Nawyki mogłyby być mocniejsze'}:{s:'bad',t:'Nawyki kuleją'};
+    const txt=x.doneAt?'osiągnięte '+shortDate(x.doneAt)+' '+x.doneAt.slice(0,4):(left>=0?'zostało '+(left>=14?Math.round(left/7)+' tyg.':left+' '+dni(left)):'termin minął')+' · do '+shortDate(x.to)+' '+x.to.slice(0,4)+(hc!=null?' · nawyki w 4 tyg.: '+P100(hc):'');
+    return'<div class="lt">'+head('<button class="pill'+(x.doneAt?' on':'')+'" data-act="ltdone" data-id="'+x.id+'">'+(x.doneAt?'Osiągnięte ✓':'Osiągnięte?')+'</button>')+'<div class="gs">'+esc(txt)+'</div><div class="bar-o ltbar"><div class="bar-i" style="width:'+(x.doneAt?100:(hc||0)*100)+'%"></div>'+(x.doneAt?'':'<span class="ltmark" style="left:'+(frac*100)+'%"></span>')+'</div><span class="chip '+pace.s+'">'+pace.t+'</span>'+ltHabitsHtml(x)+'</div>';
+  }
   const c=ltCalc(x);if(!c)return'<div class="lt"><button class="gn ltn" data-act="editlt" data-id="'+x.id+'">'+esc(x.name)+' ›</button><div class="gs">Powiązany cel został usunięty. Zmień ustawienia.</div></div>';
   let pace;
   if(c.pr>=1)pace={s:'ok',t:'Cel osiągnięty'};
   else if(x.kind==='value'){const d=c.pr-c.frac;pace=Math.abs(d)<.05?{s:'ok',t:'Zgodnie z planem'}:d>0?{s:'ok',t:'Przed planem'}:{s:'warn',t:'Za planem'}}
   else{const d=c.cur-c.exp,tol=Math.max(1,x.target*.05);pace=Math.abs(d)<tol?{s:'ok',t:'Zgodnie z planem'}:d>0?{s:'ok',t:'Przed planem o '+fmt(d)}:{s:'warn',t:'Za planem o '+fmt(-d)}}
-  return'<div class="lt"><div class="ltt"><button class="gn ltn" data-act="editlt" data-id="'+x.id+'">'+esc(x.name)+' ›</button>'+(x.kind==='manual'?'<div class="step"><button data-act="ltdec" data-id="'+x.id+'" aria-label="Mniej">−</button><button data-act="ltinc" data-id="'+x.id+'" aria-label="Więcej">+</button></div>':'')+'</div><div class="gs">'+esc(c.txt)+' · do '+shortDate(x.to)+' '+x.to.slice(0,4)+'</div><div class="bar-o ltbar"><div class="bar-i" style="width:'+c.pr*100+'%"></div><span class="ltmark" style="left:'+Math.min(100,c.frac*100)+'%"></span></div><span class="chip '+pace.s+'">'+pace.t+'</span></div>';
+  return'<div class="lt">'+head(x.kind==='manual'?'<div class="step"><button data-act="ltdec" data-id="'+x.id+'" aria-label="Mniej">−</button><button data-act="ltinc" data-id="'+x.id+'" aria-label="Więcej">+</button></div>':'')+'<div class="gs">'+esc(c.txt)+' · do '+shortDate(x.to)+' '+x.to.slice(0,4)+'</div><div class="bar-o ltbar"><div class="bar-i" style="width:'+c.pr*100+'%"></div><span class="ltmark" style="left:'+Math.min(100,c.frac*100)+'%"></span></div><span class="chip '+pace.s+'">'+pace.t+'</span>'+ltHabitsHtml(x)+'</div>';
 }
-function validLt(x){return x.name.trim()&&x.target>0&&x.from&&x.to&&x.from<x.to&&(x.kind==='manual'||S.goals.some(g=>g.id===x.goal&&(x.kind==='value'?isMeasure(g):!isMeasure(g)&&g.type!=='range')))}
+function validLt(x){return x.name.trim()&&x.from&&x.to&&x.from<x.to&&(x.kind==='done'||(x.target>0&&(x.kind==='manual'||S.goals.some(g=>g.id===x.goal&&(x.kind==='value'?isMeasure(g):!isMeasure(g)&&g.type!=='range')))))}
+/* ---------- cele długoterminowe: nawyki, które do nich prowadzą ---------- */
+// x.helps: id celów-nawyków; przy „sumie” i „pomiarze” cel źródłowy liczy się automatycznie.
+const ltIds=x=>[...new Set((x.kind==='sum'||x.kind==='value'?[x.goal]:[]).concat(x.helps||[]))].filter(id=>S.goals.some(g=>g.id===id));
+function ltHabits(x){const t=todayS(),v=ltIds(x).map(id=>goalCompletion(S.goals.find(g=>g.id===id),addDays(t,-27),t)).filter(v=>v!=null);return v.length?avg(v):null}
+function ltOf(gid){return memo('lto',()=>{const m={},t=todayS();const act=S.lt.filter(x=>x.to>=t&&!x.doneAt);act.forEach(x=>{if((x.kind==='sum'||x.kind==='value')&&!m[x.goal])m[x.goal]=x});act.forEach(x=>ltIds(x).forEach(id=>{if(!m[id])m[id]=x}));return m})[gid]}
+const P100=x=>Math.round(x*100)+'%';
+
+/* ---------- plany: o której porze wychodzi, co przeszkadza ---------- */
+const SLOT_N={r:'rano',p:'po południu',w:'wieczorem'};
+const WHY_N={czas:'brak czasu',zm:'zmęczenie',zap:'zapominanie',inne:'to, że coś wypadło'};
+const sleepGoal=()=>S.goals.find(g=>g.act==='sleep'||(g.type==='range'&&g.unit==='h'));
+// Z ostatnich 90 dni: ile razy cel był zaplanowany na daną porę i ile razy się udał; powody „nie” z dniami.
+function planStats(){return memo('pst',()=>{
+  const t=todayS(),from=addDays(t,-90),m30=addDays(t,-30),W=(S.asst&&S.asst.why)||{},g={},all={n:0,ok:0};
+  const o=id=>g[id]=g[id]||{r:[0,0],p:[0,0],w:[0,0],why:{}};
+  const gs=S.goals.filter(x=>x.type==='do');
+  range(from,addDays(t,-1)).forEach(d=>{if(S.off[d])return;gs.forEach(x=>{const sl=planOf(d,x.id);if(!SLOT_N[sl])return;const ok=num(val(x.id,d))>0,r=o(x.id)[sl];r[0]++;if(ok)r[1]++;if(d>=m30){all.n++;if(ok)all.ok++}})});
+  Object.keys(W).forEach(d=>{if(d<from)return;Object.keys(W[d]).forEach(id=>{const k=W[d][id];if(!WHY_N[k])return;(o(id).why[k]=o(id).why[k]||[]).push(d)})});
+  return{g,all};
+})}
+// Najlepsza pora dla celu (co najmniej 3 plany, min. 60% i wyraźnie lepsza od najgorszej).
+function bestSlot(gid){const o=planStats().g[gid];if(!o)return null;const c=['r','p','w'].filter(k=>o[k][0]>=3).map(k=>({k,r:o[k][1]/o[k][0],n:o[k][0]}));if(!c.length)return null;c.sort((a,b)=>b.r-a.r);const b=c[0];if(b.r<.6||(c.length>1&&b.r-c[c.length-1].r<.15))return null;return b}
+function planInsights(){return memo('pins',()=>{
+  const st=planStats().g,out=[],t=todayS();
+  Object.keys(st).forEach(id=>{const o=st[id],g=S.goals.find(x=>x.id===id);if(!g&&id!=='mit')return;
+    if(g){const c=['r','p','w'].filter(k=>o[k][0]>=4).map(k=>({k,r:o[k][1]/o[k][0],n:o[k][0],ok:o[k][1]}));
+      if(c.length>=2){c.sort((a,b)=>b.r-a.r);const b=c[0],w=c[c.length-1];
+        if(b.r-w.r>=.25)out.push({id:'ps-'+id+b.k+w.k,gid:id,w:b.r-w.r,t:'„'+g.name+'” zaplanowany '+SLOT_N[b.k]+' udaje się w '+P100(b.r)+' ('+b.ok+' z '+b.n+'), a '+SLOT_N[w.k]+' w '+P100(w.r)+' ('+w.ok+' z '+w.n+').',tip:'Planuj '+SLOT_N[b.k]+'.',slot:b.k})}}
+    const ks=Object.keys(o.why),tot=ks.reduce((s,k)=>s+o.why[k].length,0);
+    if(tot>=3){ks.sort((a,b)=>o.why[b].length-o.why[a].length);const k=ks[0],n=o.why[k].length;
+      if(n>=3&&n/tot>=.5){let tx=(g?'„'+g.name+'”':'Najważniejszą rzecz dnia')+' najczęściej odpuszczasz przez '+WHY_N[k]+' ('+n+' z '+tot+' razy).';
+        if(k==='zm'){const sg=sleepGoal();if(sg){const a=o.why[k].map(d=>val(sg.id,d)).filter(x=>typeof x==='number'&&x>0),al=range(addDays(t,-60),addDays(t,-1)).map(d=>val(sg.id,d)).filter(x=>typeof x==='number'&&x>0);
+          if(a.length>=3&&al.length>=10&&avg(al)-avg(a)>=.4)tx+=' W te dni spałeś średnio '+fmt(avg(a))+' h, a zwykle '+fmt(avg(al))+' h.'}}
+        out.push({id:'pw-'+id+k,gid:id,w:.2+n/tot*.3,t:tx,tip:{zm:'Zadbaj o sen dzień wcześniej albo planuj na rano.',czas:'Zaplanuj krótszą wersję albo konkretną porę.',zap:'Zaplanuj porę, a Pixa przypomni.',inne:'Zostaw w planie dzień zapasowy.'}[k]})}}
+  });
+  return out.sort((x,y)=>y.w-x.w);
+})}
+
+/* ---------- postęp: teraz i miesiąc (albo tydzień) wcześniej ---------- */
+function progress(){return memo('prog',()=>{
+  const t=todayS(),fd=logDays()[0];if(!fd)return{L:0,left:14};
+  const hist=diffDays(fd,t),L=hist>=60?30:hist>=14?7:0;if(!L)return{L:0,left:14-hist};
+  const A=[addDays(t,-L),addDays(t,-1)],B=[addDays(t,-2*L),addDays(t,-L-1)],rows=[];
+  const days=w=>range(w[0],w[1]).filter(d=>!S.off[d]);
+  const add=(name,c,p,dir,ct,pt,gen,np)=>{if(c==null||p==null)return;let ch=0;if(dir){const base=Math.abs(p);ch=base<1e-9?(Math.abs(c)<1e-9?0:dir*(c>p?1:-1)):(c-p)/base*dir}rows.push({name,c,p,ct,pt,ch,dir,gen,np})};
+  {const a=days(A),b=days(B),ga=a.filter(goodDay).length,gb=b.filter(goodDay).length;add('Dobre dni',ga,gb,1,ga+' z '+a.length,String(gb),1);
+    const pa=a.filter(perfectDay).length,pb=b.filter(perfectDay).length;if(pa||pb)add('Świetne dni',pa,pb,1,String(pa),String(pb),1)}
+  {const mv=w=>{const v=range(w[0],w[1]).map(d=>S.mood[d]).filter(x=>x!=null);return v.length>=Math.min(5,L-2)?avg(v):null},a=mv(A),b=mv(B);if(a!=null&&b!=null)add('Nastrój',a,b,1,fmt(a),fmt(b),1)}
+  {const a=groupCompletion(S.goals,A[0],A[1]),b=groupCompletion(S.goals,B[0],B[1]);if(a!=null&&b!=null)add('Realizacja celów',a,b,1,P100(a),P100(b),1)}
+  const wk=n=>fmt(Math.round(n/L*7*10)/10)+'× w tyg.';
+  S.goals.forEach(g=>{if(isPaused(g)||(g.created&&g.created>B[0]))return;
+    const ent=w=>range(w[0],w[1]).map(d=>val(g.id,d)).filter(v=>typeof v==='number');
+    if(g.type==='do'&&g.period==='day'){const a=days(A).filter(d=>num(val(g.id,d))>0).length,b=days(B).filter(d=>num(val(g.id,d))>0).length;if(a||b)add(g.name,a,b,1,a+' z '+L+' dni',String(b))}
+    else if(g.type==='do'||g.type==='contact'||g.type==='limit'){const a=sumRange(g.id,A[0],A[1]),b=sumRange(g.id,B[0],B[1]);if(a||b)add(g.name,a,b,g.type==='limit'?-1:1,L===7?a+'×':wk(a),L===7?b+'×':wk(b))}
+    else if(g.type==='qty'){const a=ent(A),b=ent(B),u=g.unit?' '+g.unit:'';if(a.length>=L/3&&b.length>=L/3)add(g.name,avg(a),avg(b),isMax(g)?-1:1,fmt(Math.round(avg(a)*10)/10)+u,fmt(Math.round(avg(b)*10)/10)+u)}
+    else if(g.type==='range'){const a=ent(A),b=ent(B),ok=v=>v.filter(x=>evalRange(g,x).status==='ok').length/v.length;if(a.length>=L/3&&b.length>=L/3)add(g.name,ok(a),ok(b),1,P100(ok(a))+' w normie',P100(ok(b)))}
+    else if(isMeasure(g)){const a=ent(A),b=ent(B);if(a.length&&b.length){const x=a[a.length-1],y=b[b.length-1],u=g.unit?' '+g.unit:'';if(g.target!=null)add(g.name,Math.abs(x-g.target),Math.abs(y-g.target),-1,fmt(x)+u,fmt(y)+u,0,1);else add(g.name,x,y,0,fmt(x)+u,fmt(y)+u)}}
+  });
+  const goals=rows.filter(r=>!r.gen),up=goals.filter(r=>r.ch>=.05).sort((a,b)=>b.ch-a.ch),dn=goals.filter(r=>r.ch<=-.05).sort((a,b)=>a.ch-b.ch);
+  return{L,rows,up,dn};
+})}
+
+/* ---------- podsumowanie roku (grudzień i styczeń) ---------- */
+function yearRecap(y){return memo('yr|'+y,()=>{
+  const t=todayS(),e=y+'-12-31'<t?y+'-12-31':t,fd=logDays()[0];if(!fd||fd>e)return null;
+  const a=fd>y+'-01-01'?fd:y+'-01-01',all=range(a,e),days=all.filter(d=>!S.off[d]);if(!days.length)return null;
+  const good=days.filter(goodDay),perfect=days.filter(perfectDay).length;
+  let best=0,run=0;all.forEach(d=>{if(S.off[d])return;if(goodDay(d)){run++;if(run>best)best=run}else if(d<t)run=0});
+  const bm={};good.forEach(d=>{const k=d.slice(0,7);bm[k]=(bm[k]||0)+1});const bmk=Object.keys(bm).sort((p,q)=>bm[q]-bm[p])[0];
+  const mv=days.map(d=>S.mood[d]).filter(x=>x!=null),mit=all.filter(d=>S.mit&&S.mit[d]&&S.mit[d].ok===true).length;
+  const big=n=>Math.round(n).toLocaleString('pl-PL'),lines=[];
+  S.goals.forEach(g=>{const vs=all.map(d=>val(g.id,d)).filter(v=>v!=null);if(!vs.length)return;const u=g.unit?' '+g.unit:'';
+    if(g.type==='do'){const n=all.filter(d=>num(val(g.id,d))>0).length;if(n)lines.push(g.name+': '+n+' '+(g.period==='day'?dni(n):raz(n)))}
+    else if(g.type==='qty'){const n=vs.filter(v=>typeof v==='number');if(!n.length)return;if(isMax(g))lines.push(g.name+': średnio '+fmt(Math.round(avg(n)*10)/10)+u+' dziennie');else lines.push(g.name+': '+big(n.reduce((s,v)=>s+v,0))+u)}
+    else if(g.type==='range'){const n=vs.filter(v=>typeof v==='number');if(n.length)lines.push(g.name+': średnio '+fmt(Math.round(avg(n)*10)/10)+u)}
+    else if(g.type==='contact'){const n=sumRange(g.id,a,e);if(n)lines.push(g.name+': '+n)}
+    else if(g.type==='limit'){const n=sumRange(g.id,a,e);lines.push(g.name+': '+n+' '+dni(n))}
+    else if(isMeasure(g)){const n=vs.filter(v=>typeof v==='number');if(n.length>=2)lines.push(g.name+': '+fmt(n[0])+' → '+fmt(n[n.length-1])+u)}
+  });
+  const ms=Object.values(S.ms||{}).filter(m=>m&&m.d&&m.d.slice(0,4)===y).length;
+  const lt=S.lt.filter(x=>(x.doneAt&&x.doneAt.slice(0,4)===y)||(x.kind!=='done'&&x.to.slice(0,4)===y&&(()=>{const c=ltCalc(x);return c&&c.pr>=1})())).length;
+  return{y,n:days.length,good:good.length,perfect,best,bm:bmk?{name:parse(bmk+'-01').toLocaleDateString('pl-PL',{month:'long'}),n:bm[bmk]}:null,mood:mv.length?avg(mv):null,mit,lines,ms,lt};
+})}
+const recapYear=()=>{const t=todayS(),m=t.slice(5,7);return m==='12'?t.slice(0,4):m==='01'?String(+t.slice(0,4)-1):null};
+function yearCard(){const y=recapYear();if(!y)return'';const r=yearRecap(y);if(!r)return'';
+  return'<div class="card yr" id="yr"><h3>Twój rok '+y+'</h3><p class="sub">'+(y===todayS().slice(0,4)?'Do dziś. Pełne podsumowanie zostanie tu do końca stycznia.':'Cały rok w liczbach.')+'</p><div class="tiles"><div class="tile"><b>'+r.good+'</b><span>dobre dni</span></div><div class="tile"><b>'+r.perfect+'</b><span>świetne dni</span></div><div class="tile"><b>'+r.best+'</b><span>najdłuższa seria</span></div></div>'+
+    '<ul class="yrl">'+(r.bm?'<li>Najlepszy miesiąc: <b>'+esc(r.bm.name)+'</b> ('+r.bm.n+' dobrych dni)</li>':'')+(r.mood!=null?'<li>Średni nastrój: <b>'+fmt(Math.round(r.mood*10)/10)+'</b></li>':'')+(r.mit?'<li>Najważniejsza rzecz dnia zrobiona: <b>'+r.mit+'</b> '+raz(r.mit)+'</li>':'')+(r.ms?'<li>Kamienie milowe: <b>'+r.ms+'</b></li>':'')+(r.lt?'<li>Osiągnięte cele długoterminowe: <b>'+r.lt+'</b></li>':'')+r.lines.map(l=>'<li>'+esc(l)+'</li>').join('')+'</ul></div>'}
+
+/* ---------- plan tygodnia ---------- */
+// S.wplan[poniedziałek][id celu]={d:[0–6, od poniedziałku], s:'r'|'p'|'w'|''}. Rano Pixa tylko przypomina, zamiast pytać.
+const wpGoals=()=>S.goals.filter(g=>!isPaused(g)&&g.type==='do'&&(g.period==='day'||(g.period==='week'&&hasTarget(g))));
+function wpOpen(ws){
+  const t=todayS(),cur=(S.wplan||{})[ws],p={},first=Math.max(0,diffDays(ws,t)),avail=[0,1,2,3,4,5,6].filter(i=>i>=first);
+  wpGoals().forEach(g=>{
+    if(cur){const x=cur[g.id];p[g.id]=x?{d:x.d.slice(),s:x.s||''}:{d:[],s:''};return}
+    const b=bestSlot(g.id),s=b?b.k:'';
+    if(g.period==='day'){p[g.id]={d:avail.slice(),s};return}
+    const need=Math.max(0,g.target-(ws<=t?sumRange(g.id,ws,addDays(t,-1)):0)),fq=[0,0,0,0,0,0,0];
+    range(addDays(ws,-56),addDays(ws,-1)).forEach(d=>{if(num(val(g.id,d))>0)fq[diffDays(wstart(d),d)]++});
+    let pick;if(fq.some(x=>x>0))pick=avail.slice().sort((a,c)=>fq[c]-fq[a]||a-c).slice(0,need);
+    else{pick=[];for(let k=0;k<need&&k<avail.length;k++){const i=avail[Math.floor(k*avail.length/need)];if(!pick.includes(i))pick.push(i)}}
+    p[g.id]={d:pick.sort((a,c)=>a-c),s};
+  });
+  ui.sheet={kind:'wplan',ws,p};ui.say=null;renderSheet();
+}
+function wpSummary(ws){const w=(S.wplan||{})[ws]||{};return S.goals.filter(g=>w[g.id]&&w[g.id].d.length).map(g=>{const x=w[g.id];return esc(g.name)+': '+(x.d.length===7?'codziennie':x.d.map(i=>DOW[i]).join(', '))+(x.s?' '+SLOT_N[x.s]:'')}).join(' · ')}
+function wpSheet(s){
+  const t=todayS(),gs=wpGoals();let star=false;
+  let h='<h2>Plan tygodnia</h2><p class="sub">'+shortDate(s.ws)+' – '+shortDate(addDays(s.ws,6))+'. Zaznacz dni i porę. Rano Pixa tylko przypomni, co w planie, zamiast pytać o każdy cel.</p>';
+  if(!gs.length)h+='<p class="empty">Plan dotyczy celów „Chcę to robić” (codziennie albo kilka razy w tygodniu). Nie masz jeszcze takich.</p>';
+  gs.forEach(g=>{const x=s.p[g.id]||{d:[],s:''},b=bestSlot(g.id),need=g.period==='week'?Math.max(0,g.target-(s.ws<=t?sumRange(g.id,s.ws,addDays(t,-1)):0)):0;if(b)star=true;
+    const fut=x.d.filter(i=>addDays(s.ws,i)>=t).length;
+    h+='<div class="wpg" style="--c:'+catColor(g.cat)+'"><div class="wpt"><span class="gi">'+pix(goalIco(g))+'</span><b>'+esc(g.name)+'</b><small>'+(g.period==='day'?'codziennie':g.target+'× w tygodniu')+'</small></div>';
+    h+='<div class="wpd">'+DOW.map((dn,i)=>{const d=addDays(s.ws,i),on=x.d.includes(i);return'<button class="wpday'+(on?' on':'')+'" data-act="wpday" data-g="'+g.id+'" data-i="'+i+'"'+(d<t?' disabled':'')+' aria-pressed="'+on+'">'+dn+'</button>'}).join('')+'</div>';
+    h+='<div class="chips wps">'+[['r','Rano'],['p','Po poł.'],['w','Wieczorem'],['','Różnie']].map(o=>'<button class="pill'+(x.s===o[0]?' on':'')+'" data-act="wpslot" data-g="'+g.id+'" data-s="'+o[0]+'">'+o[1]+(b&&b.k===o[0]?' ★':'')+'</button>').join('')+'</div>';
+    if(g.period==='week'&&fut<need)h+='<div class="gs st-warn">Zaplanowane '+fut+' z '+need+' potrzebnych w tym tygodniu.</div>';
+    h+='</div>'});
+  if(star)h+='<p class="gs">★ pora, o której najczęściej Ci wychodzi.</p>';
+  h+='<div class="actions"><button class="btn" data-act="close">Anuluj</button>'+(gs.length?'<button class="btn main" data-act="wpsave">Zapisz plan</button>':'')+'</div>';
+  return'<div class="scrim" data-act="close"></div><div class="sheet" role="dialog" aria-modal="true" aria-label="Plan tygodnia">'+h+'</div>';
+}
+
+/* ---------- domknij dzień: wszystko na jednym ekranie ---------- */
+const dcDay=()=>new Date().getHours()<5?addDays(todayS(),-1):todayS();
+function dcInit(d){d=d||dcDay();const ids=Asst.missingFor(d).map(g=>g.id),ans=(S.asst.ck[d]||[]);
+  // tygodniowe zaplanowane na ten dzień, jeszcze nie zrobione
+  S.goals.forEach(g=>{if(!pausedAt(g,d)&&g.type==='do'&&g.period!=='day'&&SLOT_N[planOf(d,g.id)]!=null&&!num(val(g.id,d))&&!ans.includes(g.id)&&!ids.includes(g.id))ids.push(g.id)});
+  ids.sort((a,b)=>{const A=S.goals.find(g=>g.id===a),B=S.goals.find(g=>g.id===b);return(A.type==='do'?0:1)-(B.type==='do'?0:1)});
+  return{kind:'dayend',d,ids,ans:{},why:null}}
+function dcOpen(d){ui.sheet=dcInit(d);ui.say=null;renderSheet()}
+// Dzień domknięty: nastrój ostateczny, brak luk, najważniejsza rzecz rozliczona.
+function dcDone(d){const m=(S.mit||{})[d];return S.off[d]||(S.mood[d]!=null&&moodFinal(d)&&!Asst.missingFor(d).length&&!(m&&m.t&&m.ok==null))}
+function dcSheet(s){
+  const d=s.d,t=todayS(),m=(S.mit||{})[d],gd=goodDay(d),pf=perfectDay(d),miss=Asst.toPerfect(d),sc=dayScore(d),tom=d===t,anyNo=Object.values(s.ans).some(v=>v!=='y')||s.mitA==='n'||s.mitA==='j';
+  const word=d===t?'Dziś':d===addDays(t,-1)?'Wczoraj':shortDate(d);
+  let h='<div class="dch"><span class="dclens">'+lensSvg(S.settings.pixaPal)+'</span><div><h2>Domknij dzień</h2><p class="sub">'+word+'. Kilka dotknięć i gotowe.</p></div></div>';
+  h+='<div class="dcst'+(pf?' pf':gd?' gd':'')+'">'+(S.off[d]?'Dzień wolny.':pf?'<b>Świetny dzień!</b> Wszystko zrobione.':gd?'<b>Dobry dzień ✓</b>'+(miss.length?' Do świetnego: '+esc(miss.slice(0,3).map(g=>g.name).join(', '))+(miss.length>3?' i '+(miss.length-3)+' więcej':'')+'.':''):'Wynik dnia: <b>'+(sc==null?'–':P100(sc))+'</b>. Dobry dzień jeszcze nie.')+'</div>';
+  h+='<span class="fl">Jak oceniasz cały dzień?'+(S.mood[d]!=null&&!moodFinal(d)?' <small>wstępnie '+S.mood[d]+', „Gotowe” potwierdzi</small>':'')+'</span><div class="mrow">'+[1,2,3,4,5].map(n=>'<button class="mb'+(S.mood[d]===n?' on md'+n:'')+'" data-act="dcmood" data-v="'+n+'" aria-pressed="'+(S.mood[d]===n)+'"><b>'+n+'</b><small>'+MOODS[n-1]+'</small></button>').join('')+'</div>';
+  if(m&&m.t){const v=m.ok===true?'y':s.mitA||(m.ok===false?'n':null);
+    h+='<span class="fl">Najważniejsze: „'+esc(m.t)+'”</span><div class="dcb">'+[['y','Zrobione'],['n','Nie']].concat(tom?[['j','Jutro']]:[]).map(o=>'<button class="pill'+(v===o[0]?' on'+(o[0]==='y'?' ok':''):'')+'" data-act="dcmit" data-v="'+o[0]+'">'+o[1]+'</button>').join('')+'</div>'}
+  if(s.ids.length){h+='<span class="fl">Cele bez wpisu</span>';
+    s.ids.forEach(id=>{const g=S.goals.find(x=>x.id===id);if(!g)return;const u=g.unit?' '+g.unit:'';
+      h+='<div class="dcg"><span class="gi">'+pix(goalIco(g))+'</span><span class="dcn">'+esc(g.name)+'</span>';
+      if(g.type==='do'){const v=num(val(id,d))>0?'y':s.ans[id];h+='<div class="dcb">'+[['y','Tak'],['n','Nie']].concat(tom?[['j','Jutro']]:[]).map(o=>'<button class="pill'+(v===o[0]?' on'+(o[0]==='y'?' ok':''):'')+'" data-act="dcg" data-g="'+id+'" data-v="'+o[0]+'">'+o[1]+'</button>').join('')+'</div>'}
+      else{const v=val(id,d),q=g.type==='range'||g.type==='qty'?g.target:null;h+='<div class="dcb"><input class="num" inputmode="decimal" value="'+(typeof v==='number'?fmt(v):'')+'" placeholder="'+esc(g.unit||'')+'" data-chg="dcnum" data-g="'+id+'" aria-label="'+esc(g.name)+(g.unit?' ('+esc(g.unit)+')':'')+'">'+(q!=null&&typeof v!=='number'?'<button class="pill" data-act="dcv" data-g="'+id+'" data-v="'+q+'">'+fmt(q)+u+'</button>':'')+'</div>'}
+      h+='</div>'})}
+  else if(!S.off[d])h+='<p class="gs" style="margin-top:12px">Wszystkie cele uzupełnione.</p>';
+  if(anyNo)h+='<span class="fl">Co przeszkodziło? <small>(opcjonalnie)</small></span><div class="chips">'+[['czas','Brak czasu'],['zm','Zmęczenie'],['zap','Zapomniałem'],['inne','Coś wypadło']].map(o=>'<button class="pill'+(s.why===o[0]?' on':'')+'" data-act="dcwhy" data-k="'+o[0]+'">'+o[1]+'</button>').join('')+'</div>';
+  h+='<label class="fl" for="dcnote">Jedno zdanie o dniu <small>(opcjonalnie)</small></label><textarea class="inp" id="dcnote" data-chg="dcnote" rows="2" placeholder="Co poszło dobrze, co nie?">'+esc(S.notes[d]||'')+'</textarea>';
+  h+='<div class="actions"><button class="btn" data-act="close">Później</button><button class="btn main" data-act="dcdone">Gotowe</button></div>';
+  return'<div class="scrim" data-act="close"></div><div class="sheet" role="dialog" aria-modal="true" aria-label="Domknij dzień">'+h+'</div>';
+}
+function dcFinish(){
+  const s=ui.sheet,d=s.d;if(S.mood[d]!=null){S.moodAt=S.moodAt||{};S.moodAt[d]='f'}
+  save();ui.sheet=null;
+  const gd=goodDay(d),pf=perfectDay(d),st=streak(),m=(S.mit||{})[d],tn=(a,b)=>S.settings.pixaTone==='hard'?b:a;
+  let tx=pf?tn('Świetny dzień! Wszystko zrobione.','Komplet. Świetny dzień.'):gd?tn('Dobry dzień zaliczony.','Dobry dzień. Jutro komplet.'):tn('Dzień domknięty. Nie każdy musi być dobry, jutro nowa szansa.','Dzień słabszy. Jutro odrabiamy.');
+  if((gd||pf)&&st>=2)tx+=' Seria: '+st+' '+dni(st)+'.';
+  if(m&&m.ok===true)tx+=tn(' Najważniejsze zrobione, brawo.',' Najważniejsze zrobione.');
+  if(S.settings.asst){ui.asstOpen=true;ui.chatTip={id:'dc-'+d,text:tx,acts:[{l:'Dobranoc',f:()=>{}}],pose:pf?'spin':gd?'cheer':'comfort',nf:1}}else toast(tx);
+  if(d===todayS()){ui.prevGood=gd;ui.prevPerfect=pf;ui.prevDate=ui.date}
+  ui.tab='today';ui.date=d;render();window.scrollTo(0,0);
+  if(pf)FX.confetti(130);else if(gd)FX.confetti(70);
+}
 function ltOpts(k){return k==='value'?S.goals.filter(isMeasure):S.goals.filter(g=>!isMeasure(g)&&g.type!=='range')}
 const longDate=d=>parse(d).toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long'});
 const LENP={s:'krótkie',m:'średnie',l:'długie'};
@@ -1036,7 +1248,8 @@ function onTrack(g,d){
 function goalDayScoreW(g,d){const v=goalDayScore(g,d);if(v!=null)return v;if(!scorable(g))return null;if(isMeasure(g)&&g.period==='day')return val(g.id,d)!=null?1:0;return onTrack(g,d)}
 function goodDay(d){return memo('gd|'+d,()=>goodDay0(d))}
 // Plan z rana: 'r' rano, 'p' po południu, 'w' wieczorem, 0 nie dziś (dawne 1 = wieczorem).
-const planOf=(d,gid)=>{const v=(((S.asst||{}).plan||{})[d]||{})[gid];return v===1?'w':v};
+// Pora z planu: najpierw odpowiedź na ten dzień (S.asst.plan), potem plan tygodnia (S.wplan). 0 = nie tego dnia.
+const planOf=(d,gid)=>{const v=(((S.asst||{}).plan||{})[d]||{})[gid];if(v!==undefined)return v===1?'w':v;const ws=wstart(d),w=((S.wplan||{})[ws]||{})[gid];if(!w)return undefined;return w.d.includes(diffDays(ws,d))?(w.s||undefined):0};
 // Nastrój zaznaczony przed wieczorem jest wstępny; wieczorem Pixa pyta, czy zostaje na cały dzień.
 const eveH=()=>S.settings.evening==null?20:S.settings.evening;
 const moodFinal=d=>S.mood[d]!=null&&(d<todayS()||!S.moodAt||S.moodAt[d]===undefined||S.moodAt[d]==='f');
@@ -1220,7 +1433,8 @@ function rowHtml(g,d){
     ctl='<button class="addbtn" data-act="addc" data-g="'+g.id+'">+ Dodaj</button>';
     if(Array.isArray(raw)&&raw.length)extra='<div class="evs">'+raw.map((e,i)=>'<span class="ev"><button class="evt" data-act="editc" data-g="'+g.id+'" data-i="'+i+'" aria-label="Zmień wpis">'+(e.p.length?esc(e.p.join(', '))+' · ':'')+lenWord[e.l]+'</button><button data-act="delc" data-g="'+g.id+'" data-i="'+i+'" aria-label="Usuń wpis">×</button></span>').join('')+'</div>';
   }
-  const sk=d===todayS()?goalStreak(g):null,sub=(st.sub||'')+(sk&&sk.n>=2?(st.sub?' · ':'')+'seria: '+sk.n+' '+sk.u+(sk.best>sk.n?' (rekord '+sk.best+')':''):'');
+  const isT=d===todayS(),sk=isT?goalStreak(g):null,pl=isT&&g.type==='do'&&!num(raw)?SLOT_N[planOf(d,g.id)]:null,lo=isT?ltOf(g.id):null;
+  const sub=[st.sub,sk&&sk.n>=2?'seria: '+sk.n+' '+sk.u+(sk.best>sk.n?' (rekord '+sk.best+')':''):'',pl?'w planie: '+pl:'',lo?'→ '+lo.name:''].filter(Boolean).join(' · ');
   return '<div class="goal" id="row-'+g.id+'"><span class="gi">'+pix(goalIco(g))+'</span><div class="gm"><div class="gn">'+esc(g.name)+(scorable(g)&&g.prio==='main'?' <span class="prio">główny</span>':scorable(g)&&g.prio==='extra'?' <span class="prio x">dodatkowy</span>':'')+'</div>'+(sub?'<div class="gs">'+esc(sub)+'</div>':'')+(st.chip?'<span class="chip '+st.chip.s+'">'+esc(st.chip.t)+'</span>':'')+extra+'</div>'+ctl+'</div>';
 }
 function viewToday(){
@@ -1234,6 +1448,7 @@ function viewToday(){
    else if(isT&&!(m&&m.skip))h+='<button class="link mitadd" data-act="mitedit">+ Najważniejsza rzecz dnia</button>'}if(ui.ringAnim!==d+'|'+ui.tab){ui.ringAnim=d+'|'+ui.tab;h=h.replace('<div class="ring">','<div class="ring anim">')}
   h+='<div class="offmini"><span>'+(S.off[d]?'Dzień wolny: seria jest bezpieczna'+(monthOff>1?' · w tym miesiącu: '+monthOff:''):'Dzień wolny (choroba)')+'</span><button class="sw'+(S.off[d]?' on':'')+'" data-act="off" role="switch" aria-checked="'+(!!S.off[d])+'" aria-label="Dzień wolny (choroba, siła wyższa). Nie przerywa serii."></button></div>';
   h+='<div class="card" id="row-mood"><div class="gn">Nastrój'+(S.mood[d]!=null&&!moodFinal(d)?' <small class="mprov">wstępnie, potwierdzisz wieczorem</small>':'')+'</div><div class="mrow">'+[1,2,3,4,5].map(n=>'<button class="mb'+(S.mood[d]===n?' on md'+n:'')+'" data-act="mood" data-v="'+n+'" aria-pressed="'+(S.mood[d]===n)+'"><b>'+n+'</b><small>'+MOODS[n-1]+'</small></button>').join('')+'</div></div>';
+  if(!S.off[d]&&((isT&&new Date().getHours()>=eveH())||(d===addDays(t,-1)&&new Date().getHours()<5))&&!dcDone(d))h+='<button class="dcbtn" data-act="dclose" data-d="'+d+'"><span class="dclens">'+lensSvg(S.settings.pixaPal)+'</span><span><b>Domknij dzień</b><small>Nastrój, braki i najważniejsza rzecz na jednym ekranie</small></span><span class="dcgo">›</span></button>';
   if(!S.off[d]){
     const need=S.goals.filter(g=>!pausedAt(g,d)&&(g.type==='qty'||g.type==='range'||(g.type==='do'&&g.period==='day')||isMeasure(g)));
     const filled=g=>isMeasure(g)?range(periodBounds(g,d)[0],d).some(x=>val(g.id,x)!=null):g.type==='do'?num(val(g.id,d))>0:val(g.id,d)!=null;
@@ -1282,6 +1497,7 @@ function viewWeek(){
   let h=calSeg()+'<div class="datebar"><button class="iconbtn" data-act="wprev" aria-label="Poprzedni tydzień">‹</button><div class="d">'+(ui.wk===0?'Ten tydzień':ui.wk===-1?'Zeszły tydzień':'Tydzień')+'<small>'+shortDate(ws)+' – '+shortDate(we)+'</small></div><button class="iconbtn" data-act="wnext" aria-label="Następny tydzień"'+(ui.wk>=0?' disabled':'')+'>›</button></div>';
   h+='<div class="tiles"><div class="tile"><b>'+(pct==null?'–':Math.round(pct*100)+'%')+'</b><span>realizacja celów</span></div><div class="tile"><b>'+days.filter(d=>S.off[d]).length+'</b><span>dni wolne</span></div><div class="tile"><b>'+S.goals.filter(g=>g.type==='limit'&&sumRange(g.id,ws,we)>g.target).length+'</b><span>przekroczone limity</span></div></div>';
   {const pr=S.reviews[addDays(ws,-7)];if(pr&&pr.improve)h+='<div class="note"><p><b>Plan z poprzedniego tygodnia:</b> '+esc(pr.improve)+'</p></div>'}
+  if(ui.wk===0&&wpGoals().length){const wp=S.wplan[ws],nx=new Date().getDay()===0;h+='<div class="note wpn"><p>'+(wp?'<b>Plan tygodnia:</b> '+(wpSummary(ws)||'pusty'):'<b>Plan tygodnia.</b> Zaznacz dni i porę, a Pixa rano tylko przypomni.')+'</p><button class="link" data-act="wplan" data-w="'+ws+'">'+(wp?'Zmień':'Zaplanuj')+'</button>'+(nx?'<button class="link" data-act="wplan" data-w="'+addDays(ws,7)+'">'+(S.wplan[addDays(ws,7)]?'Następny tydzień: zmień':'Zaplanuj następny')+'</button>':'')+'</div>'}
   const head='<div class="wgrid">'+days.map((d,i)=>'<div class="wh'+(d===t?' today':'')+'">'+DOW[i]+'<b>'+(+d.slice(8))+'</b></div>').join('')+'</div>';
   {const mv=days.map(d=>S.mood[d]).filter(x=>x!=null);h+='<div class="cat">Samopoczucie</div><div class="card">'+head+'<div class="wrow"><div class="wt"><span class="gn">Nastrój</span><span class="gs">'+(mv.length?'średnio '+fmt(avg(mv)):'brak wpisów')+'</span></div><div class="wgrid">'+days.map(moodCell).join('')+'</div></div></div>'}
   cats().forEach(c=>{
@@ -1615,6 +1831,25 @@ const Ms=(()=>{
   }
   return{compute,check,card,short};
 })();
+function progressCard(){
+  const pg=progress();
+  if(!pg.L)return'<div class="card"><h3>Postęp</h3><p class="empty">Porównanie z wcześniejszym okresem pokażę po 2 tygodniach wpisów'+(pg.left>0?' (zostało '+pg.left+' '+dni(pg.left)+')':'')+'.</p></div>';
+  const row=r=>{const c=r.dir===0||Math.abs(r.ch)<.05?'eq':r.ch>0?'up':'dn',pc=Math.abs(r.ch)>=.05&&r.dir&&!r.np?Math.min(999,Math.round(Math.abs(r.ch)*100))+'%':'';
+    return'<div class="pgr"><span class="pgn">'+esc(r.name)+'</span><span class="pgv"><b>'+esc(r.ct)+'</b><small>było '+esc(r.pt)+'</small></span><span class="pgc '+c+'">'+(c==='up'?'▲':c==='dn'?'▼':'=')+(pc?' '+pc:'')+'</span></div>'};
+  const gen=pg.rows.filter(r=>r.gen),gl=pg.rows.filter(r=>!r.gen).sort((a,b)=>b.ch-a.ch),show=ui.progAll?gl:gl.slice(0,5);
+  const per=pg.L===30?'30 dni':'7 dni',head=pg.up.length||pg.dn.length?'Do przodu: <b class="st-ok">'+pg.up.length+'</b> · do poprawy: <b class="st-bad">'+pg.dn.length+'</b>'+(pg.up.length?' · najbardziej: '+esc(pg.up[0].name):''):'Stabilnie, bez większych zmian.';
+  return'<div class="card"><h3>Postęp</h3><p class="sub">Ostatnie '+per+' i '+per+' wcześniej. '+head+'</p>'+gen.map(row).join('')+(gl.length?'<div class="pgsep"></div>'+show.map(row).join('')+(gl.length>5?'<button class="caltog" style="margin-top:8px" data-act="progall">'+(ui.progAll?'Pokaż mniej':'Pokaż wszystkie ('+gl.length+')')+'</button>':''):'')+'</div>';
+}
+function plansCard(){
+  if(!S.settings.asst)return'';
+  const st=planStats(),pi=planInsights(),ids=Object.keys(st.g).filter(id=>S.goals.some(g=>g.id===id)&&['r','p','w'].some(k=>st.g[id][k][0]));
+  let h='<div class="card"><h3>Plany i przeszkody</h3><p class="sub">Z odpowiedzi dla Pixy: kiedy planujesz i czy wychodzi.</p>';
+  if(!ids.length&&!pi.length)return h+'<p class="empty">Odpowiadaj Pixie rano „kiedy”, a tu zobaczysz, o której porze najlepiej Ci wychodzi i co najczęściej przeszkadza.</p></div>';
+  h+=pi.map(x=>'<div class="ins"><div class="gn" style="font-size:14px">'+esc(x.t)+'</div>'+(x.tip?'<div class="gs">'+esc(x.tip)+'</div>':'')+'</div>').join('');
+  if(ids.length)h+='<div class="tscroll"'+(pi.length?' style="margin-top:10px"':'')+'><table><tr><th>Cel</th><th>Rano</th><th>Po poł.</th><th>Wieczorem</th></tr>'+ids.map(id=>{const o=st.g[id],g=S.goals.find(x=>x.id===id);return'<tr><td>'+esc(g.name)+'</td>'+['r','p','w'].map(k=>'<td>'+(o[k][0]?P100(o[k][1]/o[k][0])+' <small class="gs">'+o[k][1]+'/'+o[k][0]+'</small>':'–')+'</td>').join('')+'</tr>'}).join('')+'</table></div>';
+  if(st.all.n>=5)h+='<p class="gs" style="margin:8px 0 0">Plany z ostatnich 30 dni dotrzymane w '+P100(st.all.ok/st.all.n)+' ('+st.all.ok+' z '+st.all.n+').</p>';
+  return h+'</div>';
+}
 function viewCharts(){
   const bk=buckets(ui.mode),t=todayS(),a=bk[0].a;
   if(!ui.cg||!S.goals.some(g=>g.id===ui.cg))ui.cg=S.goals.length?S.goals[0].id:null;
@@ -1622,6 +1857,7 @@ function viewCharts(){
   let h='<div class="seg">'+modes.map(m=>'<button class="'+(ui.mode===m[0]?'on':'')+'" data-act="mode" data-m="'+m[0]+'">'+m[1]+'</button>').join('')+'</div>';
   const rp=groupCompletion(S.goals,a,t);
   h+='<div class="tiles"><div class="tile"><b>'+streak()+'</b><span>obecna seria</span></div><div class="tile"><b>'+bestStreak()+'</b><span>najdłuższa seria</span></div><div class="tile"><b>'+(rp==null?'–':Math.round(rp*100)+'%')+'</b><span>realizacja w zakresie</span></div></div>';
+  h+=yearCard()+progressCard();
   h+=Ms.card();
   h+='<div class="card"><h3>Kalendarz</h3><p class="sub">20 tygodni. Ciemniej = więcej zaliczonych celów.</p>'+svgHeat()+'<div class="legend">mniej <i class="lv0"></i><i class="lv1"></i><i class="lv2"></i><i class="lv3"></i><i class="lv4"></i> więcej</div></div>';
   h+='<div class="card"><h3>Realizacja celów</h3><p class="sub">Średnio ze wszystkich celów.</p>'+svgBars(bk.map(b=>({label:b.label,v:groupCompletion(S.goals,b.a,b.b)})))+'</div>';
@@ -1656,6 +1892,7 @@ function viewCharts(){
   }
   {const ins=insights();
    h+='<div class="card"><h3>Wnioski</h3><p class="sub">Z Twoich wpisów. Wskazówka, nie dowód.</p>'+(ins.length?ins.map(x=>'<div class="ins"><div class="gn" style="font-size:14px">'+esc(x.t)+'</div><div class="gs">Z tym: <b class="'+(x.good===true?'st-ok':x.good===false?'st-bad':'')+'">'+fmt(x.a)+x.u+'</b> · bez tego: <b>'+fmt(x.b)+x.u+'</b> · dni: '+x.n[0]+' / '+x.n[1]+'</div></div>').join(''):'<p class="empty">Za mało danych. Wnioski pojawią się po kilku tygodniach wpisów, szczególnie nastroju.</p>')+'</div>'}
+  h+=plansCard();
   {const hs=S.goals.map(g=>({g,v:habitStrength(g)})).filter(x=>x.v!=null).sort((x,y)=>y.v-x.v);
    h+='<div class="card"><h3>Siła nawyków</h3><p class="sub">Rośnie, gdy robisz swoje. Jeden gorszy dzień jej nie zeruje.</p>'+hbars(hs.map(x=>({k:x.g.name,v:x.v,pct:x.v,t:Math.round(x.v*100)+'%'})))+'</div>'}
   const cs=cats().map(c=>({c,v:groupCompletion(catGoals(c),a,t),n:range(a,t).reduce((s,d)=>s+catAct(c,d),0)}));
@@ -1687,7 +1924,7 @@ function goalDesc0(g){
 }
 function viewGoals(){
   let h='<div class="datebar"><div class="d">Cele<small>Dotknij celu, żeby go zmienić</small></div><button class="addbtn" data-act="newgoal">+ Nowy cel</button></div>';
-  h+='<div class="cath"><span class="cat">Cele długoterminowe</span><button class="caltog" data-act="newlt">+ Dodaj</button></div><div class="card">'+(S.lt.length?S.lt.map(ltHtml).join('')+'<p class="gs" style="margin:10px 0 0">Kreska na pasku: gdzie powinieneś być dziś, żeby zdążyć na czas.</p>':'<p class="empty">Np. „20 książek w tym roku” albo „80 kg do czerwca”.</p>')+'</div>';
+  h+='<div class="cath"><span class="cat">Cele długoterminowe</span><button class="caltog" data-act="newlt">+ Dodaj</button></div><div class="card">'+(S.lt.length?S.lt.map(ltHtml).join('')+'<p class="gs" style="margin:10px 0 0">Kreska na pasku: gdzie powinieneś być dziś, żeby zdążyć na czas. Procenty przy nawykach: realizacja z 4 tygodni.</p>':'<p class="empty">Np. „20 książek w tym roku”, „80 kg do czerwca” albo „Maraton w maju”. Podepnij nawyki, które Cię do tego prowadzą.</p>')+'</div>';
   if(!S.goals.length)h+='<div class="card empty">Brak celów. Dodaj pierwszy, a aplikacja poprowadzi Cię pytaniami.</div>';
   const gl=(g,pre)=>'<div class="glrow"><button class="glist" data-act="editgoal" data-g="'+g.id+'"><span class="gi">'+pix(goalIco(g))+'</span><div class="gm"><b>'+esc(g.name)+'</b><small>'+(pre||'')+goalDesc(g)+'</small></div><span style="color:var(--muted)">›</span></button><div class="mv"><button data-act="gmove" data-g="'+g.id+'" data-dir="-1" aria-label="Przesuń wyżej">↑</button><button data-act="gmove" data-g="'+g.id+'" data-dir="1" aria-label="Przesuń niżej">↓</button></div></div>';
   cats().forEach(c=>{const gs=S.goals.filter(g=>g.cat===c&&!isPaused(g));if(!gs.length)return;const cc=catColor(c);h+='<div class="cat cc" style="--c:'+cc+'"><i></i>'+esc(c)+'<em>'+gs.length+'</em></div><div class="card" style="--c:'+cc+'">'+gs.map(g=>gl(g)).join('')+'</div>'});
@@ -1814,7 +2051,7 @@ const Bk={list:null,loading:false,
 function viewSettings(){
   const st=S.settings;
   let h='<div class="datebar"><div class="d">Ustawienia</div></div>';
-  const KINDS=[['mood','Nastrój'],['plan','Plan dnia'],['mit','Najważniejsza rzecz'],['yesterday','Pytanie o wczoraj'],['missing','Braki wieczorem'],['streak','Ochrona serii'],['weekly','Podsumowanie tygodnia'],['monthly','Podsumowanie miesiąca'],['review','Wnioski na koniec tygodnia'],['adjust','Propozycje zmian celów'],['limit','Limity'],['record','Rekordy'],['milestone','Kamienie milowe'],['insight','Wnioski z danych'],['paused','Wstrzymane cele']];
+  const KINDS=[['mood','Nastrój'],['plan','Plan dnia'],['wplan','Plan tygodnia'],['mit','Najważniejsza rzecz'],['yesterday','Pytanie o wczoraj'],['missing','Braki wieczorem'],['streak','Ochrona serii'],['weekly','Podsumowanie tygodnia'],['monthly','Podsumowanie miesiąca'],['review','Wnioski na koniec tygodnia'],['adjust','Propozycje zmian celów'],['limit','Limity'],['record','Rekordy'],['milestone','Kamienie milowe'],['insight','Wnioski z danych'],['lt','Cele długoterminowe'],['yearly','Podsumowanie roku'],['paused','Wstrzymane cele']];
   const cPixa='<div class="card"><div class="pxstage" aria-hidden="true"><canvas id="pxstage" width="88" height="126"></canvas><div class="pxst-i"><span class="pxname">Pixa</span><span class="pxst-l">'+lensSvg(S.settings.pixaPal)+'</span></div></div><h3>Asystentka Pixa</h3><p class="sub">Niczego nie zmienia bez Twojej zgody. Dotknij Pixy, żeby zareagowała.</p><div class="offbar" style="margin:0"><button class="sw'+(S.settings.asst?' on':'')+'" data-act="sasst" role="switch" aria-checked="'+!!S.settings.asst+'" aria-label="Asystentka"></button><span><b style="color:var(--fg)">Pokazuj asystentkę</b>'+''+'</span></div><span class="fl">Kolory Pixy</span><div class="chips">'+Object.keys(PixaArt.PALETTES).map(k=>'<button class="pill'+(S.settings.pixaPal===k?' on':'')+'" data-act="pxpal" data-k="'+k+'"><i class="pxsw" style="background:'+PixaArt.PALETTES[k].body+'"></i>'+PixaArt.PALETTES[k].n+'</button>').join('')+'</div><span class="fl">Charakter</span><div class="seg" style="margin-bottom:6px">'+[['soft','Łagodna'],['hard','Twarda']].map(x=>'<button class="'+(S.settings.pixaTone===x[0]?'on':'')+'" data-act="pxtone" data-k="'+x[0]+'">'+x[1]+'</button>').join('')+'</div><p class="gs" style="margin:0 0 12px">'+(S.settings.pixaTone==='hard'?'Np. „Seria 12 dni wisi na włosku. Zrób: Siłownia. Bez wymówek.”':'Np. „Seria 12 dni jest zagrożona. Do dobrego dnia brakuje: Siłownia.”')+'</p><div class="offbar" style="margin:0"><button class="sw'+(S.settings.pixaChat?' on':'')+'" data-act="pxchat" role="switch" aria-checked="'+!!S.settings.pixaChat+'" aria-label="Dymki przy zakładkach"></button><span><b style="color:var(--fg)">Dymki przy zakładkach</b></span></div><div class="seg" style="margin:8px 0 0">'+[['30','Najwyżej co 30 min'],['each','Przy każdym wejściu']].map(x=>'<button class="'+(S.settings.chatEvery===x[0]?'on':'')+'" data-act="chatfreq" data-v="'+x[0]+'">'+x[1]+'</button>').join('')+'</div><span class="fl">Twój dzień</span><div class="row2"><div><label class="fl" style="margin-top:0" for="s-wake"><small>Pytania od</small></label><select id="s-wake" data-chg="swake" style="margin:0">'+[5,6,7,8,9,10,11].map(h=>'<option value="'+h+'"'+((S.settings.wake==null?8:S.settings.wake)===h?' selected':'')+'>'+h+':00</option>').join('')+'</select></div><div><label class="fl" style="margin-top:0" for="s-eve"><small>Wieczór od</small></label><select id="s-eve" data-chg="seve" style="margin:0">'+[17,18,19,20,21,22].map(h=>'<option value="'+h+'"'+(eveH()===h?' selected':'')+'>'+h+':00</option>').join('')+'</select></div></div><p class="gs" style="margin:6px 0 0">Rano Pixa pyta o plan i najważniejszą rzecz, wieczorem domyka dzień: nastrój i to, co miało się udać.</p><span class="fl">O czym mówi</span><div class="chips">'+KINDS.map(x=>'<button class="pill'+(S.asst.off[x[0]]?'':' on')+'" data-act="pxkind" data-k="'+x[0]+'" aria-pressed="'+!S.asst.off[x[0]]+'">'+x[1]+'</button>').join('')+'</div></div>';
   const cRem=remindersCard();
   const cLook='<div class="card"><h3>Wygląd</h3><div class="seg" style="margin:0">'+[['auto','Auto'],['light','Jasny'],['dark','Ciemny']].map(x=>'<button class="'+(ui.theme===x[0]?'on':'')+'" data-act="theme" data-v="'+x[0]+'">'+x[1]+'</button>').join('')+'</div><div class="offbar" style="margin:12px 0 0"><button class="sw'+(S.settings.anim!==false?' on':'')+'" data-act="animt" role="switch" aria-checked="'+(S.settings.anim!==false)+'" aria-label="Animacje"></button><span><b style="color:var(--fg)">Animacje</b></span></div></div>';
@@ -1853,16 +2090,19 @@ function sheetHtml(){
     h+='<div class="actions"><button class="btn" data-act="close">Anuluj</button><button class="btn main" data-act="savec">Zapisz</button></div>';
     return'<div class="scrim" data-act="close"></div><div class="sheet" role="dialog" aria-modal="true">'+h+'</div>';
   }
+  if(s.kind==='wplan')return wpSheet(s);
+  if(s.kind==='dayend'){if(!s.ids)Object.assign(s,dcInit(s.d));return dcSheet(s)}
   if(s.kind==='challenge')return Social.chSheet();
   if(s.kind==='xfer')return Social.xferSheet();
   if(s.kind==='lt'){
     const x=s.x,opts=ltOpts(x.kind);
     let h='<h2>'+(s.isNew?'Nowy cel długoterminowy':'Zmień cel długoterminowy')+'</h2>';
     h+='<label class="fl" for="lt-name">Nazwa</label><input class="inp" id="lt-name" data-inp="name" value="'+esc(x.name)+'" placeholder="np. 20 książek w tym roku">';
-    h+='<span class="fl">Skąd brać postęp?</span>'+[['sum','Suma z celu','Np. treningi na siłowni albo przeczytane strony, liczone z Twoich wpisów.'],['value','Pomiar do osiągnięcia','Np. waga 80 kg, z celu typu pomiar.'],['manual','Licznik ręczny','Klikasz +1, np. po każdej przeczytanej książce.']].map(o=>'<button class="opt'+(x.kind===o[0]?' on':'')+'" data-act="ltkind" data-k="'+o[0]+'"><b>'+o[1]+'</b><span>'+o[2]+'</span></button>').join('');
-    if(x.kind!=='manual')h+=opts.length?'<label class="fl" for="lt-goal">Z którego celu?</label><select id="lt-goal" data-chg="ltg" style="margin:0">'+opts.map(g=>'<option value="'+g.id+'"'+(x.goal===g.id?' selected':'')+'>'+esc(g.cat)+' · '+esc(g.name)+'</option>').join('')+'</select>':'<p class="gs">Nie masz jeszcze celu, z którego dałoby się to liczyć'+(x.kind==='value'?' (potrzebny cel typu pomiar).':'.')+'</p>';
-    h+='<div class="row2" style="margin-top:12px"><div><label class="fl" style="margin-top:0" for="lt-target"><small>'+(x.kind==='value'?'Wartość docelowa':'Ile łącznie')+'</small></label><input class="inp" id="lt-target" inputmode="decimal" data-inp="target" value="'+(x.target?fmt(x.target):'')+'"></div>'+(x.kind==='manual'?'<div><label class="fl" style="margin-top:0" for="lt-unit"><small>Jednostka</small></label><input class="inp" id="lt-unit" data-inp="unit" value="'+esc(x.unit||'')+'" placeholder="książek"></div>':'')+'</div>';
-    h+='<div class="row2" style="margin-top:8px"><div><label class="fl" style="margin-top:0" for="lt-from"><small>Od</small></label><input class="inp" type="date" id="lt-from" data-inp="from" value="'+x.from+'"></div><div><label class="fl" style="margin-top:0" for="lt-to"><small>Do</small></label><input class="inp" type="date" id="lt-to" data-inp="to" value="'+x.to+'"></div></div>';
+    h+='<span class="fl">Skąd brać postęp?</span>'+[['sum','Suma z celu','Np. treningi na siłowni albo przeczytane strony, liczone z Twoich wpisów.'],['value','Pomiar do osiągnięcia','Np. waga 80 kg, z celu typu pomiar.'],['manual','Licznik ręczny','Klikasz +1, np. po każdej przeczytanej książce.'],['done','Jednorazowe osiągnięcie','Np. przebiec maraton, zdać B2. Postęp widać po nawykach, które do tego prowadzą.']].map(o=>'<button class="opt'+(x.kind===o[0]?' on':'')+'" data-act="ltkind" data-k="'+o[0]+'"><b>'+o[1]+'</b><span>'+o[2]+'</span></button>').join('');
+    if(x.kind!=='manual'&&x.kind!=='done')h+=opts.length?'<label class="fl" for="lt-goal">Z którego celu?</label><select id="lt-goal" data-chg="ltg" style="margin:0">'+opts.map(g=>'<option value="'+g.id+'"'+(x.goal===g.id?' selected':'')+'>'+esc(g.cat)+' · '+esc(g.name)+'</option>').join('')+'</select>':'<p class="gs">Nie masz jeszcze celu, z którego dałoby się to liczyć'+(x.kind==='value'?' (potrzebny cel typu pomiar).':'.')+'</p>';
+    if(x.kind!=='done')h+='<div class="row2" style="margin-top:12px"><div><label class="fl" style="margin-top:0" for="lt-target"><small>'+(x.kind==='value'?'Wartość docelowa':'Ile łącznie')+'</small></label><input class="inp" id="lt-target" inputmode="decimal" data-inp="target" value="'+(x.target?fmt(x.target):'')+'"></div>'+(x.kind==='manual'?'<div><label class="fl" style="margin-top:0" for="lt-unit"><small>Jednostka</small></label><input class="inp" id="lt-unit" data-inp="unit" value="'+esc(x.unit||'')+'" placeholder="książek"></div>':'')+'</div>';
+    h+='<div class="row2" style="margin-top:8px"><div><label class="fl" style="margin-top:0" for="lt-from"><small>Od</small></label><input class="inp" type="date" id="lt-from" data-inp="from" value="'+x.from+'"></div><div><label class="fl" style="margin-top:0" for="lt-to"><small>Do</small></label><input class="inp" type="date" id="lt-to" data-inp="to" value="'+x.to+'"></div></div><div class="chips" style="margin-top:8px">'+[['3','3 miesiące'],['6','Pół roku'],['y','Do końca roku']].map(o=>'<button class="pill" data-act="ltto" data-m="'+o[0]+'">'+o[1]+'</button>').join('')+'</div>';
+    {const src=(x.kind==='sum'||x.kind==='value')?x.goal:null,hs=S.goals.filter(g=>!isPaused(g)&&g.id!==src);if(hs.length)h+='<span class="fl">Co Cię do tego przybliża? <small>(nawyki, opcjonalnie'+(src?'; cel źródłowy liczy się sam':'')+')</small></span><div class="chips">'+hs.map(g=>'<button class="pill'+((x.helps||[]).includes(g.id)?' on':'')+'" data-act="lthelp" data-g="'+g.id+'">'+esc(g.name)+'</button>').join('')+'</div>'}
     h+='<div class="actions">'+(s.isNew?'':'<button class="btn danger" data-act="'+(s.del?'dellt':'askdellt')+'">'+(s.del?'Na pewno usuń':'Usuń')+'</button>')+'<button class="btn" data-act="close">Anuluj</button><button class="btn main" id="ltsave" data-act="savelt"'+(validLt(x)?'':' disabled')+'>Zapisz</button></div>';
     return'<div class="scrim" data-act="close"></div><div class="sheet" role="dialog" aria-modal="true">'+h+'</div>';
   }
@@ -1983,7 +2223,7 @@ function act(a,ds){
     case'mode':ui.mode=ds.m;render();break;
     case'goday':ui.date=ds.d;ui.tab='today';render();window.scrollTo(0,0);break;
     case'off':if(S.off[d])delete S.off[d];else S.off[d]=true;save();render();break;
-    case'toggle':{const g=S.goals.find(x=>x.id===ds.g),was=num(val(g.id,d))>0;if(was){setVal(g.id,d,0);ui.open[g.id]=false}else{setVal(g.id,d,1);ui.open[g.id]=true}render();if(!was){const b=document.querySelector('#row-'+g.id+' .chk');FX.pop(b);FX.burst(b,FX.col(b))}break}
+    case'toggle':{const g=S.goals.find(x=>x.id===ds.g),was=num(val(g.id,d))>0;if(was){setVal(g.id,d,0);ui.open[g.id]=false}else{setVal(g.id,d,1);ui.open[g.id]=true}render();if(!was){const b=document.querySelector('#row-'+g.id+' .chk');FX.pop(b);FX.burst(b,FX.col(b));const lx=S.lt.find(x=>x.kind==='sum'&&x.goal===g.id&&!x.doneAt&&x.from<=d&&x.to>=d);if(lx){const c=ltCalc(lx);if(c&&c.pr<1)toast('+1 do „'+lx.name+'”: '+fmt(c.cur)+' z '+fmt(lx.target)+'.')}}break}
     case'vpick':{const g=S.goals.find(x=>x.id===ds.g);setVal(g.id,d,g.variants[+ds.i]);ui.open[g.id]=false;render();break}
     case'vopen':ui.open[ds.g]=true;render();break;
     case'addc':ui.sheet={kind:'contact',gid:ds.g,l:'m',p:[],np:''};renderSheet();break;
@@ -2011,6 +2251,29 @@ function act(a,ds){
     case'gmove':{const i=S.goals.findIndex(x=>x.id===ds.g),g=S.goals[i],dir=+ds.dir;let j=i+dir;while(j>=0&&j<S.goals.length&&S.goals[j].cat!==g.cat)j+=dir;if(j<0||j>=S.goals.length)break;S.goals[i]=S.goals[j];S.goals[j]=g;save();render();break}
     case'cmove':{const o=cats(),i=+ds.i,j=i+(+ds.dir);if(j<0||j>=o.length)break;const tmp=o[i];o[i]=o[j];o[j]=tmp;S.goals=o.flatMap(c=>S.goals.filter(g=>g.cat===c));save();render();break}
     case'newlt':{const t=todayS(),o=ltOpts('sum');ui.sheet={kind:'lt',isNew:true,del:false,x:{id:'lt'+Date.now(),name:'',kind:'sum',goal:o.length?o[0].id:null,target:0,from:t,to:t.slice(0,4)+'-12-31',unit:'',count:0}};renderSheet();break}
+    case'wplan':wpOpen(ds.w||wstart(todayS()));break;
+    case'wpday':{const x=ui.sheet.p[ds.g],i=+ds.i;x.d=x.d.includes(i)?x.d.filter(y=>y!==i):x.d.concat(i).sort((a,b)=>a-b);renderSheet();break}
+    case'wpslot':ui.sheet.p[ds.g].s=ds.s;renderSheet();break;
+    case'wpsave':{const s=ui.sheet,o={};Object.keys(s.p).forEach(id=>{if(s.p[id].d.length)o[id]={d:s.p[id].d,s:s.p[id].s||''}});if(Object.keys(o).length)S.wplan[s.ws]=o;else delete S.wplan[s.ws];ui.sheet=null;save();render();toast(Object.keys(o).length?'Plan tygodnia zapisany. Rano tylko przypomnę.':'Plan wyczyszczony. Rano będę pytać jak dotąd.');break}
+    case'progall':ui.progAll=!ui.progAll;render();break;
+    case'dclose':dcOpen(ds.d||dcDay());break;
+    case'dcmood':{const s=ui.sheet,v=+ds.v;setMood(s.d,v);S.moodAt[s.d]='f';save();renderSheet();break}
+    case'dcmit':{const s=ui.sheet,m=S.mit[s.d],tm=addDays(s.d,1),v=ds.v;if(!m)break;s.mitA=v;m.ok=v==='y';
+      if(v==='j'){if(!S.mit[tm]||!S.mit[tm].t)S.mit[tm]={t:m.t,ok:null,from:s.d}}else if(S.mit[tm]&&S.mit[tm].from===s.d&&S.mit[tm].ok==null)delete S.mit[tm];
+      if(v!=='y'&&s.why)Asst.noteMiss(s.d,'mit',s.why);else if(v!=='y'){const w=S.asst.why;if(!(w[s.d]&&w[s.d].mit))Asst.noteMiss(s.d,'mit')}
+      save();renderSheet();break}
+    case'dcg':{const s=ui.sheet,id=ds.g,v=ds.v,tm=addDays(s.d,1),P=S.asst.plan;s.ans[id]=v;
+      if(v==='y')setVal(id,s.d,1);else if(num(val(id,s.d)))setVal(id,s.d,0);
+      if(v==='j')Asst.setPlanD(tm,id,SLOT_N[planOf(s.d,id)]?planOf(s.d,id):'w');else if(P[tm]&&P[tm][id]&&s.jd&&s.jd[id]){delete P[tm][id]}
+      if(v==='j'){s.jd=s.jd||{};s.jd[id]=1}
+      Asst.answered(s.d,id);if(v!=='y')Asst.noteMiss(s.d,id,s.why||undefined);else{const w=S.asst.why[s.d];if(w)delete w[id]}
+      save();renderSheet();break}
+    case'dcv':{const s=ui.sheet;setVal(ds.g,s.d,+ds.v);Asst.answered(s.d,ds.g);save();renderSheet();break}
+    case'dcwhy':{const s=ui.sheet;s.why=ds.k;Object.keys(s.ans).forEach(id=>{if(s.ans[id]!=='y')Asst.noteMiss(s.d,id,ds.k)});if(s.mitA&&s.mitA!=='y')Asst.noteMiss(s.d,'mit',ds.k);save();renderSheet();toast('Zapisane. Pomoże mi to w podpowiedziach.');break}
+    case'dcdone':dcFinish();break;
+    case'lthelp':{const x=ui.sheet.x,h=x.helps=x.helps||[];x.helps=h.includes(ds.g)?h.filter(y=>y!==ds.g):h.concat(ds.g);renderSheet();break}
+    case'ltto':{const x=ui.sheet.x,f=parse(x.from||todayS());if(ds.m==='y')x.to=(x.from||todayS()).slice(0,4)+'-12-31';else{const e=new Date(f.getFullYear(),f.getMonth()+(+ds.m),f.getDate());x.to=ymd(e)}renderSheet();break}
+    case'ltdone':{const x=S.lt.find(y=>y.id===ds.id);if(!x)break;x.doneAt=x.doneAt?null:todayS();if(!x.doneAt)delete x.doneAt;save();render();if(x.doneAt){FX.confetti(110);toast('Gratulacje! „'+x.name+'” osiągnięte.')}break}
     case'editlt':{const x=S.lt.find(y=>y.id===ds.id);if(!x)break;ui.sheet={kind:'lt',isNew:false,del:false,x:JSON.parse(JSON.stringify(x))};renderSheet();break}
     case'ltkind':{const x=ui.sheet.x;x.kind=ds.k;const o=ltOpts(x.kind);if(!o.some(g=>g.id===x.goal))x.goal=o.length?o[0].id:null;renderSheet();break}
     case'ltinc':case'ltdec':{const x=S.lt.find(y=>y.id===ds.id);x.count=Math.max(0,(x.count||0)+(a==='ltinc'?1:-1));save();render();break}
@@ -2079,7 +2342,7 @@ function act(a,ds){
       render();toast('Zapisano cel.');break;
     }
     case'delp':{const u=withUndo('Usunięto osobę z listy.');setTimeout(u,0);const p=S.people[+ds.i];S.people.splice(+ds.i,1);if(ui.sheet&&ui.sheet.kind==='people'){ui.sheet.del=null;if(ui.sheet.back)ui.sheet.back.p=ui.sheet.back.p.filter(x=>x!==p)}save();render();break}
-    case'clear':{ui.confirm=null;const u=withUndo('Wyczyszczono wpisy. Cele zostały.');S.log={};S.off={};S.people=[];S.notes={};S.reviews={};S.mood={};S.lt.forEach(x=>{if(x.kind==='manual')x.count=0});S.sample=false;S.ms={};S.msInit=false;save();render();u();break}
+    case'clear':{ui.confirm=null;const u=withUndo('Wyczyszczono wpisy. Cele zostały.');S.log={};S.off={};S.people=[];S.notes={};S.reviews={};S.mood={};S.lt.forEach(x=>{if(x.kind==='manual')x.count=0;delete x.doneAt});S.sample=false;S.ms={};S.msInit=false;S.mit={};S.moodAt={};S.wplan={};S.asst.plan={};S.asst.why={};S.asst.ck={};save();render();u();break}
     case'askreseed':ui.confirm='reseed';render();break;
     case'start':Sync.start(ds.k);window.scrollTo(0,0);break;
     case'reseed':{const u=withUndo('Wczytano dane przykładowe.');ui.confirm=null;S=seed();save();render();u();break}
@@ -2113,6 +2376,8 @@ document.addEventListener('change',e=>{
   if(c==='gvar')renderSheet();
   if(c==='note'){const v=el.value.trim(),dd=ui.date;if(v)S.notes[dd]=v;else delete S.notes[dd];save();toast('Zapisano notatkę.')}
   if(c==='rv'){const w=el.dataset.w,k=el.dataset.k,v=el.value.trim();S.reviews[w]=S.reviews[w]||{};if(v)S.reviews[w][k]=v;else delete S.reviews[w][k];if(!Object.keys(S.reviews[w]).length)delete S.reviews[w];save();toast('Zapisano podsumowanie.')}
+  if(c==='dcnum'&&ui.sheet&&ui.sheet.kind==='dayend'){const s=ui.sheet,g=S.goals.find(x=>x.id===el.dataset.g),v=parseNum(el.value);if(v===0&&isMax(g)){S.log[s.d]=S.log[s.d]||{};S.log[s.d][g.id]=0;save()}else setVal(g.id,s.d,v);if(v!=null)Asst.answered(s.d,g.id);save();renderSheet()}
+  if(c==='dcnote'&&ui.sheet&&ui.sheet.kind==='dayend'){const v=el.value.trim(),dd=ui.sheet.d;if(v)S.notes[dd]=v;else delete S.notes[dd];save()}
   if(c==='ltg'){ui.sheet.x.goal=el.value;const sv=document.getElementById('ltsave');if(sv)sv.disabled=!validLt(ui.sheet.x)}
   if(c==='swake'){S.settings.wake=+el.value;save();render()}
   if(c==='seve'){S.settings.evening=+el.value;save();render()}
@@ -2174,14 +2439,14 @@ function mergeState(base,l,r){
   const set=(b,a,c)=>{b=b||[];a=a||[];c=c||[];const out=[];a.concat(c).forEach(x=>{if(out.includes(x))return;const inA=a.includes(x),inC=c.includes(x),inB=b.includes(x);if(inB&&(!inA||!inC))return;out.push(x)});return out};
   const asst=(b,a,c)=>{b=b||{};a=a||{};c=c||{};return{snooze:map(b.snooze,a.snooze,c.snooze),off:map(b.off,a.off,c.off),ck:map(b.ck,a.ck,c.ck),plan:map(b.plan,a.plan,c.plan,true),why:map(b.why,a.why,c.why,true)}};
   return Object.assign({},r,l,{mit:map(base.mit,l.mit,r.mit),moodAt:map(base.moodAt,l.moodAt,r.moodAt),log:map(base.log,l.log,r.log,true),mood:map(base.mood,l.mood,r.mood),notes:map(base.notes,l.notes,r.notes),off:map(base.off,l.off,r.off),reviews:map(base.reviews,l.reviews,r.reviews),
-    goals:byId(base.goals,l.goals,r.goals),lt:byId(base.lt,l.lt,r.lt),people:set(base.people,l.people,r.people),settings:map(base.settings,l.settings,r.settings),asst:asst(base.asst,l.asst,r.asst),ms:map(base.ms,l.ms,r.ms),msInit:!!(l.msInit||r.msInit),tour:pick(base.tour,l.tour,r.tour)});
+    goals:byId(base.goals,l.goals,r.goals),lt:byId(base.lt,l.lt,r.lt),people:set(base.people,l.people,r.people),settings:map(base.settings,l.settings,r.settings),asst:asst(base.asst,l.asst,r.asst),ms:map(base.ms,l.ms,r.ms),wplan:map(base.wplan,l.wplan,r.wplan,true),msInit:!!(l.msInit||r.msInit),tour:pick(base.tour,l.tour,r.tour)});
 }
 // Adresy z powiadomień (#week, #friends, #pixa-week). Działa przy starcie i gdy aplikacja jest już otwarta.
 function navHash(){
   const h=location.hash,clr=()=>history.replaceState(null,'',location.pathname+location.search);
   if(h==='#week'||h==='#friends'){ui.tab=h.slice(1);if(h==='#week')ui.wk=0;ui.sheet=null;clr();return true}
   if(h==='#pixa-week'||h==='#pixa-month'){ui.tab='today';ui.sheet=null;ui.asstOpen=true;ui.asstKind=h==='#pixa-week'?'weekly':'monthly';clr();return true}
-  if(h==='#pixa-fill'){ui.tab='today';ui.date=todayS();ui.sheet=null;ui.asstOpen=true;ui.asstFill=true;clr();return true}
+  if(h==='#pixa-fill'){const d=dcDay();ui.tab='today';ui.date=d;ui.sheet={kind:'dayend',d};clr();return true}
   return false;
 }
 window.addEventListener('hashchange',()=>{if(navHash()&&S){render();window.scrollTo(0,0)}});
@@ -2734,7 +2999,7 @@ const Asst=(()=>{
   const POOLS={night:['sleep','sleep','yawn','meditate','float'],morning:['stretch','yawn','wave','stand','float','perch','groove'],day:['float','stand','perch','orb','peek','dance','groove','think','idea','point','wave'],evening:['float','perch','orb','meditate','think','stand','sleep','groove']};
   const dayPart=()=>{const h=new Date().getHours();return h>=23||h<5?'night':h<10?'morning':h<18?'day':'evening'};
   const tn=(a,b)=>S&&S.settings.pixaTone==='hard'?b:a;
-  const CTX={mood:'wave',start:'wave',missing:'point',yesterday:'think',streak:'wow',review:'think',adjust:'point',limit:'facepalm',paused:'shrug',record:'thumbs',insight:'idea',milestone:'cheer',weekly:'wave',monthly:'wave'};
+  const CTX={mood:'wave',start:'wave',missing:'point',yesterday:'think',streak:'wow',review:'think',adjust:'point',limit:'facepalm',paused:'shrug',record:'thumbs',insight:'idea',milestone:'cheer',weekly:'wave',monthly:'wave',wplan:'idea',lt:'point',yearly:'cheer'};
   let pose='float',cur=null,poseT=0,hold=80,ctxPose=null,pokeT=0,frame=0,anim=null;
   const pick=()=>{const P=POOLS[dayPart()],o=P.filter(x=>x!==pose);return o[Math.floor(Math.random()*o.length)]};
   function choose(n){if(n!==pose){pose=n;poseT=0;hold=60+Math.floor(Math.random()*60)}else poseT=0}
@@ -2880,14 +3145,15 @@ const Asst=(()=>{
       if(m&&m.t&&m.ok==null&&hour>=ev)add('mitw-'+t,'mit',79,tn('Najważniejsze dziś: „'+m.t+'”. Udało się?','„'+m.t+'”: zrobione?'),mitActs(t))}
     // plan dnia: rano „kiedy?”, po zaplanowanej porze „udało się?”
     if(!S.off[t]){
-      if(P==='morning')planGoals(t).forEach(x=>{if(planOf(t,x.id)!==undefined)return;add('plan-'+x.id+'-'+t,'plan',73,tn('Kiedy dziś „'+x.name+'”?','„'+x.name+'”: kiedy?'),planActs(x.id,t))});
+      if(P==='morning')planGoals(t).forEach(x=>{if(planOf(t,x.id)!==undefined)return;add('plan-'+x.id+'-'+t,'plan',73,tn('Kiedy dziś „'+x.name+'”?','„'+x.name+'”: kiedy?')+bestHint(x.id),planActs(x.id,t))});
+      {const wt=wpTarget();if(wt)add('wp-'+wt,'wplan',76,wpText(wt),[{l:'Zaplanuj',f:()=>wpOpen(wt)}],'idea')}
       S.goals.filter(x=>!isPaused(x)&&x.type==='do'&&!doneOn(x,t)&&!(S.asst.ck[t]||[]).includes(x.id)).forEach(x=>{const sl=planOf(t,x.id);if(sl&&slotDue(sl))add('planok-'+x.id+'-'+t,'plan',77,tn('Miało być „'+x.name+'” ('+SLOTN[sl]+'). Udało się?','„'+x.name+'” ('+SLOTN[sl]+'): jest?'),missActs(x,t))});
     }
     if(hour>=17){const rs=rescue(t);if(rs){const ckable=rs.set.every(ckTypes);add('streak-'+t,'streak',90,tn('Seria '+rs.n+' dni jest zagrożona. Do dobrego dnia brakuje: '+names(rs.set)+'.','Seria '+rs.n+' dni wisi na włosku. Zrób: '+names(rs.set)+'. Bez wymówek.'),ckable?[{l:'Uzupełnij z Pixą',f:()=>startCk(t,rs.set)}]:[{l:'Pokaż',f:()=>{ui.tab='today';ui.date=t;render();setTimeout(()=>act('jump',{g:rs.set[0].id}),50)}}])}}
     {const y=addDays(t,-1),my=missingFor(y);if(my.length&&firstDay()<=y)add('yest-'+y,'yesterday',78,tn('Wczoraj nie było wpisu przy: '+names(my)+'. Nie pominąłeś czegoś?','Wczoraj pusto przy: '+names(my)+'. Zrobione czy nie?'),[{l:'Uzupełnij',f:()=>startCk(y,my)},{l:'Nic więcej nie było',f:()=>{my.forEach(g=>answered(y,g.id));toast('OK, wczoraj zamknięty.')}}])}
     if(hour>=ev&&!S.off[t]){
       const miss=missingFor(t);
-      if(miss.length)add('miss-'+t,'missing',70,tn('Do uzupełnienia na dziś: '+names(miss)+'.','Dzień niedomknięty. Brakuje: '+names(miss)+'.'),[{l:'Uzupełnij z Pixą',f:()=>startCk(t,miss,true)},{l:'Pokaż',f:()=>{ui.tab='today';ui.date=t;render();setTimeout(()=>act('jump',{g:miss[0].id}),50)}}]);
+      if(miss.length)add('miss-'+t,'missing',70,tn('Do uzupełnienia na dziś: '+names(miss)+'.','Dzień niedomknięty. Brakuje: '+names(miss)+'.'),[{l:'Domknij dzień',f:()=>dcOpen(t)},{l:'Krok po kroku',neg:1,f:()=>startCk(t,miss,true)}]);
     }
     if(new Date().getDay()===0&&hour>=17&&!(S.reviews[ws]&&(S.reviews[ws].good||S.reviews[ws].improve)))add('rev-'+ws,'review',60,'Koniec tygodnia. Podsumujesz go w minutę? Co poszło dobrze, co poprawić?',[{l:'Podsumuj',f:()=>{ui.tab='week';ui.wk=0;render();setTimeout(()=>{const el=document.getElementById('rv-good');if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.focus({preventScroll:true})}},50)}}]);
     S.goals.forEach(g=>{
@@ -2912,6 +3178,12 @@ const Asst=(()=>{
       // rekord serii
       const r=goalRuns(g);if(r&&r.cur>=3&&r.cur===r.best)add('rec-'+g.id+'-'+r.cur,'record',35,'„'+g.name+'”: '+r.cur+' '+r.u+' z rzędu. '+tn('To Twój rekord!','Rekord. Teraz go pobij.'),[{l:'Dzięki!',f:()=>{}}]);
     });
+    // cele długoterminowe za planem albo z kulejącymi nawykami (raz w tygodniu)
+    S.lt.forEach(x=>{const it=ltTip(x,ws);if(it&&it.warn)add('lt-'+x.id+'-'+ws,'lt',42,it.text,[{l:'Pokaż',f:()=>{ui.tab='goals';render();window.scrollTo(0,0)}}],'point')});
+    // podsumowanie roku: ostatnie dni grudnia i pierwszy tydzień stycznia
+    {const md=t.slice(5);if(md>='12-28'||md<='01-07'){const y=md>='12-28'?t.slice(0,4):String(+t.slice(0,4)-1),r=yearRecap(y);if(r)add('yr-'+y,'yearly',72,tn('Rok '+y+' w liczbach: dobre dni '+r.good+', świetne '+r.perfect+', najdłuższa seria '+r.best+'. Jestem z Ciebie dumna!','Rok '+y+': dobre dni '+r.good+', seria '+r.best+'. Następny ma być lepszy.'),[{l:'Zobacz rok',f:()=>{ui.tab='charts';render();setTimeout(()=>{const el=document.getElementById('yr');if(el)el.scrollIntoView({behavior:'smooth',block:'start'})},60)}}],'cheer')}}
+    // wniosek z planów (o której porze wychodzi, co przeszkadza)
+    try{const pi=planInsights()[0];if(pi)add(pi.id,'insight',22,'Zauważyłam coś w Twoich planach. '+pi.t+(pi.tip?' '+pi.tip:''),[{l:'Ciekawe',f:()=>{}}],'idea')}catch(e){}
     // wniosek z danych
     try{const ins=insights().find(x=>x.good===true);if(ins)add('ins-'+ins.t,'insight',20,'Zauważyłam coś w Twoich danych. '+ins.t+': średnio '+fmt(ins.a)+ins.u+', a bez tego '+fmt(ins.b)+ins.u+'.',[{l:'Ciekawe',f:()=>{}}])}catch(e){}
     return out.sort((a,b)=>b.pr-a.pr);
@@ -2923,7 +3195,7 @@ const Asst=(()=>{
     if(anim){cancelAnimationFrame(anim);anim=null}
     if(!S||!S.settings.asst||(ui.tour!=null&&!ui.tourLens)||(!ui.asstOpen&&(ui.sheet||ui.tab==='settings'))||(ui.sheet&&ui.sheet.kind==='goal')){root.innerHTML='';return}
     if(ui.asstFill&&ui.asstOpen){ui.asstFill=false;const d=new Date().getHours()<5?addDays(todayS(),-1):todayS(),l=missingFor(d);if(l.length||(S.mood[d]==null&&!S.off[d]))startCk(d,l,true)}
-    tipsCache=memo('tips|'+new Date().getHours(),tips).slice();if(ui.chatTip&&ui.asstOpen){const c=ui.chatTip;tipsCache.unshift({id:'chat-'+c.id,kind:'chat',pr:999,text:c.text,actions:c.acts&&c.acts.length?c.acts:[{l:'OK',f:()=>{}}],pose:c.pose});idx=0}
+    tipsCache=memo('tips|'+new Date().getHours(),tips).slice();if(ui.chatTip&&ui.asstOpen){const c=ui.chatTip;tipsCache.unshift({id:'chat-'+c.id,kind:'chat',pr:999,text:c.text,actions:c.acts&&c.acts.length?c.acts:[{l:'OK',f:()=>{}}],pose:c.pose,nf:c.nf});idx=0}
     if(idx>=tipsCache.length)idx=0;
     if(ui.asstKind){const j=tipsCache.findIndex(x=>x.kind===ui.asstKind);if(j>=0)idx=j;ui.asstKind=null}
     const has=tipsCache.length>0||!!ui.fdone,fresh=(has&&!openedToday())||!!ui.fdone||tipsCache.some(x=>x.kind==='milestone');
@@ -2939,7 +3211,7 @@ const Asst=(()=>{
     else if(mode==='focus')bub=focusBubble();
     else if(mode==='breath')bub=breathBubble();
     else if(!tp)bub='<p class="pxtxt">Wszystko gra. Nie mam teraz żadnych pytań. Zajrzę, gdy coś zauważę.</p>';
-    else bub='<p class="pxtxt">'+esc(tp.text)+'</p><div class="pxact">'+tp.actions.map((a,j)=>a.mood?'<button class="mb md'+a.mood+'" data-asst="do" data-j="'+j+'" aria-label="'+esc(a.l)+'"><b>'+a.mood+'</b></button>':'<button class="btn'+(a.neg?'':' main')+'" data-asst="do" data-j="'+j+'">'+esc(a.l)+'</button>').join('')+'</div><div class="pxfoot"><button class="link" data-asst="later">Nie teraz</button><button class="link" data-asst="never">Nie pokazuj takich</button>'+(tipsCache.length>1?'<button class="link pxnext" data-asst="next">'+(idx+1)+'/'+tipsCache.length+' ›</button>':'')+'</div>';
+    else bub='<p class="pxtxt">'+esc(tp.text)+'</p><div class="pxact">'+tp.actions.map((a,j)=>a.mood?'<button class="mb md'+a.mood+'" data-asst="do" data-j="'+j+'" aria-label="'+esc(a.l)+'"><b>'+a.mood+'</b></button>':'<button class="btn'+(a.neg?'':' main')+'" data-asst="do" data-j="'+j+'">'+esc(a.l)+'</button>').join('')+'</div><div class="pxfoot">'+(tp.nf?'':'<button class="link" data-asst="later">Nie teraz</button><button class="link" data-asst="never">Nie pokazuj takich</button>')+(tipsCache.length>1?'<button class="link pxnext" data-asst="next">'+(idx+1)+'/'+tipsCache.length+' ›</button>':'')+'</div>';
     root.innerHTML='<div class="pxpanel" role="dialog" aria-label="Pixa, asystentka"><div class="pxavw"><canvas class="pxav" width="88" height="126" data-asst="poke" role="img" aria-label="Pixa"></canvas></div><div class="pxbub"><div class="pxhead"><span class="pxname">Pixa</span>'+(mode?'':'<span class="pxtools"><button data-asst="ftool">Minutnik</button><button data-asst="btool">Oddech</button></span>')+'</div>'+bub+'</div><button class="pxclose" data-asst="close" aria-label="Zamknij asystentkę">×</button></div>';
     const cv=root.querySelector('.pxav');
     if(!mode)setCtx(tp);
@@ -3019,6 +3291,18 @@ const Asst=(()=>{
   const doneOn=(g,d)=>num(val(g.id,d))>0;
   // Cele, o które warto zapytać rano o plan: codzienne „do” i tygodniowe „do”, którym brakuje w tym tygodniu.
   function planGoals(d){const ws=wstart(d);return S.goals.filter(x=>!isPaused(x)&&x.type==='do'&&(x.period==='day'||(x.period==='week'&&hasTarget(x)&&sumRange(x.id,ws,d)<x.target))&&!doneOn(x,d))}
+  const bestHint=gid=>{const b=bestSlot(gid);return b?' '+tn('Najlepiej wychodzi Ci '+SLOT_N[b.k]+' ('+P100(b.r)+').','Najskuteczniej: '+SLOT_N[b.k]+'.'):''};
+  // Plan tygodnia: w niedzielę od 17 na następny tydzień, w poniedziałek na bieżący (gdy jeszcze go nie ma).
+  function wpTarget(){if(S.asst.off.wplan||!wpGoals().length)return null;const dw=new Date().getDay(),h=new Date().getHours(),ws=wstart(todayS()),w=dw===0&&h>=17?addDays(ws,7):dw===1&&h<eveH()?ws:null;return w&&!(S.wplan||{})[w]?w:null}
+  const wpText=w=>tn('Zaplanujesz '+(w===wstart(todayS())?'ten':'nowy')+' tydzień? 30 sekund, a rano nie będę pytać o każdy cel osobno.','Plan tygodnia: 30 sekund. Potem rano tylko przypominam.');
+  // Cel długoterminowy: zdanie Pixy o nim i nawykach, które do niego prowadzą. warn = coś do poprawy.
+  function ltTip(x,ws){const t=todayS();if(x.to<t||x.doneAt||x.from>t)return null;const hab=ltIds(x).map(id=>S.goals.find(g=>g.id===id)).filter(g=>g&&!isPaused(g));if(!hab.length)return null;
+    const hn=hab.slice(0,3).map(g=>'„'+g.name+'”').join(', '),hc=ltHabits(x);
+    if(x.kind==='done'){if(hc==null)return null;return hc>=.7?{text:tn('„'+x.name+'”: nawyki, które do tego prowadzą, trzymają się na '+P100(hc)+'. Jesteś na dobrej drodze.','„'+x.name+'”: nawyki na '+P100(hc)+'. Trzymaj kurs.'),pose:'thumbs'}:{warn:hc<.5,text:tn('„'+x.name+'”: nawyki ('+hn+') trzymają się na '+P100(hc)+'. Bez nich będzie trudno. Może mniejszy krok na start?','„'+x.name+'”: nawyki tylko na '+P100(hc)+'. Za mało. Popraw '+hn+'.'),pose:'think'}}
+    const c=ltCalc(x);if(!c||c.pr>=1)return null;
+    if(x.kind==='value'){const d=c.pr-c.frac;return d<-.05?{warn:true,text:tn('„'+x.name+'”: trochę za planem. Pomaga w tym: '+hn+'.','„'+x.name+'”: za planem. Dociśnij: '+hn+'.'),pose:'point'}:{text:tn('„'+x.name+'”: zgodnie z planem albo przed nim. Tak trzymaj!','„'+x.name+'”: plan trzymany.'),pose:'thumbs'}}
+    const d=c.cur-c.exp;if(d<0&&-d>=Math.max(1,x.target*.05))return{warn:true,text:tn('„'+x.name+'”: '+fmt(c.cur)+' z '+fmt(x.target)+', na dziś powinno być ok. '+fmt(Math.round(c.exp))+'. Przybliża Cię do tego: '+hn+'.','„'+x.name+'”: za planem o '+fmt(Math.round(-d))+'. Nadrabiaj: '+hn+'.'),pose:'point'};
+    return{text:tn('„'+x.name+'”: '+fmt(c.cur)+' z '+fmt(x.target)+', zgodnie z planem. Każdy wpis się liczy!','„'+x.name+'”: plan trzymany. Nie zwalniaj.'),pose:'thumbs'}}
   function planActs(gid,d){return[['r','Rano'],['p','Po południu'],['w','Wieczorem']].map(x=>({l:x[1],f:()=>setPlanD(d,gid,x[0]),t:tn('Zapisane: '+x[1].toLowerCase()+'. Zapytam później, jak poszło.','Zapisane. Rozliczę Cię później.')})).concat([{l:'Nie dziś',neg:1,f:()=>setPlanD(d,gid,0)}])}
   const noteMiss=(d,gid,why)=>{const w=S.asst.why||(S.asst.why={});(w[d]=w[d]||{})[gid]=why||'nie'};
   // Co trzeci raz po „nie udało się” Pixa pyta, co przeszkodziło (do późniejszych wniosków).
@@ -3037,6 +3321,7 @@ const Asst=(()=>{
       if(S.off[t]){add('off-'+t,tn('Dziś dzień wolny. Odpoczywaj, seria jest bezpieczna.','Dzień wolny. Zregeneruj się, jutro wracamy do roboty.'),[],'sleep');return out}
       const P=part(),plan=(S.asst.plan||{})[t]||{},left=diffDays(t,we)+1,mit=S.mit[t],st=streak();
       const tot=x=>sumRange(x.id,ws,t);
+      {const wt=wpTarget();if(wt)add('wp-'+wt,wpText(wt),[{l:'Zaplanuj',f:()=>wpOpen(wt)}],'idea')}
       if(P==='night'){
         add('night-'+t,h>=23?tn('Późno już. Sen to też trening.','Śpij. Regeneracja to część planu.'):tn('Wcześnie! Plan dnia omówimy, jak się rozbudzisz.','Wcześnie. Plan dnia po pobudce.'),[],'sleep');
         return out}
@@ -3046,8 +3331,9 @@ const Asst=(()=>{
           else add('y-'+x.id+y,tn('Wczoraj brak wpisu: „'+x.name+'”. Pamiętasz, ile było?','Wczoraj „'+x.name+'”: brak liczby. Wpisz.'),[{l:'Wpisz',f:fill(y,x)},{l:'Nie pamiętam',neg:1,f:()=>answered(y,x.id)}],'think')})}
         if(!mit)add('mit-'+t,tn('Co jest dziś najważniejsze? Jedna rzecz, po której uznasz dzień za udany.','Jedna najważniejsza rzecz na dziś. Co to?'),[{l:'Wpisz',f:()=>{ui.asstOpen=true;ui.mitEdit=true}},{l:'Dziś bez',neg:1,f:()=>{S.mit[t]={skip:1}}}],'idea');
         gs.filter(x=>x.act==='sleep'||(x.type==='range'&&x.unit==='h')).forEach(x=>{if(val(x.id,t)==null)add('sl-'+x.id+t,tn('Dzień dobry! Ile spałeś?','Raport snu: ile godzin?'),[{l:'Wpisz',f:fill(t,x)}],'stretch')});
-        planGoals(t).forEach(x=>{if(plan[x.id]!==undefined)return;const need=x.period==='week'?x.target-tot(x):0;
-          add('plan-'+x.id+t,(x.period==='week'&&need>=left?tn('Żeby zaliczyć „'+x.name+'” w tym tygodniu, dziś musi się udać. Kiedy?','„'+x.name+'”: dziś obowiązkowo. Kiedy?'):tn('Kiedy dziś „'+x.name+'”?','„'+x.name+'”: kiedy?'))+(x.period==='week'?' W tym tygodniu '+tot(x)+'/'+x.target+'.':''),planActs(x.id,t),'think')});
+        planGoals(t).forEach(x=>{if(planOf(t,x.id)!==undefined)return;const need=x.period==='week'?x.target-tot(x):0;
+          add('plan-'+x.id+t,(x.period==='week'&&need>=left?tn('Żeby zaliczyć „'+x.name+'” w tym tygodniu, dziś musi się udać. Kiedy?','„'+x.name+'”: dziś obowiązkowo. Kiedy?'):tn('Kiedy dziś „'+x.name+'”?','„'+x.name+'”: kiedy?'))+(x.period==='week'?' W tym tygodniu '+tot(x)+'/'+x.target+'.':'')+bestHint(x.id),planActs(x.id,t),'think')});
+        {const wp=(S.wplan||{})[ws]||{},pl=gs.filter(x=>x.type==='do'&&wp[x.id]&&!doneOn(x,t)&&SLOT_N[planOf(t,x.id)]);if(pl.length)add('tp-'+t,tn('Dziś w planie: ','Plan na dziś: ')+pl.map(x=>x.name+' ('+SLOT_N[planOf(t,x.id)]+')').join(', ')+'.',[],'point')}
         gs.filter(x=>isMeasure(x)&&x.period==='week').forEach(x=>{if(diffDays(ws,t)>=3&&!range(ws,t).some(d=>val(x.id,d)!=null))add('me-'+x.id+ws,tn('Rano to dobry moment na pomiar: „'+x.name+'”.','„'+x.name+'”: pomiar teraz.'),[{l:'Wpisz',f:fill(t,x)}],'point')});
         add('hi-'+t+'m',mit&&mit.t?tn('Dzień dobry! Dziś najważniejsze: „'+mit.t+'”. Dasz radę.','Plan jest: „'+mit.t+'”. Do roboty.'):tn('Dzień dobry! Seria: '+st+' '+dni(st)+'. Dobrego dnia.','Pobudka. Seria '+st+'. Nie psujemy jej.'),[],'stretch');
       }
@@ -3080,6 +3366,7 @@ const Asst=(()=>{
         {const miss=toPerfect(t);if(perfectDay(t))add('pf-'+t,tn('Wszystko zrobione. Świetny dzień! Tak się buduje rytm.','Komplet. Świetny dzień. Szacun.'),[],'spin');
           else if(goodDay(t))add('gd-'+t+miss.length,tn('Dobry dzień zaliczony. Do świetnego brakuje: '+names(miss)+'.','Dobry dzień. Do kompletu: '+names(miss)+'.'),[],'cheer');
           else{let rs=null;try{rs=rescue(t)}catch(e){}if(rs)add('rs-'+t,tn('Do dobrego dnia brakuje: '+names(rs.set)+'. Jeszcze zdążysz.','Brakuje: '+names(rs.set)+'. Zrób to.'),[],'point')}}
+        if(!dcDone(t))add('dc-'+t,tn('Dobry wieczór. Domkniemy dzień? Wszystko na jednym ekranie, kilka dotknięć.','Wieczór. Rozlicz dzień, jeden ekran.'),[{l:'Domknij dzień',f:()=>dcOpen(t)}],'meditate');
         add('hi-'+t+'e',tn('Dobry wieczór. Chwila, żeby domknąć dzień.','Wieczór. Rozlicz dzień.'),[],'meditate');
       }
       QUOTES.forEach((q,i)=>add('q-'+i,tn(q[0],q[1]),[],i%2?'idea':'love'));
@@ -3101,6 +3388,11 @@ const Asst=(()=>{
       add('ch-tap','Dotknij dowolnego dnia, żeby zobaczyć szczegóły albo coś dopisać.',[],'point');
     }
     if(g==='charts'){
+      {const y=recapYear(),r=y&&yearRecap(y);if(r)add('yr-'+y+r.good,tn('Twój rok '+y+': dobre dni '+r.good+', najdłuższa seria '+r.best+'. Całe podsumowanie jest na górze.','Rok '+y+': '+r.good+' dobrych dni. Zobacz na górze.'),[],'cheer')}
+      {const pg=progress();if(pg.L&&(pg.up.length||pg.dn.length)){const per=pg.L===30?'miesiącem':'tygodniem';
+        if(pg.up.length)add('pg-'+t,tn('W porównaniu z poprzednim '+per+' idziesz do przodu w '+pg.up.length+' '+(pg.up.length===1?'rzeczy':'rzeczach')+'. Najbardziej: „'+pg.up[0].name+'”.','Progres w '+pg.up.length+'. Najmocniej: „'+pg.up[0].name+'”.'),[],'cheer');
+        if(pg.dn.length)add('pgd-'+t,tn('Trochę gorzej niż poprzednim '+per+': „'+pg.dn[0].name+'”. Nic straconego.','Spadek: „'+pg.dn[0].name+'”. Popraw to.'),[],'think')}}
+      try{planInsights().forEach(x=>add('pi-'+x.id,'Z Twoich planów: '+x.t+(x.tip?' '+x.tip:''),[],'idea'))}catch(e){}
       try{insights().forEach(x=>add('in-'+x.t,'Zauważyłam coś. '+x.t+': średnio '+fmt(x.a)+x.u+', w pozostałe dni '+fmt(x.b)+x.u+'.',[],'idea'))}catch(e){}
       {const a=groupCompletion(S.goals,addDays(t,-27),t),b=groupCompletion(S.goals,addDays(t,-55),addDays(t,-28));if(a!=null&&b!=null&&firstDay()<=addDays(t,-40)){const d=Math.round((a-b)*100);add('tr-'+t,'Realizacja celów z ostatnich 4 tygodni: '+Math.round(a*100)+'%, wcześniej '+Math.round(b*100)+'%.'+(d>=3?tn(' Idzie w górę!',' Progres.'):d<=-3?tn(' Trochę spadło, ale to do odrobienia.',' Spadek. Czas docisnąć.'):' Stabilnie.'),[],d>=3?'cheer':d<=-3?'point':'thumbs')}}
       {const mv=(x,y)=>{const v=range(x,y).map(d=>S.mood[d]).filter(z=>z!=null);return v.length>=5?avg(v):null},a=mv(addDays(t,-13),t),b=mv(addDays(t,-27),addDays(t,-14));
@@ -3119,13 +3411,14 @@ const Asst=(()=>{
         else if(c<.4)add('gh-'+x.id,'„'+x.name+'” idzie ciężko ('+Math.round(c*100)+'% przez 4 tygodnie). '+tn('Mniejszy cel też jest w porządku.','Zmniejsz cel albo weź się za to.'),[],'shrug')});
       S.goals.filter(isPaused).slice(0,1).forEach(x=>add('gp-'+x.id,'„'+x.name+'” jest wstrzymany. '+tn('Wznowisz, kiedy będziesz gotowy.','Wznów, jak tylko się da.'),[],'sleep'));
       if(Social.groups().length){const un=gs.filter(x=>x.act&&CAT_BY[x.act]&&CAT_BY[x.act].share&&!(x.groups||[]).length);if(un.length)add('gsh-'+un[0].id,'„'+un[0].name+'” możesz pokazać znajomym z grupy. Otwórz cel i zaznacz grupę.',[],'love')}
+      S.lt.forEach(x=>{const it=ltTip(x,ws);if(it)add('lt-'+x.id+ws+(it.warn?1:0),it.text,[],it.pose)});
       if(gs.length<3)add('gfew-'+gs.length,tn('Masz '+gs.length+' '+(gs.length===1?'cel':'cele')+'. Jeśli czujesz zapas, dodaj kolejny.','Tylko '+gs.length+'. Dorzuć coś, jeśli dajesz radę.'),[{l:'Dodaj cel',f:()=>openGoal(null)}],'idea');
       add('g-help','Wpisz nazwę celu po swojemu, np. „siłka” albo „czytanie”, a rozpoznam aktywność.',[],'point');
     }
     if(g==='friends')Social.chat(tn).forEach(x=>out.push(x));
     return out;
   }
-  return{paint,tips,rescue,chat,chatItems};
+  return{paint,tips,rescue,chat,chatItems,missingFor,answered,noteMiss,setPlanD,toPerfect};
 })();
 
 /* ---------- przewodnik dla nowych osób (prowadzi Pixa) ---------- */

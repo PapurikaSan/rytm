@@ -63,13 +63,13 @@ const fake=fs.readFileSync(path.join(__dirname,'fake-supabase.js'),'utf8');
   await p.click('[data-act=pxtone][data-k=soft]');await w(100);
   await p.screenshot({path:path.join(os.tmpdir(),'rytm-pixa-settings.png')});
 
-  // 4) uzupełnianie z powiadomienia
+  // 4) uzupełnianie z powiadomienia: ekran „Domknij dzień”
   await p.click('.nav [data-t=today]');await w(200);
   await p.evaluate(()=>{location.hash='#pixa-fill'});await w(400);
-  console.log('4 #pixa-fill: panel',await p.isVisible('.pxpanel'),'|',(await p.textContent('.pxpanel .pxstep')).trim(),'|',(await p.textContent('.pxpanel .pxtxt')).trim());
-  await p.click('[data-asst=ckmood][data-v="4"]');await w(150);
-  console.log('  nastrój zapisany:',await p.evaluate(()=>S.mood[todayS()]),'| następne:',(await p.textContent('.pxpanel .pxtxt')).trim());
-  await p.click('[data-asst=ckend]');await w(100);await p.click('.pxclose');await w(100);
+  console.log('4 #pixa-fill: ekran „Domknij dzień”',await p.isVisible('.dch'),'| cele bez wpisu:',await p.evaluate(()=>ui.sheet.ids.length));
+  await p.click('[data-act=dcmood][data-v="4"]');await w(150);
+  console.log('  nastrój zapisany:',await p.evaluate(()=>S.mood[todayS()]));
+  await p.click('.sheet [data-act=close]');await w(100);await p.click('.pxclose').catch(()=>{});await w(100);
 
   // 5) wieczorem: sprawdzenie planu z rana
   await p.clock.fastForward(10*3600*1000);await w(100);
