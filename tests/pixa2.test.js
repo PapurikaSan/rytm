@@ -99,5 +99,12 @@ const fake=fs.readFileSync(path.join(__dirname,'fake-supabase.js'),'utf8');
     ui.tab='settings';ui.setSec='pixa';render();out.stage=!!document.getElementById('pxstage');document.querySelector('[data-act=pxkind][data-k=insight]').click();out.offInsight=!!S.asst.off.insight;
     ui.setSec='look';render();document.querySelector('[data-act=animt]').click();out.animOff=S.settings.anim===false;document.querySelector('[data-act=animt]').click();out.animOn=S.settings.anim!==false;return out});
   console.log('8 soczewka/paleta/tematy/animacje:',JSON.stringify(r8));
+  // 9) okno celu: wpisana ręcznie nazwa, kategoria i liczba się zapisują; Pixa pomaga w oknie
+  await p.evaluate(()=>{ui.tab='goals';ui.asstOpen=true;ui.sheet=null;render();openGoal(null)});await w(200);
+  console.log('9 Pixa w oknie celu:',await p.isVisible('.gcoach'),'|',(await p.textContent('#gcb')).replace(/\s+/g,' ').slice(0,70));
+  await p.fill('#gname','Joga rano');await p.fill('#gcat','Ruch');await p.fill('#f-target','4');await w(100);
+  await p.click('[data-act=gact][data-k=none]').catch(()=>{});await w(100);
+  await p.click('#gsave');await w(300);
+  console.log('  zapisany cel:',await p.evaluate(()=>{const g=S.goals[S.goals.length-1];return JSON.stringify([g.name,g.cat,g.target,g.period])}),'| Pixa gratuluje:',await p.evaluate(()=>(ui.chatTip||{}).id||'-'));
   console.log('errors',errs);await b.close();
 })();

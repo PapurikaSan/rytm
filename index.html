@@ -474,6 +474,15 @@ body{background:radial-gradient(var(--dot) 1px,transparent 1.3px) 0 0/16px 16px,
 .chk,.mb,.btn,.pill,.nav button{transition:transform .12s ease}
 .chk:active,.mb:active,.btn:active,.pill:active{transform:scale(.94)}
 @media (prefers-reduced-motion:reduce){#app.enter>*,.ring.anim .rfg,.ring.anim .v b,.pop,.hst .pix{animation:none}}
+/* Pixa w oknie celu */
+.gcoach{display:flex;gap:8px;align-items:flex-end;margin:0 0 14px;padding:10px 10px 10px 4px;border-radius:16px;background:color-mix(in srgb,var(--pxc,#ff2d1c) 7%,var(--bg))}
+.gcav{flex:none;width:88px;height:112px;overflow:hidden;position:relative}
+.gcav canvas{position:absolute;left:0;top:-6px;width:88px;height:126px;image-rendering:pixelated;image-rendering:crisp-edges}
+.gcoach .pxbub{background:var(--surface)}
+.gcoach .pxhead{padding-right:0}.gcoff{margin-left:auto;font-size:12px;color:var(--muted)}
+.gcoach .chips{gap:6px}.gcoach .pill{padding:5px 10px;font-size:12.5px}
+.gcoachon{display:inline-flex;align-items:center;gap:6px;margin:0 0 10px;color:color-mix(in srgb,var(--pxc,#ff2d1c) 78%,var(--fg))}
+.gcoachon .pix{width:14px;height:14px}
 /* minimalizm: mniej ramek i tekstu */
 .card,.tile{border-color:transparent}
 .sync.ok{display:none}
@@ -1644,6 +1653,63 @@ function actBox(g){
   h+=ui.sheet&&ui.sheet.catOpen?'<div class="catlist">'+['Ruch','Umysł','Zdrowie','Ograniczenia','Relacje'].map(gr=>'<div class="gs" style="margin:8px 0 4px">'+gr+'</div><div class="chips">'+CAT.filter(c=>c.g===gr).map(c=>'<button class="pill" data-act="gact" data-k="'+c.k+'">'+esc(c.n)+'</button>').join('')+'</div>').join('')+'</div>':'<button class="link" style="margin-top:6px" data-act="gactlist">Wybierz z listy aktywności</button>';
   return h+'</div>';
 }
+/* Pixa pomaga przy tworzeniu i zmianie celu (gdy jest otwarta): podpowiada, tłumaczy, proponuje liczby. */
+const COACH_PICKS=['any','read','sleep','water','steps','walk','meditate','lang','eat','screen','sweets','stretch','learn','journal'];
+function coachInfo(s){
+  const g=s.g,tn=(a,b)=>S.settings.pixaTone==='hard'?b:a,out={pose:'think',text:'',chips:[],note:''};
+  const others=S.goals.filter(x=>x.id!==g.id&&!isPaused(x)),mains=others.filter(x=>x.prio==='main').length,c=catOk(g)?CAT_BY[g.act]:null,u=g.unit?' '+g.unit:'';
+  if(s.isNew&&!g.name.trim()){
+    const have=new Set(S.goals.map(x=>x.act));
+    out.text=tn('Co chcesz robić regularnie? Wybierz coś na start albo wpisz po swojemu.','Co bierzemy na warsztat? Wybierz albo wpisz.');
+    out.chips=COACH_PICKS.filter(k=>CAT_BY[k]&&!have.has(k)).slice(0,6).map(k=>({l:CAT_BY[k].n,act:'gact',k}));
+    if(others.length>=10)out.note='Masz już '+others.length+' celów. Nowy najłatwiej utrzymać, gdy reszta idzie dobrze.';
+    return out;
+  }
+  if(!c&&g.act!=='none'){out.pose='idea';out.text=tn('Wybierz niżej, co to za aktywność. Dzięki temu ustawię rozsądne wartości na start.','Wskaż aktywność z listy niżej, resztę ustawię.');return out}
+  out.pose='point';
+  if(g.type==='do'&&g.period==='week'&&g.target!=null){
+    out.text=tn('Na start polecam 2–3 razy w tygodniu. Łatwiej utrzymać mniej i potem podnieść niż odwrotnie.','2–3 razy w tygodniu na start. Potem podniesiemy.');
+    out.chips=[2,3,4].map(n=>({l:n+'× w tygodniu',act:'gcoachT',v:n,on:g.target===n}));
+  }else if(g.type==='do'&&g.period==='day'){
+    out.text=tn('Codziennie to ambitny plan. Jeśli wiesz, że będą przerwy, lepiej ustawić np. 5 razy w tygodniu.','Codziennie bez wyjątków? Jeśli nie, ustaw 5 razy w tygodniu.');
+    out.chips=[{l:'Zmień na 5× w tygodniu',act:'gcoach5'}];
+  }else if(g.type==='qty'&&g.dir!=='max'&&g.target>0){
+    const t=g.target,nr=x=>x<10?Math.max(1,Math.round(x)):x<100?Math.max(5,Math.round(x/5)*5):x<1000?Math.round(x/50)*50:Math.round(x/500)*500,opts=[...new Set([nr(t/2),t,nr(t*1.5)])];
+    out.text=tn('Lepiej codziennie trochę niż raz na jakiś czas dużo. Na start wystarczy '+fmt(t)+u+'.','Codzienna dawka: '+fmt(t)+u+'. Nie przesadzaj na starcie.');
+    out.chips=opts.map(v=>({l:fmt(v)+u,act:'gcoachT',v,on:v===t}));
+  }else if(g.type==='qty'&&g.dir==='max'){
+    out.text='To limit: wpisujesz, ile było, a dzień jest w porządku, gdy nie przekroczysz '+fmt(g.target)+u+'. Wpis 0 też się liczy.';
+  }else if(g.type==='range'){
+    out.text='Wpisujesz wartość, a ja oceniam odchylenie: do ±'+fmt(g.ok)+u+' jest w normie, do ±'+fmt(g.warn)+u+' trochę obok.';
+  }else if(g.type==='limit'){
+    out.text='Zaznaczasz tylko dni, kiedy to się zdarzyło. Do '+g.target+' '+(g.period==='month'?'w miesiącu':'w tygodniu')+' jest w porządku.';
+    out.chips=[1,2,3].map(n=>({l:'najwyżej '+n,act:'gcoachT',v:n,on:g.target===n}));
+  }else if(g.type==='contact'){
+    out.text='Dodajesz spotkania albo rozmowy z długością. Bez celu też ma sens: zobaczysz, jak często się widzicie.';
+  }else if(isMeasure(g)){
+    out.text='Pomiar raz w tygodniu wystarczy. Codzienne wahania mylą.';
+  }else out.text='Ustaw, ile i jak często, a ja podsumuję to na dole.';
+  if(scorable(g)){
+    if(g.prio==='main'&&mains>=3){out.note='Masz już '+mains+' cele główne. Przy więcej niż trzech trudno o dobry dzień.';out.chips.push({l:'Ustaw jako ważny',act:'gprio',p:'imp'});out.pose='shrug'}
+    else if(mains===0&&g.prio!=='main'&&s.isNew){out.note='Nie masz jeszcze celu głównego. Główne liczą się potrójnie i budują serię.';out.chips.push({l:'Ustaw jako główny',act:'gprio',p:'main'})}
+  }
+  if(!out.note&&c&&c.share&&!(g.groups||[]).length&&Social.groups().length)out.note='Ten cel możesz pokazać znajomym niżej, w „Widoczne dla grup znajomych”.';
+  if(validGoal(g)&&!out.note&&!out.chips.some(x=>!x.on)){out.pose='thumbs';out.text+=' '+tn('Wygląda dobrze, możesz zapisać.','Gotowe. Zapisuj.')}
+  return out;
+}
+function coachBubble(s){
+  const o=coachInfo(s);Coach.pose=o.pose;
+  return'<p class="pxtxt">'+esc(o.text)+'</p>'+(o.chips.length?'<div class="chips">'+o.chips.map(x=>'<button class="pill'+(x.on?' on':'')+'" data-act="'+x.act+'"'+(x.k!=null?' data-k="'+x.k+'"':'')+(x.v!=null?' data-v="'+x.v+'"':'')+(x.p?' data-p="'+x.p+'"':'')+'>'+esc(x.l)+'</button>').join('')+'</div>':'')+(o.note?'<p class="gs" style="margin:8px 0 0">'+esc(o.note)+'</p>':'');
+}
+function coachBlock(s){
+  if(!S.settings.asst||ui.tour!=null)return'';
+  if(!ui.asstOpen)return'<button class="link gcoachon" data-act="gcoachon">'+pix('star')+'Pomóż mi, Pixa</button>';
+  return'<div class="gcoach"><div class="gcav"><canvas id="gcoachcv" width="88" height="126" aria-hidden="true"></canvas></div><div class="pxbub"><div class="pxhead"><span class="pxname">Pixa</span><button class="link gcoff" data-act="gcoachoff">ukryj</button></div><div id="gcb">'+coachBubble(s)+'</div></div></div>';
+}
+const Coach=(()=>{let f=0,tm=null;const o={pose:'think'};
+  function tick(){const c=document.getElementById('gcoachcv');if(!c||!S){clearInterval(tm);tm=null;return}PixaArt.draw(c,f++,o.pose,null,S.settings.pixaPal)}
+  o.start=()=>{const c=document.getElementById('gcoachcv');if(!c)return;if(!FX.on()){PixaArt.draw(c,6,o.pose,null,S.settings.pixaPal);return}if(!tm){tick();tm=setInterval(tick,110)}};
+  return o})();
 function shareBox(g){
   let h='<span class="fl">Widoczne dla grup znajomych</span>';
   const c=catOk(g)?CAT_BY[g.act]:null;
@@ -1728,7 +1794,7 @@ function sheetHtml(){
     return'<div class="scrim" data-act="close"></div><div class="sheet" role="dialog" aria-modal="true">'+h+'</div>';
   }
   const g=s.g,ex=cats();
-  let h='<h2>'+(s.isNew?'Nowy cel':'Zmień cel')+'</h2>';
+  let h=coachBlock(s)+'<h2>'+(s.isNew?'Nowy cel':'Zmień cel')+'</h2>';
   h+='<label class="fl" for="gname">1. Co chcesz śledzić?</label><input class="inp" id="gname" data-inp="name" value="'+esc(g.name)+'" placeholder="np. Siłownia, Czytanie, Sen"><div id="actbox">'+actBox(g)+'</div>';
   h+='<span class="fl">2. W jakiej kategorii?</span><div class="chips">'+ex.map(c=>'<button class="pill'+(g.cat===c?' on':'')+'" data-act="gcat" data-c="'+esc(c)+'">'+esc(c)+'</button>').join('')+'</div><input class="inp" id="gcat" style="margin-top:8px" data-inp="cat" value="'+(ex.includes(g.cat)?'':esc(g.cat))+'" placeholder="albo wpisz nową kategorię">';
   h+='<span class="fl">3. Jaki to rodzaj celu?</span>'+[
@@ -1768,6 +1834,7 @@ function renderSheet(){
   const n=el.querySelector('.sheet');if(n)n.scrollTop=st;
   if(typeof Asst!=='undefined')Asst.paint();
   if(typeof Tour!=='undefined')Tour.paint();
+  if(typeof Coach!=='undefined')Coach.start();
 }
 const GEAR='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
 // Animacje: krótkie, z sensem, wyłączane w Ustawieniach i przy systemowym „ogranicz ruch”.
@@ -1891,6 +1958,10 @@ function act(a,ds){
     case'gshare':{const g=ui.sheet.g,id=ds.id;g.groups=g.groups||[];if(g.groups.includes(id))g.groups=g.groups.filter(x=>x!==id);else g.groups.push(id);renderSheet();break}
     case'gdir':ui.sheet.g.dir=ds.k==='max'?'max':undefined;ui.sheet.typed=true;renderSheet();break;
     case'gprio':ui.sheet.g.prio=ds.p;renderSheet();break;
+    case'gcoachT':{const g=ui.sheet.g,v=+ds.v;if(g.target==null&&g.type==='do')g.target=v;else g.target=v;ui.sheet.typed=true;renderSheet();break}
+    case'gcoach5':{const g=ui.sheet.g;g.period='week';g.target=5;ui.sheet.typed=true;renderSheet();break}
+    case'gcoachon':ui.asstOpen=true;renderSheet();break;
+    case'gcoachoff':ui.asstOpen=false;renderSheet();break;
     case'ssoft':S.settings.mainSoft=!S.settings.mainSoft;save();render();break;
     case'smain':S.settings.mainReq=!S.settings.mainReq;save();render();break;
     case'ron':{const r=S.settings.reminders[+ds.i];r.on=!r.on;save();render();break}
@@ -1924,7 +1995,9 @@ function act(a,ds){
       if(g.w)Object.keys(g.w).forEach(k=>{if(!(g.variants||[]).includes(k)||g.w[k]<=1)delete g.w[k]});
       const i=S.goals.findIndex(x=>x.id===g.id);
       if(i>=0)S.goals[i]=g;else S.goals.push(g);
-      ui.sheet=null;save();render();toast('Zapisano cel.');break;
+      const wasNew=!S.goals.some(x=>x.id===g.id&&x!==g)&&i<0;ui.sheet=null;save();
+      if(wasNew&&ui.asstOpen&&S.settings.asst)ui.chatTip={id:'saved-'+g.id,text:(S.settings.pixaTone==='hard'?'„'+g.name+'” dodany. Teraz codziennie odhaczaj.':'Gotowe! „'+g.name+'” jest na liście. Znajdziesz go w zakładce Dziś.'),acts:[{l:'Pokaż w Dziś',f:()=>{ui.tab='today';ui.date=todayS();render();window.scrollTo(0,0);setTimeout(()=>act('jump',{g:g.id}),60)}},{l:'Dodaj kolejny',f:()=>openGoal(null)}],pose:'cheer'};
+      render();toast('Zapisano cel.');break;
     }
     case'delp':{const u=withUndo('Usunięto osobę z listy.');setTimeout(u,0);const p=S.people[+ds.i];S.people.splice(+ds.i,1);if(ui.sheet&&ui.sheet.kind==='people'){ui.sheet.del=null;if(ui.sheet.back)ui.sheet.back.p=ui.sheet.back.p.filter(x=>x!==p)}save();render();break}
     case'clear':{ui.confirm=null;const u=withUndo('Wyczyszczono wpisy. Cele zostały.');S.log={};S.off={};S.people=[];S.notes={};S.reviews={};S.mood={};S.lt.forEach(x=>{if(x.kind==='manual')x.count=0});S.sample=false;S.ms={};S.msInit=false;save();render();u();break}
@@ -1990,11 +2063,12 @@ document.addEventListener('input',e=>{
   if(ui.sheet.kind==='lt'){const x=ui.sheet.x;if(f==='target'){const n=parseNum(el.value);x.target=n==null?0:n}else x[f]=el.value;const sv=document.getElementById('ltsave');if(sv)sv.disabled=!validLt(x);return}
   const g=ui.sheet.g;
   if(f==='name'||f==='cat'||f==='unit')g[f]=el.value;
-  if(f==='name'&&!catOk(g)&&g.act!=='none'){const ab=document.getElementById('actbox');if(ab)ab.innerHTML=actBox(g)}
-  if(f==='target'||f==='unit')ui.sheet.typed=true;
   else if(f==='variants')g.variants=el.value.split('\n').map(x=>x.trim()).filter(Boolean);
   else{const n=parseNum(el.value);g[f]=n==null?0:n}
+  if(f==='target'||f==='unit')ui.sheet.typed=true;
+  if(f==='name'&&!catOk(g)&&g.act!=='none'){const ab=document.getElementById('actbox');if(ab)ab.innerHTML=actBox(g)}
   const sum=document.getElementById('sum');if(sum)sum.textContent=summary(g);
+  const cb=document.getElementById('gcb');if(cb)cb.innerHTML=coachBubble(ui.sheet);
   const sv=document.getElementById('gsave');if(sv)sv.disabled=!validGoal(g);
 });
 applyTheme();
@@ -2752,7 +2826,7 @@ const Asst=(()=>{
     const pv=document.getElementById('pxprev');if(pv&&S)PixaArt.draw(pv,14,'wave',null,S.settings.pixaPal);
     const root=document.getElementById('asst');if(!root)return;
     if(anim){cancelAnimationFrame(anim);anim=null}
-    if(!S||!S.settings.asst||(ui.tour!=null&&!ui.tourLens)||(!ui.asstOpen&&(ui.sheet||ui.tab==='settings'))){root.innerHTML='';return}
+    if(!S||!S.settings.asst||(ui.tour!=null&&!ui.tourLens)||(!ui.asstOpen&&(ui.sheet||ui.tab==='settings'))||(ui.sheet&&ui.sheet.kind==='goal')){root.innerHTML='';return}
     if(ui.asstFill&&ui.asstOpen){ui.asstFill=false;const d=new Date().getHours()<5?addDays(todayS(),-1):todayS(),l=missingFor(d);if(l.length||(S.mood[d]==null&&!S.off[d]))startCk(d,l,true)}
     tipsCache=tips();if(ui.chatTip&&ui.asstOpen){const c=ui.chatTip;tipsCache.unshift({id:'chat-'+c.id,kind:'chat',pr:999,text:c.text,actions:c.acts&&c.acts.length?c.acts:[{l:'OK',f:()=>{}}],pose:c.pose});idx=0}
     if(idx>=tipsCache.length)idx=0;
