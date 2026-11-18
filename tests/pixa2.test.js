@@ -102,6 +102,9 @@ const fake=fs.readFileSync(path.join(__dirname,'fake-supabase.js'),'utf8');
   // 9) okno celu: wpisana ręcznie nazwa, kategoria i liczba się zapisują; Pixa pomaga w oknie
   await p.evaluate(()=>{ui.tab='goals';ui.asstOpen=true;ui.sheet=null;render();openGoal(null)});await w(200);
   console.log('9 Pixa w oknie celu:',await p.isVisible('.gcoach'),'|',(await p.textContent('#gcb')).replace(/\s+/g,' ').slice(0,70));
+  await p.evaluate(()=>{document.querySelector('.sheet').scrollTop=99999});await w(300);
+  console.log('  po przewinięciu Pixa widoczna:',await p.evaluate(()=>{const c=document.querySelector('.gcoach').getBoundingClientRect(),sh=document.querySelector('.sheet').getBoundingClientRect();return c.top>=sh.top-2&&c.bottom>0}),'| mówi o:',await p.evaluate(()=>ui.sheet.focus));
+  await p.evaluate(()=>{document.querySelector('.sheet').scrollTop=0});await w(200);
   await p.fill('#gname','Joga rano');await p.fill('#gcat','Ruch');await p.fill('#f-target','4');await w(100);
   await p.click('[data-act=gact][data-k=none]').catch(()=>{});await w(100);
   await p.click('#gsave');await w(300);

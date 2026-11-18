@@ -475,9 +475,10 @@ body{background:radial-gradient(var(--dot) 1px,transparent 1.3px) 0 0/16px 16px,
 .chk:active,.mb:active,.btn:active,.pill:active{transform:scale(.94)}
 @media (prefers-reduced-motion:reduce){#app.enter>*,.ring.anim .rfg,.ring.anim .v b,.pop,.hst .pix{animation:none}}
 /* Pixa w oknie celu */
-.gcoach{display:flex;gap:8px;align-items:flex-end;margin:0 0 14px;padding:10px 10px 10px 4px;border-radius:16px;background:color-mix(in srgb,var(--pxc,#ff2d1c) 7%,var(--bg))}
+.gcoach{position:sticky;top:-18px;z-index:3;display:flex;gap:8px;align-items:flex-end;margin:-18px -16px 14px;padding:12px 12px 10px 4px;border-radius:20px 20px 16px 16px;background:color-mix(in srgb,var(--pxc,#ff2d1c) 7%,var(--surface));box-shadow:0 8px 16px -10px rgba(0,0,0,.35)}
 .gcav{flex:none;width:88px;height:112px;overflow:hidden;position:relative}
-.gcav canvas{position:absolute;left:0;top:-6px;width:88px;height:126px;image-rendering:pixelated;image-rendering:crisp-edges}
+.gcav canvas{position:absolute;left:0;top:-6px;width:88px;height:126px;image-rendering:pixelated;image-rendering:crisp-edges;cursor:pointer}
+.gcav{pointer-events:auto}
 .gcoach .pxbub{background:var(--surface)}
 .gcoach .pxhead{padding-right:0}.gcoff{margin-left:auto;font-size:12px;color:var(--muted)}
 .gcoach .chips{gap:6px}.gcoach .pill{padding:5px 10px;font-size:12.5px}
@@ -1688,6 +1689,14 @@ function coachInfo(s){
     return out;
   }
   if(!c&&g.act!=='none'){out.pose='idea';out.text=tn('Wybierz niżej, co to za aktywność. Dzięki temu ustawię rozsądne wartości na start.','Wskaż aktywność z listy niżej, resztę ustawię.');return out}
+  const fo=s.focus;
+  if(fo==='cat'){out.pose='orb';out.text=tn('Kategoria to tylko grupa na liście i jej kolor. Możesz wybrać istniejącą albo wpisać własną.','Kategoria = grupa i kolor. Wybierz albo wpisz swoją.');if(c&&!cats().includes(c.g))out.chips=[{l:'Nowa: '+c.g,act:'gcat',c:c.g}];return out}
+  if(fo==='type'){out.pose='think';out.text=({do:'„Chcę to robić”: zaznaczasz dni, w które się udało. Najprostsze i najczęstsze.',qty:'„Ilość”: wpisujesz liczbę, np. strony albo minuty. Możesz też ustawić limit „najwyżej”.',range:'„Wartość”: wpisujesz liczbę, a ja oceniam, czy jest w normie, np. sen 7,5 h ± 0,5.',limit:'„Ograniczyć”: zaznaczasz dni, kiedy to się zdarzyło. Do limitu jest w porządku.',contact:'„Kontakt”: spotkania i rozmowy z długością.',measure:'„Pomiar”: np. waga raz w tygodniu. Widzisz trend.'})[g.type]+' '+tn('Nie wiesz, co wybrać? Przy rzeczach „zrobione albo nie” bierz pierwszy.','Wątpliwości? Bierz pierwszy.');return out}
+  if(fo==='var'){out.pose='idea';out.text='Rodzaje to np. Full body, Cardio albo gatunki książek. Po zaznaczeniu dnia wybierasz, co to było, a w Wykresach zobaczysz proporcje. Możesz to pominąć.';return out}
+  if(fo==='share'){out.pose='love';out.text='Znajomi zobaczą tylko dni z aktywnością, Twój cel i zaliczone tygodnie. Notatki, nastrój i liczby zostają u Ciebie.';return out}
+  if(fo==='prio'){out.pose=mains>=3?'shrug':'point';out.text='Główne liczą się potrójnie i budują serię, ważne normalnie, dodatkowe tylko widzisz. '+(mains>=3?'Masz już '+mains+' główne, więc ten lepiej ustaw jako ważny.':mains===0?'Nie masz jeszcze głównego celu, ten może nim być.':'Masz '+mains+' '+(mains===1?'główny':'główne')+'.');
+    out.chips=[['main','Główny'],['imp','Ważny'],['extra','Dodatkowy']].map(x=>({l:x[1],act:'gprio',p:x[0],on:(g.prio||'imp')===x[0]}));return out}
+  if(fo==='sum'){out.pose=validGoal(g)?'thumbs':'think';out.text=validGoal(g)?tn('Wszystko gotowe. Sprawdź podsumowanie i kliknij „Zapisz”.','Gotowe. Zapisz.'):'Jeszcze czegoś brakuje: sprawdź nazwę i liczbę.';return out}
   out.pose='point';
   if(g.type==='do'&&g.period==='week'&&g.target!=null){
     out.text=tn('Na start polecam 2–3 razy w tygodniu. Łatwiej utrzymać mniej i potem podnieść niż odwrotnie.','2–3 razy w tygodniu na start. Potem podniesiemy.');
@@ -1720,20 +1729,38 @@ function coachInfo(s){
   return out;
 }
 function coachBubble(s){
-  const o=coachInfo(s);Coach.pose=o.pose;
-  return'<p class="pxtxt">'+esc(o.text)+'</p>'+(o.chips.length?'<div class="chips">'+o.chips.map(x=>'<button class="pill'+(x.on?' on':'')+'" data-act="'+x.act+'"'+(x.k!=null?' data-k="'+x.k+'"':'')+(x.v!=null?' data-v="'+x.v+'"':'')+(x.p?' data-p="'+x.p+'"':'')+'>'+esc(x.l)+'</button>').join('')+'</div>':'')+(o.note?'<p class="gs" style="margin:8px 0 0">'+esc(o.note)+'</p>':'');
+  const o=coachInfo(s);Coach.ctx(o.pose);
+  return'<p class="pxtxt">'+esc(o.text)+'</p>'+(o.chips.length?'<div class="chips">'+o.chips.map(x=>'<button class="pill'+(x.on?' on':'')+'" data-act="'+x.act+'"'+(x.k!=null?' data-k="'+x.k+'"':'')+(x.c!=null?' data-c="'+esc(x.c)+'"':'')+(x.v!=null?' data-v="'+x.v+'"':'')+(x.p?' data-p="'+x.p+'"':'')+'>'+esc(x.l)+'</button>').join('')+'</div>':'')+(o.note?'<p class="gs" style="margin:8px 0 0">'+esc(o.note)+'</p>':'');
 }
 function coachBlock(s){
   if(!S.settings.asst||ui.tour!=null)return'';
   if(!ui.asstOpen)return'<button class="link gcoachon" data-act="gcoachon">'+pix('star')+'Pomóż mi, Pixa</button>';
   return'<div class="gcoach"><div class="gcav"><canvas id="gcoachcv" width="88" height="126" aria-hidden="true"></canvas></div><div class="pxbub"><div class="pxhead"><span class="pxname">Pixa</span><button class="link gcoff" data-act="gcoachoff">ukryj</button></div><div id="gcb">'+coachBubble(s)+'</div></div></div>';
 }
-const Coach=(()=>{let f=0,tm=null;const o={pose:'think'};
-  function tick(){const c=document.getElementById('gcoachcv');if(!c||!S){clearInterval(tm);tm=null;return}PixaArt.draw(c,f++,o.pose,null,S.settings.pixaPal)}
-  o.start=()=>{const c=document.getElementById('gcoachcv');if(!c)return;if(!FX.on()){PixaArt.draw(c,6,o.pose,null,S.settings.pixaPal);return}if(!tm){tick();tm=setInterval(tick,110)}};
-  return o})();
+// Żywa Pixa w oknie celu: płynnie zmienia pozy (jak w panelu), reaguje na dotknięcie i na kliknięcia,
+// a przy przewijaniu mówi o tej części formularza, którą widać.
+const Coach=(()=>{
+  const POOL=['stand','wave','idea','think','point','float','thumbs','groove','orb','perch'],POKE=['jump','wave','spin','love','clap','wow','thumbs','groove','facepalm','salute'];
+  let f=0,tm=null,cur=null,pose='think',ctxP='think',until=0,next=0,raf=0;
+  function tick(){const c=document.getElementById('gcoachcv');if(!c||!S){clearInterval(tm);tm=null;cur=null;return}
+    const n=Date.now();if(n>until&&n>next){pose=Math.random()<.5?ctxP:POOL[Math.floor(Math.random()*POOL.length)];next=n+2400+Math.random()*2200}
+    const tf=PixaArt.flat(PixaArt.POSES[pose]||PixaArt.POSES.stand);if(!cur)cur=Object.assign({},tf);else PixaArt.KEYS.forEach(k=>{cur[k]+=(tf[k]-cur[k])*.35});
+    PixaArt.draw(c,f++,pose,cur,S.settings.pixaPal)}
+  function ctx(p){if(p&&p!==ctxP){ctxP=p;if(Date.now()>until){pose=p;next=Date.now()+2400}}}
+  function react(p){pose=p||POKE[Math.floor(Math.random()*POKE.length)];until=Date.now()+2300;next=until;if(!tm){const c=document.getElementById('gcoachcv');if(c&&S)PixaArt.draw(c,f++,pose,null,S.settings.pixaPal)}}
+  function start(){const c=document.getElementById('gcoachcv');if(!c)return;if(!FX.on()){PixaArt.draw(c,6,ctxP,null,S.settings.pixaPal);return}if(!tm){tick();tm=setInterval(tick,110)}}
+  // która część formularza jest pod Pixą
+  function onScroll(sh){if(raf)return;raf=requestAnimationFrame(()=>{raf=0;if(!ui.sheet||ui.sheet.kind!=='goal')return;const co=sh.querySelector('.gcoach');if(!co)return;
+    const cb=co.getBoundingClientRect().bottom,lim=cb+(sh.getBoundingClientRect().bottom-cb)*.4;let fo='name';
+    if(sh.scrollTop>8)sh.querySelectorAll('[data-sec]').forEach(e=>{if(e.getBoundingClientRect().top<=lim)fo=e.dataset.sec});
+    if(fo==='name')fo=null;
+    if(fo!==ui.sheet.focus){ui.sheet.focus=fo;const cb=document.getElementById('gcb');if(cb)cb.innerHTML=coachBubble(ui.sheet)}})}
+  document.addEventListener('scroll',e=>{const t=e.target;if(t&&t.classList&&t.classList.contains('sheet'))onScroll(t)},true);
+  document.addEventListener('click',e=>{if(e.target&&e.target.id==='gcoachcv')react()});
+  return{start,react,ctx};
+})();
 function shareBox(g){
-  let h='<span class="fl">Widoczne dla grup znajomych</span>';
+  let h='<span class="fl" data-sec="share">Widoczne dla grup znajomych</span>';
   const c=catOk(g)?CAT_BY[g.act]:null;
   if(!c)return h+'<p class="gs" style="margin:0">Żeby udostępnić cel, wybierz wyżej aktywność z katalogu. Dzięki temu porównasz się z osobami, które nazwały ją inaczej.</p>';
   if(!c.share)return h+'<p class="gs" style="margin:0">Ta aktywność jest prywatna i nie da się jej udostępnić.</p>';
@@ -1816,9 +1843,9 @@ function sheetHtml(){
   }
   const g=s.g,ex=cats();
   let h=coachBlock(s)+'<h2>'+(s.isNew?'Nowy cel':'Zmień cel')+'</h2>';
-  h+='<label class="fl" for="gname">1. Co chcesz śledzić?</label><input class="inp" id="gname" data-inp="name" value="'+esc(g.name)+'" placeholder="np. Siłownia, Czytanie, Sen"><div id="actbox">'+actBox(g)+'</div>';
-  h+='<span class="fl">2. W jakiej kategorii?</span><div class="chips">'+ex.map(c=>'<button class="pill'+(g.cat===c?' on':'')+'" data-act="gcat" data-c="'+esc(c)+'">'+esc(c)+'</button>').join('')+'</div><input class="inp" id="gcat" style="margin-top:8px" data-inp="cat" value="'+(ex.includes(g.cat)?'':esc(g.cat))+'" placeholder="albo wpisz nową kategorię">';
-  h+='<span class="fl">3. Jaki to rodzaj celu?</span>'+[
+  h+='<label class="fl" data-sec="name" for="gname">1. Co chcesz śledzić?</label><input class="inp" id="gname" data-inp="name" value="'+esc(g.name)+'" placeholder="np. Siłownia, Czytanie, Sen"><div id="actbox">'+actBox(g)+'</div>';
+  h+='<span class="fl" data-sec="cat">2. W jakiej kategorii?</span><div class="chips">'+ex.map(c=>'<button class="pill'+(g.cat===c?' on':'')+'" data-act="gcat" data-c="'+esc(c)+'">'+esc(c)+'</button>').join('')+'</div><input class="inp" id="gcat" style="margin-top:8px" data-inp="cat" value="'+(ex.includes(g.cat)?'':esc(g.cat))+'" placeholder="albo wpisz nową kategorię">';
+  h+='<span class="fl" data-sec="type">3. Jaki to rodzaj celu?</span>'+[
     ['do','Chcę to robić','Zaznaczasz dni, w które to zrobiłeś. Np. siłownia 3 dni w tygodniu, zdrowe jedzenie codziennie.'],
     ['qty','Chcę zrobić określoną ilość','Wpisujesz liczbę. Np. min. 20 stron dziennie albo najwyżej 2 h przed ekranem.'],
     ['range','Chcę trzymać się wartości','Wpisujesz liczbę, a aplikacja ocenia odchylenie. Np. sen 7,5 h, 2400 kcal.'],
@@ -1826,7 +1853,7 @@ function sheetHtml(){
     ['contact','Kontakt z ludźmi','Spotkania lub rozmowy, z długością: krótko, średnio, długo.'],
     ['measure','Chcę to regularnie mierzyć','Wpisujesz pomiar, np. waga raz w tygodniu. Widzisz trend i zmianę.']
   ].map(o=>'<button class="opt'+(g.type===o[0]?' on':'')+'" data-act="gtype" data-t="'+o[0]+'"><b>'+o[1]+'</b><span>'+o[2]+'</span></button>').join('');
-  h+='<span class="fl">4. Ile i jak często?</span>';
+  h+='<span class="fl" data-sec="amount">4. Ile i jak często?</span>';
   const perSel=opts=>'<div><label class="fl" style="margin-top:0" for="gper"><small>Okres</small></label><select id="gper" data-chg="gper" style="margin:0">'+opts.map(p=>'<option value="'+p+'"'+(g.period===p?' selected':'')+'>'+{day:'codziennie',week:'w tygodniu',month:'w miesiącu'}[p]+'</option>').join('')+'</select></div>';
   const tin=(lab,f,v)=>'<div><label class="fl" style="margin-top:0" for="f-'+f+'"><small>'+lab+'</small></label><input class="inp" id="f-'+f+'" inputmode="decimal" data-inp="'+f+'" value="'+(v==null?'':fmt(v))+'"></div>';
   const noT=()=>'<div class="chips" style="margin-top:8px"><button class="pill'+(g.target==null?' on':'')+'" data-act="gnotarget">Bez celu, tylko zapisuję</button></div>';
@@ -1839,11 +1866,11 @@ function sheetHtml(){
   if(g.type==='range')h+='<div class="row2">'+tin('Cel','target',g.target)+'<div><label class="fl" style="margin-top:0" for="f-unit"><small>Jednostka</small></label><input class="inp" id="f-unit" data-inp="unit" value="'+esc(g.unit||'')+'" placeholder="h, kcal"></div></div><div class="row2" style="margin-top:8px">'+tin('W normie do ±','ok',g.ok)+tin('Trochę obok do ±','warn',g.warn)+'</div>';
   if(g.type==='contact')h+='<div class="chips" style="margin-bottom:10px"><button class="pill'+(g.kind!=='call'?' on':'')+'" data-act="gkind" data-k="meeting">Spotkania</button><button class="pill'+(g.kind==='call'?' on':'')+'" data-act="gkind" data-k="call">Rozmowy telefoniczne</button></div><div class="row2">'+perSel(['week','month'])+(g.target==null?'':tin('Minimum razy','target',g.target))+'</div>'+noT();
   if(isMeasure(g))h+='<div class="row2">'+perSel(['day','week','month'])+'<div><label class="fl" style="margin-top:0" for="f-unit"><small>Jednostka</small></label><input class="inp" id="f-unit" data-inp="unit" value="'+esc(g.unit||'')+'" placeholder="kg, cm"></div></div>'+(g.target==null?'':'<div class="row2" style="margin-top:8px">'+tin('Cel, np. docelowa waga','target',g.target)+'</div>')+'<div class="chips" style="margin-top:8px"><button class="pill'+(g.target==null?' on':'')+'" data-act="gnotarget">Bez celu</button></div>';
-  if(isCheck(g))h+='<label class="fl" for="f-var">5. Rodzaje <small>(opcjonalnie, jeden w linii). Po zaznaczeniu dnia rozwinie się wybór.</small></label><textarea class="inp" id="f-var" data-inp="variants" data-chg="gvar" placeholder="'+(g.type==='limit'?'np. Małe (1–2 piwa)':'np. Full body\nUpper body')+'">'+esc((g.variants||[]).join('\n'))+'</textarea>';
+  if(isCheck(g))h+='<label class="fl" data-sec="var" for="f-var">5. Rodzaje <small>(opcjonalnie, jeden w linii). Po zaznaczeniu dnia rozwinie się wybór.</small></label><textarea class="inp" id="f-var" data-inp="variants" data-chg="gvar" placeholder="'+(g.type==='limit'?'np. Małe (1–2 piwa)':'np. Full body\nUpper body')+'">'+esc((g.variants||[]).join('\n'))+'</textarea>';
   if(g.type==='limit'&&g.variants&&g.variants.length){g.w=g.w||{};h+='<span class="fl">Jak liczyć poziomy do limitu?</span>'+g.variants.map((v,i)=>'<div class="srow"><span style="flex:1;font-size:13px;min-width:0">'+esc(v)+'</span><select id="gw-'+i+'" data-chg="gw" data-i="'+i+'" style="width:auto;margin:0">'+[1,2,3].map(n=>'<option value="'+n+'"'+((g.w[v]||1)===n?' selected':'')+'>jak '+n+' '+dni(n)+'</option>').join('')+'</select></div>').join('')}
   h+=shareBox(g);
-  h+='<span class="fl">Priorytet</span>'+(scorable(g)?[['main','Główny','Liczy się potrójnie. Na takich celach budujesz serię.'],['imp','Ważny','Liczy się normalnie.'],['extra','Dodatkowy','Widzisz go i jego statystyki, ale nie wpływa na wynik dnia ani na serię.']].map(o=>'<button class="opt'+((g.prio||'imp')===o[0]?' on':'')+'" data-act="gprio" data-p="'+o[0]+'"><b>'+o[1]+'</b><span>'+o[2]+'</span></button>').join(''):'<p class="gs" style="margin:0">Cel bez minimum nie wlicza się do wyniku dnia ani serii, więc nie ma priorytetu.</p>');
-  h+='<div class="summary" id="sum">'+esc(summary(g))+'</div>';
+  h+='<span class="fl" data-sec="prio">Priorytet</span>'+(scorable(g)?[['main','Główny','Liczy się potrójnie. Na takich celach budujesz serię.'],['imp','Ważny','Liczy się normalnie.'],['extra','Dodatkowy','Widzisz go i jego statystyki, ale nie wpływa na wynik dnia ani na serię.']].map(o=>'<button class="opt'+((g.prio||'imp')===o[0]?' on':'')+'" data-act="gprio" data-p="'+o[0]+'"><b>'+o[1]+'</b><span>'+o[2]+'</span></button>').join(''):'<p class="gs" style="margin:0">Cel bez minimum nie wlicza się do wyniku dnia ani serii, więc nie ma priorytetu.</p>');
+  h+='<div class="summary" data-sec="sum" id="sum">'+esc(summary(g))+'</div>';
   const orig=s.isNew?null:S.goals.find(x=>x.id===g.id);
   if(s.del)h+='<p class="gs" style="margin:14px 0 0;color:var(--bad)">Usunięcie zabierze ten cel z wykresów i historii. Jeśli chcesz tylko zrobić przerwę, użyj „Wstrzymaj”.</p>';
   h+='<div class="actions">'+(s.isNew?'':'<button class="btn danger" data-act="'+(s.del?'delgoal':'askdel')+'">'+(s.del?'Na pewno usuń':'Usuń')+'</button><button class="btn" data-act="gpause">'+(orig&&isPaused(orig)?'Wznów':'Wstrzymaj')+'</button>')+'<button class="btn" data-act="close">Anuluj</button><button class="btn main" id="gsave" data-act="savegoal"'+(validGoal(g)?'':' disabled')+'>Zapisz</button></div>';
@@ -1971,13 +1998,13 @@ function act(a,ds){
       if(k&&k!=='none'&&CAT_BY[k]){const c=CAT_BY[k];if(!g.name.trim())g.name=c.n;
         if(ui.sheet.isNew&&!ui.sheet.typed){const d=c.d;defaults(g,d[0]);if(d[0]==='do'){g.period=d[1];g.target=d[1]==='day'?1:d[2]}if(d[0]==='qty'){g.target=d[1];g.unit=d[2];g.dir=d[3]==='max'?'max':undefined}if(d[0]==='range'){g.target=d[1];g.unit=d[2];g.ok=d[3];g.warn=d[4]}if(d[0]==='limit')g.target=d[1];if(d[0]==='contact'){g.kind=d[1];g.target=null}if(d[0]==='measure'){g.unit='kg'}}
         if(!c.share)g.groups=[]}
-      renderSheet();break}
+      renderSheet();if(k&&k!=='none')Coach.react('cheer');break}
     case'gactlist':ui.sheet.catOpen=true;renderSheet();break;
     case'gshare':{const g=ui.sheet.g,id=ds.id;g.groups=g.groups||[];if(g.groups.includes(id))g.groups=g.groups.filter(x=>x!==id);else g.groups.push(id);renderSheet();break}
     case'gdir':ui.sheet.g.dir=ds.k==='max'?'max':undefined;ui.sheet.typed=true;renderSheet();break;
-    case'gprio':ui.sheet.g.prio=ds.p;renderSheet();break;
-    case'gcoachT':{const g=ui.sheet.g,v=+ds.v;if(g.target==null&&g.type==='do')g.target=v;else g.target=v;ui.sheet.typed=true;renderSheet();break}
-    case'gcoach5':{const g=ui.sheet.g;g.period='week';g.target=5;ui.sheet.typed=true;renderSheet();break}
+    case'gprio':ui.sheet.g.prio=ds.p;renderSheet();Coach.react(ds.p==='main'?'flex':'thumbs');break;
+    case'gcoachT':{const g=ui.sheet.g,v=+ds.v;g.target=v;ui.sheet.typed=true;renderSheet();Coach.react('thumbs');break}
+    case'gcoach5':{const g=ui.sheet.g;g.period='week';g.target=5;ui.sheet.typed=true;renderSheet();Coach.react('clap');break}
     case'gcoachon':ui.asstOpen=true;renderSheet();break;
     case'gcoachoff':ui.asstOpen=false;renderSheet();break;
     case'ssoft':S.settings.mainSoft=!S.settings.mainSoft;save();render();break;
