@@ -1,10 +1,10 @@
 // Test przeglądarkowy z atrapą Supabase. Uruchom serwer w katalogu repo: python3 -m http.server 8765
 // Dwie osoby: Jan tworzy grupę i udostępnia siłownię, Ola dołącza linkiem, porównują się, piątka i wyzwanie.
-const {chromium}=require('playwright');const fs=require('fs'),path=require('path');
+const {chromium}=require('playwright');const stub=require('./stub');const fs=require('fs'),path=require('path');
 const fake=fs.readFileSync(path.join(__dirname,'fake-supabase.js'),'utf8');const URL='http://localhost:8765/';
 (async()=>{
   const b=await chromium.launch(),errs=[];
-  const ctx=await b.newContext({viewport:{width:390,height:844}});await ctx.route(/supabase-js/,r=>r.fulfill({contentType:'application/javascript',body:fake}));
+  const ctx=await b.newContext({viewport:{width:390,height:844}});await stub(ctx);
   const p=await ctx.newPage();p.on('pageerror',e=>errs.push('jan: '+e));
   const login=async(pg,em,pw)=>{await pg.fill('#a-email',em);await pg.fill('#a-pass',pw);await pg.click('#authform button[type=submit]');await pg.waitForTimeout(400);if(await pg.isVisible('[data-act=start]')){await pg.click('[data-act=start][data-k=sample]');await pg.waitForTimeout(300)}};
   await p.goto(URL);await p.evaluate(()=>localStorage.clear());await p.reload();await p.waitForTimeout(300);
@@ -24,7 +24,7 @@ const fake=fs.readFileSync(path.join(__dirname,'fake-supabase.js'),'utf8');const
   console.log('5 udostępnienie w bazie:',await p.evaluate(()=>JSON.stringify((window.__db.t.rytm_share||[]).map(s=>[s.user_id,s.act,s.groups.length,s.data.days.length,s.data.target]))));
   // Ola dołącza linkiem
   const db=await p.evaluate(()=>localStorage.getItem('__fakedb'));
-  const ctx2=await b.newContext({viewport:{width:390,height:844}});await ctx2.route(/supabase-js/,r=>r.fulfill({contentType:'application/javascript',body:fake}));
+  const ctx2=await b.newContext({viewport:{width:390,height:844}});await stub(ctx2);
   const q=await ctx2.newPage();q.on('pageerror',e=>errs.push('ola: '+e));
   await q.goto(URL);await q.evaluate(d=>{localStorage.clear();localStorage.setItem('__fakedb',d)},db);await q.goto('about:blank');await q.goto(URL+'#join-'+code.trim());await q.waitForTimeout(300);
   await login(q,'ola@example.com','dobrehaslo2');

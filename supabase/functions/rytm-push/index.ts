@@ -2,9 +2,21 @@
 // Akcje: "public-key" (klucz publiczny dla telefonu), "run" (co 5 minut z harmonogramu; rodzaje przypomnień: missing, review, weekly, monthly, custom),
 // "test" (próbne powiadomienie dla zalogowanego użytkownika), "kudos" (piątka dla znajomego z tej samej grupy).
 import webpush from "npm:web-push@3.6.7";
-import { createClient } from "npm:@supabase/supabase-js@2.45.4";
+import { createClient } from "npm:@supabase/supabase-js@2.119.1";
 
-const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+// Klucz serwera: nowy klucz „secret” (SUPABASE_SECRET_KEYS, nazwa „default”), a do czasu wyłączenia starych kluczy zapasowo service_role.
+// Stare klucze Supabase przestają działać z końcem 2026.
+function secretKey(): { key: string; kind: string } {
+  try {
+    const k = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") || "{}");
+    const v = k["default"] || Object.values(k)[0];
+    if (typeof v === "string" && v) return { key: v, kind: "secret" };
+  } catch { /* brak nowych kluczy */ }
+  return { key: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, kind: "legacy" };
+}
+const SK = secretKey();
+console.log("rytm-push: klucz serwera", SK.kind);
+const sb = createClient(Deno.env.get("SUPABASE_URL")!, SK.key, { auth: { persistSession: false, autoRefreshToken: false } });
 const APP_URL = "https://papurikasan.github.io/rytm/";
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -144,6 +156,8 @@ async function run() {
       if (error) continue; // już wysłane dzisiaj
       const msg = message(r, st.data, L.day);
       if (!msg) continue;
+      // liczba na ikonie aplikacji: ile celów na dziś bez wpisu (bez nastroju)
+      (msg as Record<string, unknown>).badge = missing(st.data, L.day).filter((x) => x !== "nastrój").length;
       for (const s of subs.filter((x) => x.user_id === st.user_id)) if (await send(s, msg)) sent++;
     }
   }

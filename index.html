@@ -604,6 +604,9 @@ body{background:radial-gradient(var(--dot) 1px,transparent 1.3px) 0 0/16px 16px,
 .seccard .goal .gs{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .seccard .goal .gn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .seccard .goal{padding:10px 0}
+/* płynne przejścia między zakładkami (iOS 18+, Chrome); pasek zakładek i nagłówek stoją w miejscu */
+::view-transition-old(root),::view-transition-new(root){animation-duration:.22s}
+.nav{view-transition-name:rnav}.top{view-transition-name:rtop}
 </style>
 </head>
 <body>
@@ -612,7 +615,7 @@ body{background:radial-gradient(var(--dot) 1px,transparent 1.3px) 0 0/16px 16px,
 <div id="asst"></div>
 <div id="tour"></div>
 <div class="toast" id="toast" role="status" hidden></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" integrity="sha384-0w2KAL2YHP6wKOkUDzkCDGgVvfmHnj02DHeQ6XcHOgTfFsGyonKOpShMH1x6nk9o" crossorigin="anonymous"></script>
 <script>
 'use strict';
 /* ---------- daty i formaty ---------- */
@@ -1568,10 +1571,12 @@ function timesSheet(){
 }
 // Przeciąganie celów w trybie „Ułóż”: uchwyt ⠿, upuszczenie na inny cel albo nagłówek sekcji.
 const Drag=(()=>{let st=null;
-  function start(e,h){const row=h.closest('.goal');if(!row)return;e.preventDefault();const r=row.getBoundingClientRect();st={id:h.dataset.drag,row,y0:e.clientY,top:r.top,h:r.height};row.classList.add('dragging');h.setPointerCapture&&h.setPointerCapture(e.pointerId)}
-  function move(e){if(!st)return;const dy=e.clientY-st.y0;st.row.style.transform='translateY('+dy+'px)';
-    document.querySelectorAll('.dropb,.dropa').forEach(x=>x.classList.remove('dropb','dropa'));const t=target(e);if(t&&t.el)t.el.classList.add(t.after?'dropa':'dropb');
-    if(e.clientY<60)window.scrollBy(0,-8);else if(e.clientY>window.innerHeight-90)window.scrollBy(0,8)}
+  function start(e,h){const row=h.closest('.goal');if(!row)return;e.preventDefault();const r=row.getBoundingClientRect();st={id:h.dataset.drag,row,y0:e.clientY,sy0:window.scrollY,top:r.top,h:r.height,cy:e.clientY,cx:e.clientX};row.classList.add('dragging');h.setPointerCapture&&h.setPointerCapture(e.pointerId);requestAnimationFrame(tick)}
+  const place=()=>{st.row.style.transform='translateY('+(st.cy-st.y0+window.scrollY-st.sy0)+'px)'};
+  // przewijanie, gdy palec stoi przy górnej albo dolnej krawędzi (tym szybciej, im bliżej krawędzi)
+  function tick(){if(!st)return;const top=90,bot=window.innerHeight-130;let v=0;if(st.cy<top)v=-Math.ceil((top-st.cy)/6);else if(st.cy>bot)v=Math.ceil((st.cy-bot)/6);if(v){const y=window.scrollY;window.scrollBy(0,Math.max(-18,Math.min(18,v)));if(window.scrollY!==y){place();mark({clientX:st.cx,clientY:st.cy})}}requestAnimationFrame(tick)}
+  function mark(e){document.querySelectorAll('.dropb,.dropa').forEach(x=>x.classList.remove('dropb','dropa'));const t=target(e);if(t&&t.el)t.el.classList.add(t.after?'dropa':'dropb')}
+  function move(e){if(!st)return;st.cy=e.clientY;st.cx=e.clientX;place();mark(e)}
   function target(e){st.row.style.visibility='hidden';const el=document.elementFromPoint(e.clientX,e.clientY);st.row.style.visibility='';if(!el)return null;
     const g=el.closest('.goal[data-gid]');if(g&&g.dataset.gid!==st.id){const r=g.getBoundingClientRect();return{el:g,gid:g.dataset.gid,after:e.clientY>r.top+r.height/2,sec:g.closest('[data-sec]').dataset.sec}}
     const sh=el.closest('.sech[data-sec]');if(sh)return{el:sh,sec:sh.dataset.sec,after:true};return null}
@@ -2298,6 +2303,9 @@ const FX={
   pop(el){if(!FX.on()||!el)return;el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop')},
   col(el){const c=el&&el.closest('[style*="--c"]');return c?getComputedStyle(c).getPropertyValue('--c').trim():''}
 };
+// Liczba na ikonie aplikacji (iPhone 16.4+, aplikacja z ekranu głównego, z włączonymi powiadomieniami).
+const Badge={last:null,set(force){try{if(!S||!('setAppBadge' in navigator))return;const n=S.settings.badge===false?0:Asst.missingFor(todayS()).length;if(n===Badge.last&&!force)return;Badge.last=n;(n?navigator.setAppBadge(n):navigator.clearAppBadge()).catch(()=>{})}catch(e){}}};
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')Badge.set(true)});
 function render(){
   if(!S)return;
   document.documentElement.style.setProperty('--pxc',lensCol(S.settings.pixaPal)[2]);
@@ -2309,6 +2317,7 @@ function render(){
   document.getElementById('app').innerHTML='<div class="top"><div class="brand"><i class="bdot" aria-hidden="true"></i>Rytm'+Sync.badge()+'</div><button class="iconbtn'+(ui.tab==='settings'?' on':'')+'" data-act="tab" data-t="settings">'+pix('gear')+'Ustawienia</button></div>'+body+'<nav class="nav" aria-label="Widoki"><div>'+tabs.map(t=>'<button class="'+(ui.tab===t[0]||(t[0]==='cal'&&(ui.tab==='week'||ui.tab==='month'))?'on':'')+'" data-act="tab" data-t="'+t[0]+'">'+pix(t[2])+'<span>'+t[1]+'</span></button>').join('')+'</div></nav>';
   renderSheet();
   Bk.paint();
+  Badge.set();
   PxStage.start();
   const app=document.getElementById('app');
   if(ui.enter&&FX.on()){ui.enter=false;app.classList.remove('enter');void app.offsetWidth;app.classList.add('enter');clearTimeout(render.et);render.et=setTimeout(()=>app.classList.remove('enter'),700);const nb=document.querySelector('.nav button.on .pix');if(nb)FX.pop(nb)}else ui.enter=false;
@@ -2351,7 +2360,8 @@ function act(a,ds){
     case'msall':ui.msAll=!ui.msAll;render();break;
     case'mitok':{const m=(S.mit||{})[d];if(m){m.ok=m.ok?null:true;save();render();if(m.ok){const b=document.querySelector('.mitc');FX.pop(b);FX.burst(b,'var(--pxc)');toast('Najważniejsze zrobione!')}}break}
     case'mitedit':ui.asstOpen=true;ui.mitEdit=true;ui.say=null;render();break;
-    case'tab':ui.tab=ds.t==='cal'?(ui.calLast||'week'):ds.t;ui.confirm=null;ui.enter=true;ui.ringAnim=null;render();window.scrollTo(0,0);setTimeout(()=>Asst.chat(ui.tab),350);break;
+    case'tab':{const go=()=>{ui.tab=ds.t==='cal'?(ui.calLast||'week'):ds.t;ui.confirm=null;ui.ringAnim=null;render();window.scrollTo(0,0)};
+      if(document.startViewTransition&&FX.on()&&!navigator.webdriver){ui.enter=false;document.startViewTransition(go)}else{ui.enter=true;go()}}setTimeout(()=>Asst.chat(ui.tab),350);break;
     case'theme':ui.theme=ds.v;try{localStorage.setItem('rytm-theme',ui.theme)}catch(e){}applyTheme();render();break;
     case'sstreak':if(ds.v==='main')S.settings.goodMode='main';else{S.settings.goodMode='pct';S.settings.streak=+ds.v}save();render();break;
     case'prev':ui.date=addDays(d,-1);render();break;
@@ -2454,6 +2464,7 @@ function act(a,ds){
     case'rdel':S.settings.reminders.splice(+ds.i,1);save();render();break;
     case'pxpal':S.settings.pixaPal=ds.k;save();render();PxStage.react('spin');break;
     case'pxkind':if(S.asst.off[ds.k])delete S.asst.off[ds.k];else S.asst.off[ds.k]=true;save();render();PxStage.react(S.asst.off[ds.k]?'shrug':'thumbs');break;
+    case'badget':S.settings.badge=S.settings.badge===false;save();render();Badge.set(true);break;
     case'animt':S.settings.anim=S.settings.anim===false;save();render();break;
     case'pxtone':S.settings.pixaTone=ds.k==='hard'?'hard':'soft';save();render();PxStage.react(S.settings.pixaTone==='hard'?'flex':'love');break;
     case'pxchat':S.settings.pixaChat=!S.settings.pixaChat;save();render();break;
@@ -3632,7 +3643,7 @@ const Push=(()=>{
       'ios-browser':'<p class="gs" style="margin:0">Na iPhonie przypomnienia działają tylko w aplikacji dodanej do ekranu początkowego. W Safari kliknij <b>Udostępnij → Do ekranu początkowego</b>, otwórz Rytm z ikony i włącz przypomnienia tutaj.</p>',
       'unsupported':'<p class="gs" style="margin:0">Ta przeglądarka nie obsługuje powiadomień.</p>',
       'denied':'<p class="gs" style="margin:0">Powiadomienia są zablokowane. Na iPhonie: <b>Ustawienia → Powiadomienia → Rytm</b> i włącz. W przeglądarce: kłódka obok adresu → Powiadomienia → Zezwalaj.</p>',
-      'on':'<p class="gs st-ok" style="margin:0 0 8px">Na tym urządzeniu przypomnienia są włączone.</p><div class="actions" style="margin-top:0"><button class="btn" data-push="test">Wyślij próbne</button><button class="btn" data-push="off">Wyłącz tutaj</button></div>',
+      'on':'<p class="gs st-ok" style="margin:0 0 8px">Na tym urządzeniu przypomnienia są włączone.</p><div class="actions" style="margin-top:0"><button class="btn" data-push="test">Wyślij próbne</button><button class="btn" data-push="off">Wyłącz tutaj</button></div>'+('setAppBadge' in navigator?'<div class="offbar" style="margin:12px 0 0"><button class="sw'+(S.settings.badge!==false?' on':'')+'" data-act="badget" role="switch" aria-checked="'+(S.settings.badge!==false)+'" aria-label="Liczba na ikonie aplikacji"></button><span><b style="color:var(--fg)">Liczba na ikonie</b><br><small class="gs">Ile celów na dziś zostało bez wpisu</small></span></div>':''),
       'off':'<button class="btn main" style="width:100%" data-push="on">Włącz przypomnienia na tym urządzeniu</button>'
     };
     return(M[st]||'')+(msg?'<p class="authmsg'+(msg.ok?' ok':'')+'" role="status">'+esc(msg.t)+'</p>':'');

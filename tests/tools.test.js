@@ -1,10 +1,10 @@
 // Test przeglądarkowy z atrapą Supabase. Uruchom serwer w katalogu repo: python3 -m http.server 8765
 // Ochrona serii, minutnik skupienia i minuta oddechu z Pixą (zegar przyspieszany w teście).
-const {chromium}=require('playwright');const fs=require('fs'),path=require('path');
+const {chromium}=require('playwright');const stub=require('./stub');const fs=require('fs'),path=require('path');
 const fake=fs.readFileSync(path.join(__dirname,'fake-supabase.js'),'utf8');
 (async()=>{
   const b=await chromium.launch(),errs=[];
-  const ctx=await b.newContext({viewport:{width:390,height:844}});await ctx.route(/supabase-js/,r=>r.fulfill({contentType:'application/javascript',body:fake}));
+  const ctx=await b.newContext({viewport:{width:390,height:844}});await stub(ctx);
   const p=await ctx.newPage();p.on('pageerror',e=>errs.push(String(e)));
   const open=async()=>{if(!await p.isVisible('.pxpanel')){await p.click('.hal');await p.clock.runFor(150)}};
   const now=new Date();now.setHours(19,0,0,0);await p.clock.install({time:now});

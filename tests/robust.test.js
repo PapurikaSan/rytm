@@ -1,8 +1,8 @@
 // Test przeglądarkowy z atrapą Supabase. Uruchom serwer w katalogu repo: python3 -m http.server 8765
 // Odporność: zmiana rodzaju celu z zaznaczania na ilość, zakres i pomiar przy istniejących wpisach nie psuje wykresów ani ekranów (brak NaN).
-const {chromium}=require('playwright');const fs=require('fs');
+const {chromium}=require('playwright');const stub=require('./stub');const fs=require('fs');
 const fake=fs.readFileSync(require('path').join(__dirname,'fake-supabase.js'),'utf8');
-(async()=>{const b=await chromium.launch(),errs=[];const ctx=await b.newContext({viewport:{width:390,height:844}});await ctx.route(/supabase-js/,r=>r.fulfill({contentType:'application/javascript',body:fake}));
+(async()=>{const b=await chromium.launch(),errs=[];const ctx=await b.newContext({viewport:{width:390,height:844}});await stub(ctx);
 const p=await ctx.newPage();p.on('pageerror',e=>errs.push(String(e)));p.on('console',m=>{if(m.type()==='error'&&!/Failed to load/.test(m.text()))errs.push(m.text().slice(0,120))});
 await p.goto('http://localhost:8765/');await p.evaluate(()=>localStorage.clear());await p.reload();await p.waitForTimeout(400);
 await p.fill('#a-email','jan@example.com');await p.fill('#a-pass','dobrehaslo1');await p.click('#authform button[type=submit]');await p.waitForTimeout(600);

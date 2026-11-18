@@ -1,11 +1,11 @@
 // Test przeglądarkowy z atrapą Supabase. Uruchom serwer w katalogu repo: python3 -m http.server 8765
 // Rytm dnia z Pixą: rano plan („kiedy?”), najważniejsza rzecz i sen; w dzień postęp; wieczorem domknięcie
 // (nastrój na cały dzień, „miało być”, przełożenie na jutro); tryb „dobry dzień = cele główne”, świetny dzień.
-const {chromium}=require('playwright');const fs=require('fs'),path=require('path');
+const {chromium}=require('playwright');const stub=require('./stub');const fs=require('fs'),path=require('path');
 const fake=fs.readFileSync(path.join(__dirname,'fake-supabase.js'),'utf8');
 (async()=>{
   const b=await chromium.launch(),errs=[];
-  const ctx=await b.newContext({viewport:{width:390,height:844}});await ctx.route(/supabase-js/,r=>r.fulfill({contentType:'application/javascript',body:fake}));
+  const ctx=await b.newContext({viewport:{width:390,height:844}});await stub(ctx);
   const p=await ctx.newPage();p.on('pageerror',e=>errs.push(String(e)));
   // środa 18 listopada 2026, 7:00 (przed pobudką)
   await p.clock.install({time:new Date(2026,10,18,7,0,0)});

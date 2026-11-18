@@ -1,11 +1,11 @@
 // Test przeglądarkowy z atrapą Supabase. Uruchom serwer w katalogu repo: python3 -m http.server 8765
 // Dymki Pixy w zakładkach, charakter (łagodna/twarda), uzupełnianie z powiadomienia (#pixa-fill),
 // podsumowanie miesiąca, kamienie milowe w grupie znajomych, nowe pozy.
-const {chromium}=require('playwright');const fs=require('fs'),path=require('path'),os=require('os');
+const {chromium}=require('playwright');const stub=require('./stub');const fs=require('fs'),path=require('path'),os=require('os');
 const fake=fs.readFileSync(path.join(__dirname,'fake-supabase.js'),'utf8');
 (async()=>{
   const b=await chromium.launch(),errs=[];
-  const ctx=await b.newContext({viewport:{width:390,height:844}});await ctx.route(/supabase-js/,r=>r.fulfill({contentType:'application/javascript',body:fake}));
+  const ctx=await b.newContext({viewport:{width:390,height:844}});await stub(ctx);
   const p=await ctx.newPage();p.on('pageerror',e=>errs.push(String(e)));
   const w=ms=>p.clock.runFor(ms);
   const say=async()=>(await p.isVisible('.pxsay'))?(await p.textContent('.pxsay .pxsayt')).replace(/^Pixa\s*/,'').trim():'(brak dymka)';

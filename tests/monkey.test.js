@@ -1,7 +1,7 @@
 // Test przeglądarkowy z atrapą Supabase. Uruchom serwer w katalogu repo: python3 -m http.server 8765
 // „Klikanie wszystkiego”: każda zakładka, sekcja Ustawień, okno i przycisk, potem setki losowych kliknięć
 // w obu motywach, na danych przykładowych. Każdy błąd strony albo konsoli kończy się wpisem w errors.
-const {chromium}=require('playwright');const fs=require('fs'),path=require('path');
+const {chromium}=require('playwright');const stub=require('./stub');const fs=require('fs'),path=require('path');
 const fake=fs.readFileSync(path.join(__dirname,'fake-supabase.js'),'utf8');
 const N=+(process.argv[2]||400);
 // akcje, które wylogowują, przeładowują stronę albo kasują wszystko: sprawdzane osobno w innych testach
@@ -10,7 +10,7 @@ const SKIP=new Set(['resetgo','logout','wipe','delgroup','leave','xfergo']);
   const b=await chromium.launch(),errs=[];
   for(const dark of [true,false]){
     const ctx=await b.newContext({viewport:{width:390,height:844},colorScheme:dark?'dark':'light'});
-    await ctx.route(/supabase-js/,r=>r.fulfill({contentType:'application/javascript',body:fake}));
+    await stub(ctx);
     const p=await ctx.newPage(),tag=dark?'ciemny':'jasny';
     p.on('pageerror',e=>errs.push(tag+': '+String(e).slice(0,200)));
     p.on('console',m=>{if(m.type()==='error'&&!/favicon|Failed to load resource|fonts\.g/.test(m.text()))errs.push(tag+' konsola: '+m.text().slice(0,200))});

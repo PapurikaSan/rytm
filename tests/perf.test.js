@@ -1,10 +1,10 @@
 // Pomiar szybkości: ile trwa narysowanie każdego widoku i zapis przy 110 dniach (dane przykładowe) i przy 2 latach danych.
 // Uruchom serwer w katalogu repo: python3 -m http.server 8765
-const {chromium}=require('playwright');const fs=require('fs'),path=require('path');
+const {chromium}=require('playwright');const stub=require('./stub');const fs=require('fs'),path=require('path');
 const fake=fs.readFileSync(path.join(__dirname,'fake-supabase.js'),'utf8');
 (async()=>{
   const b=await chromium.launch(),errs=[];
-  const ctx=await b.newContext({viewport:{width:390,height:844}});await ctx.route(/supabase-js/,r=>r.fulfill({contentType:'application/javascript',body:fake}));
+  const ctx=await b.newContext({viewport:{width:390,height:844}});await stub(ctx);
   const p=await ctx.newPage();p.on('pageerror',e=>errs.push(String(e)));
   await p.goto('http://localhost:8765/');await p.evaluate(()=>localStorage.clear());await p.reload();await p.waitForTimeout(400);
   await p.fill('#a-email','jan@example.com');await p.fill('#a-pass','dobrehaslo1');await p.click('#authform button[type=submit]');await p.waitForTimeout(600);
