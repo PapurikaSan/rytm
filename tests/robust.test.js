@@ -11,4 +11,7 @@ await p.click('[data-act=start][data-k=sample]');await p.waitForTimeout(400);awa
 const r=await p.evaluate(()=>{const out=[];for(const ty of ['qty','range','measure']){const g=S.goals.find(x=>x.id==='gym');g.type=ty;g.period=ty==='measure'?'week':'day';g.target=ty==='range'?60:30;g.unit='min';g.ok=10;g.warn=20;save();
  for(const m of ['d','w','m']){ui.tab='charts';ui.mode=m;ui.cg='gym';render();if(/NaN|Infinity/.test(document.getElementById('app').innerHTML))out.push(ty+' '+m+' wykres')}
  ui.tab='today';render();if(/NaN|Infinity/.test(document.getElementById('app').innerHTML))out.push(ty+' dziś');ui.tab='week';render();if(/NaN/.test(document.getElementById('app').innerHTML))out.push(ty+' tydzień')}return out});
-console.log('NaN po zmianie rodzaju celu:',r.length?r:'brak');console.log('errors',errs);await b.close()})();
+console.log('NaN po zmianie rodzaju celu:',r.length?r:'brak');
+// cel „wartość ± tolerancja” z tolerancją 0 i wszystkimi wpisami równymi celowi (skala o zerowej wysokości)
+const z=await p.evaluate(()=>{const g={id:'gz',name:'Zero',cat:'Zdrowie',type:'range',period:'day',target:5,unit:'h',ok:0,warn:0,prio:'imp',groups:[]};S.goals.push(g);const t=todayS();for(let k=0;k<20;k++)S.log[addDays(t,-k)]=Object.assign({},S.log[addDays(t,-k)],{gz:5});save();const out=[];['d','w','m'].forEach(m=>{ui.tab='charts';ui.mode=m;ui.cg='gz';render();if(/NaN|Infinity/.test(document.getElementById('app').innerHTML))out.push(m)});return out});
+console.log('NaN przy tolerancji 0:',z.length?z:'brak');console.log('errors',errs);await b.close()})();
