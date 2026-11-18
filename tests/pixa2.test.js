@@ -15,7 +15,7 @@ const fake=fs.readFileSync(path.join(__dirname,'fake-supabase.js'),'utf8');
   await p.goto('http://localhost:8765/');await p.evaluate(()=>localStorage.clear());await p.reload();await w(500);
   await p.fill('#a-email','jan@example.com');await p.fill('#a-pass','dobrehaslo1');await p.click('#authform button[type=submit]');await w(600);
   await p.click('[data-act=start][data-k=template]');await w(300);
-  await p.evaluate(()=>{ui.tour=null;S.tour='done';render()});
+  await p.evaluate(()=>{ui.tour=null;S.tour='done';S.settings.chatEvery='each';render()}); // dymek przy każdym wejściu (limit 30 min sprawdza rhythm.test.js)
   // listopad z danymi
   await p.evaluate(()=>{const t=todayS();for(let k=1;k<=35;k++){const d=addDays(t,-k);S.log[d]={'g-sleep':k%4?7.5:5.5,'g-eat':1,'g-read':k%3?25:10};if(k%2)S.log[d]['g-gym']=1;S.mood[d]=k%5?4:3}save();render()});await w(800);
 
@@ -25,11 +25,15 @@ const fake=fs.readFileSync(path.join(__dirname,'fake-supabase.js'),'utf8');
   console.log('  przypomnienia:',await p.evaluate(()=>S.settings.reminders.map(r=>r.kind).join(', ')));
 
   // 2) dymki w zakładkach
+  await p.evaluate(()=>{S.mit[todayS()]={skip:1};save()}); // najważniejszą rzecz sprawdza rhythm.test.js
   await w(1200);console.log('2 Dziś (start):',await say());
   await p.screenshot({path:path.join(os.tmpdir(),'rytm-say-today.png')});
   const before=await p.evaluate(()=>JSON.stringify((S.asst.plan||{})[todayS()]||{}));
-  if(await p.isVisible('.pxsay [data-asst=sayact]')){await p.click('.pxsay [data-asst=sayact][data-j="0"]');await w(200)}
-  console.log('  po „Tak”: plan',before,'→',await p.evaluate(()=>JSON.stringify((S.asst.plan||{})[todayS()]||{})),'| toast:',(await p.textContent('#toast')).trim());
+  // pytanie o plan: „Kiedy dziś…?” → Wieczorem (przycisk w dymku)
+  await p.evaluate(()=>{const it=Asst.chatItems('today').find(x=>x.id.startsWith('plan-'));ui.say=it;Asst.paint()});await w(100);
+  if(await p.isVisible('.pxsay [data-asst=sayact]')){await p.click('.pxsay [data-asst=sayact][data-j="2"]');await w(200)}
+  console.log('  po „Wieczorem”: plan',before,'→',await p.evaluate(()=>JSON.stringify((S.asst.plan||{})[todayS()]||{})),'| toast:',(await p.textContent('#toast')).trim());
+  await p.evaluate(()=>{ui.asstOpen=false;ui.ck=null;render()});
   for(const t of ['charts','cal','goals','friends']){await tab(t);if(t==='friends'){await w(1500)}console.log('  '+t+':',await say())}
   await p.screenshot({path:path.join(os.tmpdir(),'rytm-say-friends.png')});
   await tab('settings');console.log('  settings:',await say());
@@ -73,7 +77,7 @@ const fake=fs.readFileSync(path.join(__dirname,'fake-supabase.js'),'utf8');
   await p.evaluate(()=>{localStorage.removeItem('rytm-chat-seen')});
   await p.click('.nav [data-t=goals]');await w(300);await p.click('.nav [data-t=today]');await w(600);
   console.log('5 wieczorem:',await say());
-  if(await p.isVisible('.pxsay [data-asst=sayact]')&&(await say()).includes('Rano')){const id=await p.evaluate(()=>ui.say&&ui.say.id);await p.click('.pxsay [data-asst=sayact][data-j="0"]');await w(200);console.log('  po „Tak”:',id,await p.evaluate(id=>{const g=id.slice(3,id.length-10);return g+'='+val(g,todayS())},id))}
+  if(await p.isVisible('.pxsay [data-asst=sayact]')&&(await say()).includes('Miało być')){const id=await p.evaluate(()=>ui.say&&ui.say.id);await p.click('.pxsay [data-asst=sayact][data-j="0"]');await w(200);console.log('  po „Tak”:',id,await p.evaluate(id=>{const g=id.slice(3,id.length-10);return g+'='+val(g,todayS())},id))}
 
   // 6) kamienie milowe w grupie
   await p.click('.nav [data-t=friends]');await w(1200);
