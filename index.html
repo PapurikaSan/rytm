@@ -530,14 +530,18 @@ body{background:radial-gradient(var(--dot) 1px,transparent 1.3px) 0 0/16px 16px,
 /* ---------- daty i formaty ---------- */
 const pad=n=>String(n).padStart(2,'0');
 const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
-const parse=s=>{const a=s.split('-').map(Number);return new Date(a[0],a[1]-1,a[2])};
-const addDays=(s,n)=>{const d=parse(s);d.setDate(d.getDate()+n);return ymd(d)};
+const parse=s=>new Date(+s.slice(0,4),+s.slice(5,7)-1,+s.slice(8,10));
+// Daty jako liczby dni (od 1970-01-01, liczone w UTC, więc bez kłopotów ze zmianą czasu); wyniki zapamiętane.
+const DN_C=new Map(),DS_C=new Map();
+const dnum=s=>{let v=DN_C.get(s);if(v===undefined){v=Date.UTC(+s.slice(0,4),+s.slice(5,7)-1,+s.slice(8,10))/864e5;DN_C.set(s,v)}return v};
+const dstr=n=>{let v=DS_C.get(n);if(v===undefined){const d=new Date(n*864e5);v=d.getUTCFullYear()+'-'+pad(d.getUTCMonth()+1)+'-'+pad(d.getUTCDate());DS_C.set(n,v)}return v};
+const addDays=(s,n)=>dstr(dnum(s)+n);
 const todayS=()=>ymd(new Date());
-const wstart=s=>{const d=parse(s);d.setDate(d.getDate()-((d.getDay()+6)%7));return ymd(d)};
+const wstart=s=>{const n=dnum(s);return dstr(n-((n%7+10)%7))};
 const mstart=s=>s.slice(0,8)+'01';
 const mend=s=>{const d=parse(s);return ymd(new Date(d.getFullYear(),d.getMonth()+1,0))};
-const range=(a,b)=>{const o=[];for(let s=a;s<=b;s=addDays(s,1))o.push(s);return o};
-const diffDays=(a,b)=>Math.round((parse(b)-parse(a))/864e5);
+const range=(a,b)=>{const o=[],x=dnum(a),y=dnum(b);for(let i=x;i<=y;i++)o.push(dstr(i));return o};
+const diffDays=(a,b)=>dnum(b)-dnum(a);
 const MON=['sty','lut','mar','kwi','maj','cze','lip','sie','wrz','paź','lis','gru'];
 const DOW=['Pn','Wt','Śr','Cz','Pt','Sb','Nd'];
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -553,7 +557,10 @@ const shortDate=s=>+s.slice(8)+' '+MON[+s.slice(5,7)-1];
 const ago=d=>{if(!d)return'brak';const n=diffDays(d,todayS());return n===0?'dziś':n===1?'wczoraj':n+' dni temu'};
 
 /* ---------- dane ---------- */
-const KEY='rytm-v2';
+// Wyniki obliczeń trzymane do następnej zmiany danych (DV rośnie przy każdym save()) albo zmiany dnia lub obiektu S.
+let DV=0,memoS=null;const MEMO=new Map();
+let memoV=-1,memoT=0;
+function memo(k,f){if(memoV!==DV||memoS!==S||Date.now()>=memoT){MEMO.clear();memoV=DV;memoS=S;const n=new Date();memoT=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1).getTime()}if(MEMO.has(k))return MEMO.get(k);const v=f();MEMO.set(k,v);return v}
 const DEF_SET={streak:.7,mainReq:true,mainSoft:false,len:{meeting:{s:'do 1 h',m:'1–3 h',l:'powyżej 3 h'},call:{s:'do 5 min',m:'5–15 min',l:'powyżej 15 min'}}};
 function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 // Dane przykładowe: uniwersalny zestaw, który pokazuje wszystkie rodzaje celów (zaznaczanie, ilość, „najwyżej”, zakres, limit, pomiar, spotkania).
@@ -632,6 +639,7 @@ function fixState(o){
 }
 let S=null;
 function save(){
+  DV++;
   if(S){try{const ws=wstart(todayS()),o={};[addDays(ws,-7),ws].forEach(w=>{const x=weekRecap(w);if(x)o[w]={t:x.t,b:x.b}});S.wsum=o}catch(e){}
     try{const m0=mstart(todayS()),o={};[mstart(addDays(m0,-1)),m0].forEach(m=>{const x=monthRecap(m);if(x)o[m]={t:x.t,b:x.b}});S.msum=o}catch(e){}}
   Sync.save();clearTimeout(save.mt);save.mt=setTimeout(()=>Ms.check(),400);
@@ -647,7 +655,11 @@ document.addEventListener('click',e=>{if(!e.target.closest('[data-undo]'))return
 
 /* ---------- logika ---------- */
 const thr=()=>S.settings.streak;
-const val=(gid,d)=>S.log[d]&&S.log[d][gid];
+// Wpis celu z danego dnia. Przy celach liczbowych (ilość, zakres, pomiar) wpis, który nie jest liczbą
+// (np. został po zmianie rodzaju celu z „zaznaczania”), traktujemy jak brak wpisu, żeby nie psuł średnich i wykresów.
+let GTv=-1,GTs=null,GTm={};
+const numGoal=gid=>{if(GTv!==DV||GTs!==S){GTm={};S.goals.forEach(g=>{GTm[g.id]=g.type==='qty'||g.type==='range'||g.type==='measure'});GTv=DV;GTs=S}return GTm[gid]};
+const val=(gid,d)=>{const v=S.log[d]&&S.log[d][gid];return v!=null&&typeof v!=='number'&&numGoal(gid)?undefined:v};
 const num=v=>Array.isArray(v)?v.length:typeof v==='string'?1:(v||0);
 const isCheck=g=>g.type==='do'||g.type==='limit';
 const hasTarget=g=>g.target!=null&&g.target>0;
@@ -761,9 +773,10 @@ function monthPickList(){
   if(m.more)h+='<div class="gs" style="margin-top:4px">i '+m.more+' innych. Wpisz kilka liter, żeby znaleźć.</div>';
   return h;
 }
-function habitStrength(g){
+function habitStrength(g){return memo('hs|'+g.id,()=>habitStrength0(g))}
+function habitStrength0(g){
   if(!(hasTarget(g)||isMeasure(g)))return null;
-  const t=todayS(),first=Object.keys(S.log).sort()[0];if(!first)return null;
+  const t=todayS(),first=logDays()[0];if(!first)return null;
   let s=0,any=false;
   if(g.period==='day'){
     const a=1-Math.pow(.5,1/14);
@@ -790,7 +803,8 @@ function habitStrength(g){
   }
   return any?s:null;
 }
-function insights(){
+function insights(){return memo('ins',insights0)}
+function insights0(){
   const t=todayS(),ds=Object.keys(S.log).concat(Object.keys(S.mood)).sort();if(!ds.length)return[];
   const days=range(ds[0],t).filter(d=>!S.off[d]),out=[];
   const doneDay=(g,d)=>{const r=val(g.id,d);if(g.type==='qty')return r!=null?qtyOk(g,r):null;if(g.type==='range')return r!=null?evalRange(g,r).status==='ok':null;return num(r)>0};
@@ -906,10 +920,12 @@ function moodCell(d){if(d>todayS())return'<span class="wc fut"></span>';const m=
 function pausedAt(g,d){return(g.pauses||[]).some(p=>d>=p.from&&(!p.to||d<p.to))}
 function isPaused(g){const p=g.pauses||[];return p.length>0&&!p[p.length-1].to}
 function vis(g,a,b){return!(g.pauses||[]).some(p=>p.from<=a&&(!p.to||p.to>b))}
-function lastMeasure(g,d){const ds=Object.keys(S.log).filter(x=>x<=d&&S.log[x][g.id]!=null).sort();if(!ds.length)return null;const x=ds[ds.length-1];return{d:x,v:S.log[x][g.id]}}
+const logDays=()=>memo('ld',()=>Object.keys(S.log).sort());
+function lastMeasure(g,d){const ds=logDays();for(let i=ds.length-1;i>=0;i--){const x=ds[i];if(x>d)continue;const v=val(g.id,x);if(typeof v==='number')return{d:x,v}}return null}
 function personEvents(p,d){const o=[];S.goals.forEach(g=>{if(g.type!=='contact'||g.kind!=='meeting')return;const ev=val(g.id,d);if(Array.isArray(ev))ev.forEach(e=>{if(e.p.includes(p))o.push(e)})});return o}
-function goalRuns(g){
-  const t=todayS(),first=Object.keys(S.log).sort()[0];if(!first)return null;
+function goalRuns(g){return memo('gr|'+g.id,()=>goalRuns0(g))}
+function goalRuns0(g){
+  const t=todayS(),first=logDays()[0];if(!first)return null;
   const daily=g.period==='day'&&(g.type==='qty'||g.type==='range'||g.type==='do'||isMeasure(g));
   let run=0,best=0;
   if(daily){
@@ -1000,12 +1016,14 @@ function onTrack(g,d){
   return need-tot<=diffDays(d,pb[1])?1:0;
 }
 function goalDayScoreW(g,d){const v=goalDayScore(g,d);if(v!=null)return v;if(!scorable(g))return null;if(isMeasure(g)&&g.period==='day')return val(g.id,d)!=null?1:0;return onTrack(g,d)}
-function goodDay(d){
+function goodDay(d){return memo('gd|'+d,()=>goodDay0(d))}
+function goodDay0(d){
   const s=dayScore(d);if(s==null||s<thr())return false;
   if(S.settings.mainReq){const need=S.settings.mainSoft?.5:1;return S.goals.every(g=>g.prio!=='main'||pausedAt(g,d)||!scorable(g)||goalDayScoreW(g,d)>=need)}
   return true;
 }
-function dayScore(d,goals){
+function dayScore(d,goals){return goals?dayScore0(d,goals):memo('ds|'+d,()=>dayScore0(d))}
+function dayScore0(d,goals){
   if(S.off[d])return null;
   if(!goals){let sw=0,sv=0;S.goals.forEach(g=>{if(pausedAt(g,d))return;const w=PW[g.prio||'imp'];if(!w)return;const v=goalDayScoreW(g,d);if(v==null)return;sw+=w;sv+=w*v});return sw?sv/sw:null}
   const a=(goals||S.goals).filter(g=>!pausedAt(g,d)).map(g=>goalDayScore(g,d)).filter(x=>x!==null);
@@ -1030,7 +1048,8 @@ function goalCompletion(g,a,b){
   return res.length?avg(res):null;
 }
 function groupCompletion(goals,a,b){const W=goals===S.goals;let sw=0,sv=0;goals.forEach(g=>{const w=W?PW[g.prio||'imp']:1;if(!w)return;const v=goalCompletion(g,a,b);if(v==null)return;sw+=w;sv+=w*v});return sw?sv/sw:null}
-function streak(){
+function streak(){return memo('st',streak0)}
+function streak0(){
   const t=todayS();let d=t,n=0;
   for(let i=0;i<500;i++){
     if(S.off[d]){d=addDays(d,-1);continue}
@@ -1039,7 +1058,8 @@ function streak(){
   }
   return n;
 }
-function bestStreak(){
+function bestStreak(){return memo('bst',bestStreak0)}
+function bestStreak0(){
   const ds=Object.keys(S.log).sort();if(!ds.length)return 0;
   let best=0,cur=0;const t=todayS();
   for(const d of range(ds[0],t)){
@@ -1416,6 +1436,8 @@ function svgBars(items){
 }
 function svgLine(pts,o){
   const W=320,H=170,L=38,R=12,T=14,B=24,iw=W-L-R,ih=H-T-B;
+  pts=pts.map(p=>Number.isFinite(p.v)?p:Object.assign({},p,{v:null}));
+  if(o.target!=null&&!Number.isFinite(o.target))o.target=null;if(o.target==null)o.band=null;
   const vals=pts.map(p=>p.v).filter(v=>v!=null);
   let hi=Math.max.apply(null,vals.concat([o.target==null?0:o.target+(o.band||0),1])),lo=0;
   if(o.band!=null){lo=Math.min.apply(null,vals.concat([o.target-o.band]));lo=Math.max(0,lo-(hi-lo)*.2)}
@@ -1464,7 +1486,7 @@ function hbars(rows){
 }
 /* ---------- podsumowanie tygodnia (Pixa w aplikacji i poniedziałkowe powiadomienie) ---------- */
 function weekRecap(ws){
-  const t=todayS(),we=addDays(ws,6),first=Object.keys(S.log).sort()[0];
+  const t=todayS(),we=addDays(ws,6),first=logDays()[0];
   if(!first||first>we||ws>t)return null;
   const a=first>ws?first:ws,e=we<t?we:t;
   const n=range(a,we).filter(d=>!S.off[d]).length;if(!n)return null;
@@ -1483,7 +1505,7 @@ function weekRecap(ws){
 }
 const MN=['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'],MNL=['styczniu','lutym','marcu','kwietniu','maju','czerwcu','lipcu','sierpniu','wrześniu','październiku','listopadzie','grudniu'];
 function monthRecap(m0){
-  const t=todayS(),me=mend(m0),first=Object.keys(S.log).sort()[0];
+  const t=todayS(),me=mend(m0),first=logDays()[0];
   if(!first||first>me||m0>t)return null;
   const a=first>m0?first:m0,e=me<t?me:t,n=range(a,me).filter(d=>!S.off[d]).length;if(!n)return null;
   const gdays=(x,y)=>x>y?0:range(x,y).filter(d=>!S.off[d]&&goodDay(d)).length,W=g=>PW[g.prio||'imp'];
@@ -1504,7 +1526,7 @@ const Ms=(()=>{
   function sums(min){const o=[];for(let p=1;p<=1e7&&o.length<12;p*=10)for(const x of[1,2.5,5]){const v=x*p;if(v>=min&&o.length<12)o.push(v)}return o}
   const plG=(n,a,b,c)=>n===1?a:(n%10>=2&&n%10<=4&&(n%100<12||n%100>14))?b:c;
   function compute(){
-    const t=todayS(),first=Object.keys(S.log).sort()[0];if(!first)return[];
+    const t=todayS(),first=logDays()[0];if(!first)return[];
     const out=[];
     const mk=(id,steps,label)=>{const x={id,steps,label,cur:0,max:0,reached:{}};out.push(x);return x};
     const hit=(x,v,d)=>{x.cur=v;if(v>x.max){x.max=v;for(const n of x.steps){if(n>v)break;if(!x.reached[n])x.reached[n]=d}}};
@@ -1522,7 +1544,7 @@ const Ms=(()=>{
     for(const d of range(first,t)){
       const L=S.log[d]||{},active=Object.keys(L).length>0||S.mood[d]!=null;
       if(!S.off[d]){if(goodDay(d)){ng++;hit(gd,ng,d);run++;hit(st,run,d)}else if(d!==t){run=0;st.cur=0}}
-      G.forEach(o=>{const g=o.g,v=L[g.id];
+      G.forEach(o=>{const g=o.g,v=val(g.id,d);
         if(o.c){let inc=0;
           if(g.type==='do')inc=num(v)>0?1:0;
           else if(g.type==='contact')inc=num(v);
@@ -1787,7 +1809,6 @@ function sheetHtml(){
     return'<div class="scrim" data-act="close"></div><div class="sheet" role="dialog" aria-modal="true">'+h+'</div>';
   }
   if(s.kind==='people'){
-    const t=todayS(),ps=peopleStats(addDays(t,-29),t);
     let h='<h2>Znajomi</h2><p class="gs" style="margin:-6px 0 12px">Zmiana imienia zmienia je też w historii. Usunięcie z listy nie kasuje historii spotkań.</p><div class="row2"><input class="inp" id="newp2" placeholder="Nowa osoba, imię i nazwisko" data-inp="newp" value="'+esc(s.np||'')+'"><button class="btn" style="flex:none" data-act="addperson2">Dodaj</button></div>';
     h+=(S.people.length>6?'<input class="inp" id="msearch" style="margin-top:12px" data-inp="mq" autocomplete="off" placeholder="Szukaj na liście ('+S.people.length+' '+plOs(S.people.length)+')" value="'+esc(s.mq||'')+'">':'')+'<div id="mlist">'+managerList()+'</div>';
     h+='<div class="actions"><button class="btn main" data-act="close">'+(s.back?'Wróć do wpisu':'Gotowe')+'</button></div>';
@@ -1836,7 +1857,6 @@ function renderSheet(){
   if(typeof Tour!=='undefined')Tour.paint();
   if(typeof Coach!=='undefined')Coach.start();
 }
-const GEAR='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
 // Animacje: krótkie, z sensem, wyłączane w Ustawieniach i przy systemowym „ogranicz ruch”.
 const FX={
   on:()=>!!S&&S.settings.anim!==false&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches),
@@ -1860,8 +1880,6 @@ function render(){
   const body={today:viewToday,week:viewWeek,month:viewMonth,charts:viewCharts,goals:viewGoals,settings:viewSettings,friends:viewFriends}[ui.tab]();
   document.getElementById('app').innerHTML='<div class="top"><div class="brand"><i class="bdot" aria-hidden="true"></i>Rytm'+Sync.badge()+'</div><button class="iconbtn'+(ui.tab==='settings'?' on':'')+'" data-act="tab" data-t="settings">'+pix('gear')+'Ustawienia</button></div>'+body+'<nav class="nav" aria-label="Widoki"><div>'+tabs.map(t=>'<button class="'+(ui.tab===t[0]||(t[0]==='cal'&&(ui.tab==='week'||ui.tab==='month'))?'on':'')+'" data-act="tab" data-t="'+t[0]+'">'+pix(t[2])+'<span>'+t[1]+'</span></button>').join('')+'</div></nav>';
   renderSheet();
-  Asst.paint();
-  Tour.paint();
   Bk.paint();
   PxStage.start();
   const app=document.getElementById('app');
@@ -2738,7 +2756,7 @@ const Asst=(()=>{
   const openedToday=()=>{try{return localStorage.getItem(openedKey)===todayS()}catch(e){return false}};
   // ---- reguły ----
   const niceRound=x=>x<10?Math.max(1,Math.round(x)):x<100?Math.max(5,Math.round(x/5)*5):Math.round(x/50)*50;
-  const firstDay=()=>Object.keys(S.log).sort()[0]||todayS();
+  const firstDay=()=>logDays()[0]||todayS();
   // ---- uzupełnianie dnia ----
   const ckTypes=g=>g.type==='qty'||g.type==='range'||(g.type==='do'&&g.period==='day')||(isMeasure(g)&&g.period==='day');
   function missingFor(d){if(S.off[d])return[];const ans=S.asst.ck[d]||[];return S.goals.filter(g=>!pausedAt(g,d)&&ckTypes(g)&&!ans.includes(g.id)&&(g.type==='do'?!num(val(g.id,d)):val(g.id,d)==null))}
@@ -2828,7 +2846,7 @@ const Asst=(()=>{
     if(anim){cancelAnimationFrame(anim);anim=null}
     if(!S||!S.settings.asst||(ui.tour!=null&&!ui.tourLens)||(!ui.asstOpen&&(ui.sheet||ui.tab==='settings'))||(ui.sheet&&ui.sheet.kind==='goal')){root.innerHTML='';return}
     if(ui.asstFill&&ui.asstOpen){ui.asstFill=false;const d=new Date().getHours()<5?addDays(todayS(),-1):todayS(),l=missingFor(d);if(l.length||(S.mood[d]==null&&!S.off[d]))startCk(d,l,true)}
-    tipsCache=tips();if(ui.chatTip&&ui.asstOpen){const c=ui.chatTip;tipsCache.unshift({id:'chat-'+c.id,kind:'chat',pr:999,text:c.text,actions:c.acts&&c.acts.length?c.acts:[{l:'OK',f:()=>{}}],pose:c.pose});idx=0}
+    tipsCache=memo('tips|'+new Date().getHours(),tips).slice();if(ui.chatTip&&ui.asstOpen){const c=ui.chatTip;tipsCache.unshift({id:'chat-'+c.id,kind:'chat',pr:999,text:c.text,actions:c.acts&&c.acts.length?c.acts:[{l:'OK',f:()=>{}}],pose:c.pose});idx=0}
     if(idx>=tipsCache.length)idx=0;
     if(ui.asstKind){const j=tipsCache.findIndex(x=>x.kind===ui.asstKind);if(j>=0)idx=j;ui.asstKind=null}
     const has=tipsCache.length>0||!!ui.fdone,fresh=(has&&!openedToday())||!!ui.fdone||tipsCache.some(x=>x.kind==='milestone');
