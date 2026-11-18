@@ -50,7 +50,8 @@ const fake=fs.readFileSync(path.join(__dirname,'fake-supabase.js'),'utf8');
   const it=await p.evaluate(()=>Asst.chatItems('today').map(x=>x.id.replace(/-?2026-\d\d-\d\d/,'')+': '+x.text).filter(x=>/^(plan|tp)/.test(x)));
   console.log('8:30 po planie tygodnia (bez pytań „kiedy” o zaplanowane):');it.forEach(x=>console.log('  · '+x));
   await p.evaluate(()=>{ui.tab='today';render()});
-  console.log('wiersz treningu na Dziś:',(await p.textContent('#row-gym .gs')).trim());
+  console.log('trening na Dziś w sekcji:',await p.evaluate(()=>daySlot(S.goals.find(g=>g.id==='gym'),todayS())),'| sekcja „Wieczorem” zwinięta o 8:30:',!(await p.isVisible('#row-gym')));
+  await p.click('[data-act=sect][data-k=w]');console.log('  po rozwinięciu:',(await p.textContent('#row-gym .gs')).trim());
   // 5) cele długoterminowe z nawykami
   await p.evaluate(()=>{ui.tab='goals';render()});
   console.log('cele długoterminowe:');for(const t of await p.$$eval('.lt',l=>l.map(x=>x.innerText.replace(/\s+/g,' ').trim())))console.log('  · '+t);

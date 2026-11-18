@@ -560,6 +560,47 @@ body{background:radial-gradient(var(--dot) 1px,transparent 1.3px) 0 0/16px 16px,
 .dcb{display:flex;gap:6px;align-items:center;flex:none}
 .dcb .pill{padding:6px 12px}.dcb .pill.on.ok{background:var(--good);border-color:var(--good);color:#fff}
 .lth{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-top:8px}.lth .gs{margin-right:2px}.lth .chip{margin-top:0}
+/* Dziś: układ i sekcje */
+.datebar .dmore{font-size:20px;line-height:1;letter-spacing:1px}.datebar .dmore.on{background:var(--accent-soft)}
+.dmenu{background:var(--surface);border-radius:16px;box-shadow:var(--shadow);padding:4px 14px;margin:-4px 0 12px}
+.dmr{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:11px 0;border-top:1px solid var(--line);font-size:14px;color:var(--fg)}
+.dmr:first-child{border-top:0}.dmr>span{flex:1;min-width:0;display:flex;flex-direction:column}.dmr small{font-size:12px;color:var(--muted)}
+.note.slim{padding:7px 12px}.note.slim p{flex:1;min-width:0;margin:0}.note.offon p{flex:1;margin:0}
+.hero.sm{padding:12px 14px;gap:14px;margin-bottom:10px}
+.hero.sm .ring{width:84px;height:84px}.hero.sm .ring .v b{font-size:28px}.hero.sm .ring .v span{font-size:9.5px}
+.hero.sm .ring .rbg,.hero.sm .ring .rfg{stroke-width:13}
+.hero.sm .hs{gap:8px}.hero.sm .hst .pix{width:22px;height:22px}.hero.sm .hst b{font-size:30px}.hero.sm .hst span{font-size:11px}
+.moodl{display:flex;align-items:center;gap:10px;margin:0 2px 12px}
+.moodl .gn{flex:none;font-size:13px;color:var(--muted);font-weight:600}.moodl .mprov{display:block;font-size:10.5px;font-weight:500}
+.mbs{flex:1;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+.mbs .mb{height:34px;padding:0;border-radius:10px;justify-content:center}.mbs .mb b{font-size:19px}
+.lay{display:flex;align-items:center;gap:10px;margin:4px 0 6px}
+.lay .seg{flex:1;margin:0}.seg.sm{padding:2px;border-radius:10px}.seg.sm button{height:28px;font-size:12px;border-radius:8px}
+.lay .link{flex:none;font-size:13px}.lay .link.on{font-weight:700}
+.arrh{margin:0 2px 6px}
+.tnote p{flex:1;min-width:0;margin:0}
+.sech{display:flex;align-items:center;gap:6px;margin:14px 2px 6px}
+.sect{flex:1;display:flex;align-items:center;gap:8px;min-width:0;font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-align:left;padding:2px 0}
+.sech.now .sect{color:var(--fg)}
+.sect i{width:8px;height:8px;background:var(--c);box-shadow:0 0 8px var(--c);flex:none}.sech[style] .sect{color:var(--c)}
+.sect em{margin-left:auto;font:400 17px/1 var(--font-pixel);font-style:normal;letter-spacing:0;color:var(--muted)}
+.sect .chev{width:14px;text-align:center;font-size:11px;color:var(--muted)}
+.nowb{font-size:10px;letter-spacing:.04em;text-transform:none;font-weight:700;padding:2px 7px;border-radius:99px;background:color-mix(in srgb,var(--pxc,#ff2d1c) 18%,transparent);color:color-mix(in srgb,var(--pxc,#ff2d1c) 70%,var(--fg))}
+.sech.xs{opacity:.75}
+.sarr{display:flex;gap:4px}.sarr button,.arr button{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--bg);font-size:14px}
+.arr{display:flex;align-items:center;gap:4px;flex:none}
+.drag{width:30px;height:34px;display:grid;place-items:center;font-size:18px;color:var(--muted);cursor:grab;touch-action:none;user-select:none}
+.goal.dragging{position:relative;z-index:5;background:var(--surface);box-shadow:0 8px 24px rgba(0,0,0,.25);border-radius:12px;transition:none}
+.goal.dropb{box-shadow:inset 0 3px 0 var(--accent)}.goal.dropa{box-shadow:inset 0 -3px 0 var(--accent)}.sech.dropa{outline:2px dashed var(--accent);outline-offset:3px;border-radius:8px}
+.goal.lim .gn{color:color-mix(in srgb,var(--fg) 85%,var(--muted))}
+.donet{display:flex;align-items:center;gap:8px;width:100%;padding:10px 0 4px;border-top:1px solid var(--line);font-size:13px;color:var(--good);font-weight:600}
+.donet .pix{width:14px;height:14px}.donet .chev{margin-left:auto;color:var(--muted);font-size:11px}
+.donel .goal{opacity:.7}
+.tmr{padding:10px 0;border-top:1px solid var(--line)}.tmn{display:flex;align-items:center;gap:10px;margin-bottom:8px}.tmn .gi{width:30px;height:30px;border-radius:9px}
+.tmr .pill{padding:5px 10px;font-size:12.5px}
+.seccard .goal .gs{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seccard .goal .gn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seccard .goal{padding:10px 0}
 </style>
 </head>
 <body>
@@ -620,7 +661,7 @@ function seed(){
     {id:'screen',name:'Czas przed ekranem',cat:'Ograniczenia',type:'qty',period:'day',target:2.5,unit:'h',dir:'max'},
     {id:'sweets',name:'Słodycze',cat:'Ograniczenia',type:'limit',period:'week',target:2,variants:[]},
     {id:'read',name:'Czytanie',cat:'Umysł',type:'qty',period:'day',target:15,unit:'stron'},
-    {id:'lang',name:'Nauka języka',cat:'Umysł',type:'qty',period:'day',target:15,unit:'min'},
+    {id:'lang',name:'Nauka języka',cat:'Umysł',type:'qty',period:'day',target:15,unit:'min',time:'p'},
     {id:'meditate',name:'Medytacja',cat:'Umysł',type:'qty',period:'day',target:10,unit:'min'},
     {id:'meet',name:'Spotkania ze znajomymi',cat:'Relacje',type:'contact',kind:'meeting',period:'week',target:null},
     {id:'call',name:'Rozmowy z bliskimi',cat:'Relacje',type:'contact',kind:'call',period:'week',target:null}
@@ -664,7 +705,7 @@ function seed(){
     const P=plan[d]={};
     if(L.gym)P.gym=r2()<.6?'r':'w';else if((dw===0||dw===2||dw===4)||r2()<.25){P.gym=r2()<.2?'r':'w';(why[d]=why[d]||{}).gym=L.sleep!=null&&L.sleep<7?'zm':['czas','zm','czas','zap'][Math.floor(r2()*4)]}
     P.eat=L.eat?(r2()<.7?'p':'w'):(r2()<.6?'w':'p')}
-  return {goals,people,log,off,notes,reviews,mood,lt,asst:{plan,why},sample:true,settings:JSON.parse(JSON.stringify(DEF_SET))};
+  return {goals,people,log,off,notes,reviews,mood,lt,asst:{plan,why},sample:true,settings:Object.assign(JSON.parse(JSON.stringify(DEF_SET)),{timesSet:1})};
 }
 function fixState(o){
   o.settings=o.settings||{};
@@ -685,7 +726,7 @@ function fixState(o){
   if(!Array.isArray(o.settings.msGroups))o.settings.msGroups=[];
   if(!Array.isArray(o.settings.msGen))o.settings.msGen=o.settings.msGroups.slice(); // kamienie ogólne (dobre dni, seria): dotąd szły razem z resztą
   o.asst=o.asst||{};o.asst.snooze=o.asst.snooze||{};o.asst.off=o.asst.off||{};o.asst.ck=o.asst.ck||{};o.asst.plan=o.asst.plan||{};o.asst.why=o.asst.why||{};{const lim=addDays(todayS(),-14);Object.keys(o.asst.ck).forEach(k=>{if(k<lim)delete o.asst.ck[k]});{const l2=addDays(todayS(),-120);Object.keys(o.asst.plan).forEach(k=>{if(k<l2)delete o.asst.plan[k]});Object.keys(o.asst.why).forEach(k=>{if(k<l2)delete o.asst.why[k]})}}
-  o.wplan=o.wplan||{};{const l3=addDays(todayS(),-120);Object.keys(o.wplan).forEach(k=>{if(k<l3)delete o.wplan[k]})}
+  o.wplan=o.wplan||{};o.ct=o.ct||{};if(!['time','prio','cat'].includes(o.settings.layout))o.settings.layout='time';{const l3=addDays(todayS(),-120);Object.keys(o.wplan).forEach(k=>{if(k<l3)delete o.wplan[k]})}
   if(!Array.isArray(o.settings.reminders))o.settings.reminders=[{id:'r1',kind:'missing',time:'21:00',days:[0,1,2,3,4,5,6],on:true},{id:'r2',kind:'review',time:'20:00',days:[6],on:true}];
   if(!o.settings.remW){o.settings.remW=1;if(!o.settings.reminders.some(r=>r.kind==='weekly'))o.settings.reminders.push({id:'r3',kind:'weekly',time:'09:00',days:[0],on:true})}
   if(!o.ms||typeof o.ms!=='object'){o.ms={};o.msInit=false}
@@ -1179,7 +1220,7 @@ function goalRuns0(g){
   const u=g.period==='week'?'tyg.':'mies.';return{cur:run,best,u,ub:u};
 }
 function goalStreak(g){const r=goalRuns(g);return r&&r.cur?{n:r.cur,u:r.u,best:r.best}:null}
-const cats=()=>{const o=[];S.goals.forEach(g=>{if(!o.includes(g.cat))o.push(g.cat)});return o};
+const cats=()=>{const o=[];S.goals.forEach(g=>{if(!o.includes(g.cat))o.push(g.cat)});const co=S.settings.catOrder||[];if(co.length){const ix=c=>{const i=co.indexOf(c);return i<0?999+o.indexOf(c):i};o.sort((x,y)=>ix(x)-ix(y))}return o};
 function periodBounds(g,d){if(g.period==='week'){const a=wstart(d);return[a,addDays(a,6)]}if(g.period==='month')return[mstart(d),mend(d)];return[d,d]}
 function gnum(g,v){if(g&&g.type==='limit'&&typeof v==='string'&&g.w&&g.w[v]>1)return g.w[v];return num(v)}
 function sumRange(gid,a,b){const g=S.goals.find(x=>x.id===gid);let s=0;for(const d of range(a,b))s+=gnum(g,val(gid,d));return s}
@@ -1361,6 +1402,7 @@ function summary(g){
 /* ---------- widok: Dziś ---------- */
 /* Pikselowe ikonki 12×12 (rysowane jak Pixa). */
 const PIX={
+check:["............","............","..........##",".........##.","........##..","##.....##...",".##...##....","..##.##.....","...###......","....#.......","............","............"],
 dumb:["............","............",".##......##.",".##......##.","####....####","############","############","####....####",".##......##.",".##......##.","............","............"],
 shoe:["............","............","...###......","...####.....","...#####....","..#######...","..########..",".##########.","############","############","............","............"],
 bike:["............","......##....",".......#....","..###.###...","...#...#....",".###.#.###..","#...#.#...#.","#.#.#.#.#.#.","#...#.#...#.",".###...###..","............","............"],
@@ -1417,6 +1459,8 @@ const lensCol=k=>(PX_LENS[k]||PX_LENS.sygnal);
 const LENS_C={};
 function lensSvg(k){if(LENS_C[k])return LENS_C[k];const L=lensCol(k),G=["....oooo....","..oorrrroo..",".orhrRRrrro.",".orrRRRRrro.","orrRRyyRRrro","orRRywwyRRro","orRRywwyRRro","orrRRyyRRrro",".orrRRRRrro.",".orrrRRrrro.","..oorrrroo..","....oooo...."],C={o:L[0],r:L[1],R:L[2],y:L[3],w:L[4],h:L[3]};let r='';G.forEach((row,y)=>[...row].forEach((ch,x)=>{if(C[ch])r+='<rect x="'+x+'" y="'+y+'" width="1" height="1" fill="'+C[ch]+'"/>'}));return LENS_C[k]='<svg viewBox="0 0 12 12" aria-hidden="true">'+r+'</svg>'}
 const CHECK_SVG='<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4 8-9"/></svg>';
+// Godzina odhaczenia na ekranie Dziś (ostatnie 20 razy): z tego Pixa uczy się, kiedy zwykle robisz dany cel.
+function noteHour(gid,d){if(d!==todayS())return;const c=S.ct||(S.ct={}),a=(c[gid]||[]).concat(new Date().getHours());c[gid]=a.slice(-20)}
 function rowHtml(g,d){
   const raw=val(g.id,d),st=goalState(g,d);let ctl='',extra='';
   if(isCheck(g)){
@@ -1433,34 +1477,115 @@ function rowHtml(g,d){
     ctl='<button class="addbtn" data-act="addc" data-g="'+g.id+'">+ Dodaj</button>';
     if(Array.isArray(raw)&&raw.length)extra='<div class="evs">'+raw.map((e,i)=>'<span class="ev"><button class="evt" data-act="editc" data-g="'+g.id+'" data-i="'+i+'" aria-label="Zmień wpis">'+(e.p.length?esc(e.p.join(', '))+' · ':'')+lenWord[e.l]+'</button><button data-act="delc" data-g="'+g.id+'" data-i="'+i+'" aria-label="Usuń wpis">×</button></span>').join('')+'</div>';
   }
-  const isT=d===todayS(),sk=isT?goalStreak(g):null,pl=isT&&g.type==='do'&&!num(raw)?SLOT_N[planOf(d,g.id)]:null,lo=isT?ltOf(g.id):null;
+  const isT=d===todayS(),sk=isT?goalStreak(g):null,pl=isT&&g.type==='do'&&!num(raw)&&(S.settings.layout||'time')!=='time'?SLOT_N[planOf(d,g.id)]:null,lo=isT?ltOf(g.id):null;
+  const arrM=ui.arrange&&ui.tab==='today';
+  if(arrM){ctl='<div class="arr"><button data-act="amove" data-g="'+g.id+'" data-dir="-1" aria-label="Wyżej">↑</button><button data-act="amove" data-g="'+g.id+'" data-dir="1" aria-label="Niżej">↓</button><span class="drag" data-drag="'+g.id+'" aria-hidden="true">⠿</span></div>';extra=''}
   const sub=[st.sub,sk&&sk.n>=2?'seria: '+sk.n+' '+sk.u+(sk.best>sk.n?' (rekord '+sk.best+')':''):'',pl?'w planie: '+pl:'',lo?'→ '+lo.name:''].filter(Boolean).join(' · ');
-  return '<div class="goal" id="row-'+g.id+'"><span class="gi">'+pix(goalIco(g))+'</span><div class="gm"><div class="gn">'+esc(g.name)+(scorable(g)&&g.prio==='main'?' <span class="prio">główny</span>':scorable(g)&&g.prio==='extra'?' <span class="prio x">dodatkowy</span>':'')+'</div>'+(sub?'<div class="gs">'+esc(sub)+'</div>':'')+(st.chip?'<span class="chip '+st.chip.s+'">'+esc(st.chip.t)+'</span>':'')+extra+'</div>'+ctl+'</div>';
+  return '<div class="goal'+(isLimitish(g)?' lim':'')+'" id="row-'+g.id+'" data-gid="'+g.id+'" style="--c:'+catColor(g.cat)+'"><span class="gi">'+pix(goalIco(g))+'</span><div class="gm"><div class="gn">'+esc(g.name)+(scorable(g)&&g.prio==='main'&&(S.settings.layout||'time')!=='prio'?' <span class="prio">główny</span>':'')+'</div>'+(sub&&!arrM?'<div class="gs">'+esc(sub)+'</div>':'')+(st.chip&&!arrM?'<span class="chip '+st.chip.s+'">'+esc(st.chip.t)+'</span>':'')+extra+'</div>'+ctl+'</div>';
+}
+/* ---------- Dziś: układ według pory dnia, ważności albo kategorii ---------- */
+// Pora celu (g.time): 'r' rano, 'p' po południu, 'w' wieczorem, 'd' w ciągu dnia. Bez ustawienia: z katalogu, inaczej 'd'.
+const ACT_TIME={stretch:'r',meditate:'r',plan:'r',nophone:'r',sleep:'r',wake:'r',weight:'r',supps:'r',meds:'r',cold:'r',journal:'w',read:'w'};
+const TIME_N={r:'Rano',p:'Po południu',w:'Wieczorem',d:'W ciągu dnia',x:'Nie dziś'};
+const goalTime=g=>g.time||ACT_TIME[g.act]||'d';
+const slotOfHour=h=>h<12?'r':h<17?'p':'w';
+const curSlot=()=>slotOfHour(new Date().getHours());
+const isLimitish=g=>g.type==='limit'||isMax(g);
+// Gdzie cel trafia danego dnia: plan na ten dzień (odpowiedź Pixie, plan tygodnia) ma pierwszeństwo przed stałą porą.
+function daySlot(g,d){const p=planOf(d,g.id);if(SLOT_N[p])return p;if(p===0&&!num(val(g.id,d)))return'x';return goalTime(g)}
+// „Zrobione” do zwinięcia: ograniczenia nigdy (trzeba je móc zaznaczyć do wieczora), ilość „co najmniej” dopiero po osiągnięciu celu.
+function rowDone(g,d){if(g.type==='limit')return false;const v=val(g.id,d);
+  if(isMeasure(g))return range(periodBounds(g,d)[0],d).some(x=>val(g.id,x)!=null);
+  if(g.type==='qty'&&!isMax(g))return g.target?num(v)>=g.target:v!=null;
+  if(g.type==='do'||g.type==='contact')return num(v)>0;
+  return v!=null}
+function todaySections(d){
+  const L=S.settings.layout||'time',gs=S.goals.filter(g=>!pausedAt(g,d)),out=[];
+  const put=(k,label,list,extra)=>{if(list.length)out.push(Object.assign({k,label,list:list.filter(g=>!isLimitish(g)).concat(list.filter(isLimitish))},extra||{}))};
+  if(L==='prio'){[['main','Główne'],['imp','Ważne'],['extra','Dodatkowe']].forEach(p=>put(p[0],p[1],gs.filter(g=>(scorable(g)?(g.prio||'imp'):'extra')===p[0])))}
+  else if(L==='cat'){cats().forEach(c=>put('c:'+c,c,gs.filter(g=>g.cat===c),{c:catColor(c),cat:c}))}
+  else ['r','p','w','d','x'].forEach(k=>put(k,TIME_N[k],gs.filter(g=>daySlot(g,d)===k)));
+  return out;
+}
+function secOpen(s,d){
+  const key=d+'|'+s.k,o=(ui.secT||{})[key];if(o!=null)return o;if(ui.arrange)return true;
+  if(s.k==='x')return false;
+  const L=S.settings.layout||'time',main=s.list.filter(g=>!isLimitish(g)),complete=main.length>0&&main.every(g=>rowDone(g,d));
+  if(complete)return false;
+  if(L!=='time'||d!==todayS())return true;
+  if(s.k==='d')return true;
+  const O='rpw',c=curSlot();return O.indexOf(s.k)<=O.indexOf(c);
+}
+function todayList(d){
+  const t=todayS(),isT=d===t,L=S.settings.layout||'time',secs=todaySections(d),cur=curSlot();
+  let h='<div class="lay"><div class="seg sm">'+[['time','Pora dnia'],['prio','Ważność'],['cat','Kategorie']].map(x=>'<button class="'+(L===x[0]?'on':'')+'" data-act="layout" data-l="'+x[0]+'">'+x[1]+'</button>').join('')+'</div><button class="link'+(ui.arrange?' on':'')+'" data-act="arrange">'+(ui.arrange?'Gotowe':'Ułóż')+'</button></div>';
+  if(ui.arrange)h+='<p class="gs arrh">Przeciągnij za uchwyt ⠿ albo użyj strzałek.'+(L==='time'?' Przeciągnięcie do innej pory zmienia porę celu.':L==='prio'?' Przeciągnięcie do innej grupy zmienia ważność.':' Strzałki przy kategoriach zmieniają ich kolejność.')+'</p>';
+  if(L==='time'&&!ui.arrange&&!S.settings.timesSet&&S.goals.length>=3)h+='<div class="note tnote"><p>Przypisz swoim celom pory dnia, a ten ekran ułoży się według Twojego dnia. Zajmie minutę.</p><button class="link" data-act="times">Przypisz pory</button><button class="link" data-act="timesx" aria-label="Nie teraz">×</button></div>';
+  ui.secLists={};
+  secs.forEach((s,i)=>{
+    const open=secOpen(s,d),done=s.list.filter(g=>rowDone(g,d)),cnt=s.list.filter(g=>g.type==='limit'||rowDone(g,d)).length,now=L==='time'&&isT&&s.k===cur;
+    ui.secLists[s.k]=s.list.map(g=>g.id);
+    const arrC=ui.arrange&&s.cat!=null?'<span class="sarr"><button data-act="camove" data-c="'+esc(s.cat)+'" data-dir="-1" aria-label="Kategoria wyżej">↑</button><button data-act="camove" data-c="'+esc(s.cat)+'" data-dir="1" aria-label="Kategoria niżej">↓</button></span>':'';
+    h+='<div class="sech'+(now?' now':'')+(s.k==='x'?' xs':'')+'"'+(s.c?' style="--c:'+s.c+'"':'')+' data-sec="'+esc(s.k)+'"><button class="sect" data-act="sect" data-k="'+esc(s.k)+'" aria-expanded="'+open+'">'+(s.c?'<i></i>':'')+esc(s.label)+(now?'<span class="nowb">teraz</span>':'')+'<em>'+(s.k==='x'?s.list.length:cnt+'/'+s.list.length)+'</em><span class="chev">'+(open?'▾':'▸')+'</span></button>'+arrC+'</div>';
+    if(!open)return;
+    const showAll=ui.arrange,dk=d+'|'+s.k,dOpen=(ui.doneT||{})[dk],vis=showAll?s.list:s.list.filter(g=>!rowDone(g,d)),hid=showAll?[]:done;
+    const pm=s.list.some(g=>g.type==='contact'&&g.kind==='meeting');
+    h+='<div class="card seccard" data-sec="'+esc(s.k)+'"'+(s.c?' style="--c:'+s.c+'"':'')+'>'+vis.map(g=>rowHtml(g,d)).join('')+
+      (hid.length?'<button class="donet" data-act="donet" data-k="'+esc(s.k)+'" aria-expanded="'+!!dOpen+'">'+pix('check')+'Zrobione ('+hid.length+')<span class="chev">'+(dOpen?'▾':'▸')+'</span></button>'+(dOpen?'<div class="donel">'+hid.map(g=>rowHtml(g,d)).join('')+'</div>':''):'')+
+      (!vis.length&&!hid.length?'':'')+(pm&&!ui.arrange&&vis.some(g=>g.type==='contact')?'<button class="pplbtn" data-act="people">Znajomi ('+S.people.length+'): dodaj, zmień, usuń ›</button>':'')+'</div>';
+  });
+  return h;
 }
 function viewToday(){
   const d=ui.date,t=todayS(),isT=d===t,dt=parse(d);
   const monthOff=Object.keys(S.off).filter(x=>x.slice(0,7)===d.slice(0,7)).length;
   const sc=dayScore(d),wk=groupCompletion(S.goals,wstart(d),addDays(wstart(d),6));
-  let h='<div class="datebar"><button class="iconbtn" data-act="prev" aria-label="Poprzedni dzień">‹</button><div class="d">'+dt.toLocaleDateString('pl-PL',{weekday:'long'})+'<small>'+dt.toLocaleDateString('pl-PL',{day:'numeric',month:'long',year:'numeric'})+'</small></div>'+(isT?'':'<button class="iconbtn" data-act="goto-today">Dziś</button>')+'<button class="iconbtn" data-act="next" aria-label="Następny dzień"'+(isT?' disabled':'')+'>›</button></div>';
-  if(S.sample)h+='<div class="note"><p><b>Dane przykładowe.</b> Tak będzie wyglądać aplikacja po kilku miesiącach używania. Ludzie i wpisy są wymyśleni.</p><button class="link" data-act="clear">Zacznij od zera</button></div>';
-  h+=heroHtml(d,sc,streak(),wk);
+  let h='<div class="datebar"><button class="iconbtn" data-act="prev" aria-label="Poprzedni dzień">‹</button><div class="d">'+dt.toLocaleDateString('pl-PL',{weekday:'long'})+'<small>'+dt.toLocaleDateString('pl-PL',{day:'numeric',month:'long',year:'numeric'})+'</small></div>'+(isT?'':'<button class="iconbtn" data-act="goto-today">Dziś</button>')+'<button class="iconbtn" data-act="next" aria-label="Następny dzień"'+(isT?' disabled':'')+'>›</button><button class="iconbtn dmore'+(ui.dmenu?' on':'')+'" data-act="dmenu" aria-label="Więcej" aria-expanded="'+!!ui.dmenu+'">⋯</button></div>';
+  if(ui.dmenu)h+='<div class="dmenu"><div class="dmr"><span>Dzień wolny (choroba)<small>Nie przerywa serii'+(monthOff?' · w tym miesiącu: '+monthOff:'')+'</small></span><button class="sw'+(S.off[d]?' on':'')+'" data-act="off" role="switch" aria-checked="'+(!!S.off[d])+'" aria-label="Dzień wolny (choroba, siła wyższa). Nie przerywa serii."></button></div><button class="dmr" data-act="times"><span>Przypisz pory celom<small>Rano, po południu, wieczorem, w ciągu dnia</small></span>›</button><button class="dmr" data-act="arrange"><span>Ułóż kolejność celów</span>›</button></div>';
+  if(S.sample)h+='<div class="note slim"><p><b>Dane przykładowe.</b> Wymyślone wpisy.</p><button class="link" data-act="clear">Zacznij od zera</button></div>';
+  if(S.off[d])h+='<div class="note offon"><p><b>Dzień wolny.</b> Seria jest bezpieczna.</p><button class="link" data-act="off">Wyłącz</button></div>';
+  h+=heroHtml(d,sc,streak(),wk).replace('class="card hero','class="card hero sm');
+  if(ui.ringAnim!==d+'|'+ui.tab){ui.ringAnim=d+'|'+ui.tab;h=h.replace('<div class="ring">','<div class="ring anim">')}
   {const m=(S.mit||{})[d];if(m&&m.t)h+='<div class="mitl"><button class="mitc'+(m.ok?' on':'')+'" data-act="mitok" aria-pressed="'+!!m.ok+'" aria-label="Najważniejsze zrobione">'+(m.ok?pix('star'):'')+'</button><span>Najważniejsze: <b>'+esc(m.t)+'</b></span><button class="link" data-act="mitedit">zmień</button></div>';
-   else if(isT&&!(m&&m.skip))h+='<button class="link mitadd" data-act="mitedit">+ Najważniejsza rzecz dnia</button>'}if(ui.ringAnim!==d+'|'+ui.tab){ui.ringAnim=d+'|'+ui.tab;h=h.replace('<div class="ring">','<div class="ring anim">')}
-  h+='<div class="offmini"><span>'+(S.off[d]?'Dzień wolny: seria jest bezpieczna'+(monthOff>1?' · w tym miesiącu: '+monthOff:''):'Dzień wolny (choroba)')+'</span><button class="sw'+(S.off[d]?' on':'')+'" data-act="off" role="switch" aria-checked="'+(!!S.off[d])+'" aria-label="Dzień wolny (choroba, siła wyższa). Nie przerywa serii."></button></div>';
-  h+='<div class="card" id="row-mood"><div class="gn">Nastrój'+(S.mood[d]!=null&&!moodFinal(d)?' <small class="mprov">wstępnie, potwierdzisz wieczorem</small>':'')+'</div><div class="mrow">'+[1,2,3,4,5].map(n=>'<button class="mb'+(S.mood[d]===n?' on md'+n:'')+'" data-act="mood" data-v="'+n+'" aria-pressed="'+(S.mood[d]===n)+'"><b>'+n+'</b><small>'+MOODS[n-1]+'</small></button>').join('')+'</div></div>';
+   else if(isT&&!(m&&m.skip))h+='<button class="link mitadd" data-act="mitedit">+ Najważniejsza rzecz dnia</button>'}
+  h+='<div class="moodl" id="row-mood"><span class="gn">Nastrój'+(S.mood[d]!=null&&!moodFinal(d)?' <small class="mprov">wstępnie</small>':'')+'</span><div class="mbs">'+[1,2,3,4,5].map(n=>'<button class="mb'+(S.mood[d]===n?' on md'+n:'')+'" data-act="mood" data-v="'+n+'" aria-pressed="'+(S.mood[d]===n)+'" aria-label="'+n+' '+MOODS[n-1]+'" title="'+MOODS[n-1]+'"><b>'+n+'</b></button>').join('')+'</div></div>';
   if(!S.off[d]&&((isT&&new Date().getHours()>=eveH())||(d===addDays(t,-1)&&new Date().getHours()<5))&&!dcDone(d))h+='<button class="dcbtn" data-act="dclose" data-d="'+d+'"><span class="dclens">'+lensSvg(S.settings.pixaPal)+'</span><span><b>Domknij dzień</b><small>Nastrój, braki i najważniejsza rzecz na jednym ekranie</small></span><span class="dcgo">›</span></button>';
-  if(!S.off[d]){
-    const need=S.goals.filter(g=>!pausedAt(g,d)&&(g.type==='qty'||g.type==='range'||(g.type==='do'&&g.period==='day')||isMeasure(g)));
-    const filled=g=>isMeasure(g)?range(periodBounds(g,d)[0],d).some(x=>val(g.id,x)!=null):g.type==='do'?num(val(g.id,d))>0:val(g.id,d)!=null;
-    const miss=need.filter(g=>!filled(g));
-    const mm=S.mood[d]==null,tot=need.length+1,dn=tot-miss.length-(mm?1:0),links=(mm?['<button class="link" data-act="jump" data-g="mood">Nastrój</button>']:[]).concat(miss.map(g=>'<button class="link" data-act="jump" data-g="'+g.id+'">'+esc(g.name)+'</button>'));
-    h+='<div class="todo">'+(links.length?'Uzupełnione <b>'+dn+'/'+tot+'</b> · brakuje: '+links.slice(0,3).join(', ')+(links.length>3?' <span class="more">+'+(links.length-3)+'</span>':''):'<b>Wszystko uzupełnione.</b> Dobra robota.')+'</div>';
-  }
   if(!S.goals.length)h+='<div class="card empty">Nie masz jeszcze żadnych celów. Dodaj pierwszy w zakładce „Cele”.</div>';
-  cats().forEach(c=>{const gs=S.goals.filter(g=>g.cat===c&&!pausedAt(g,d));if(!gs.length)return;const pm=gs.some(g=>g.type==='contact'&&g.kind==='meeting');const cc=catColor(c),dn=gs.filter(g=>{const v=val(g.id,d);return g.type==='limit'?true:g.type==='contact'?num(v)>0:isCheck(g)?num(v)>0:v!=null}).length;h+='<div class="cat cc" style="--c:'+cc+'"><i></i>'+esc(c)+'<em>'+dn+'/'+gs.length+'</em></div><div class="card" style="--c:'+cc+'">'+gs.map(g=>rowHtml(g,d)).join('')+(pm?'<button class="pplbtn" data-act="people">Znajomi ('+S.people.length+'): dodaj, zmień, usuń ›</button>':'')+'</div>'});
+  else h+=todayList(d);
   h+='<div class="cat">Notatka do dnia</div><div class="card"><textarea class="inp" id="note" data-chg="note" placeholder="Jak minął dzień? Co poszło dobrze, co nie? (opcjonalnie)">'+esc(S.notes[d]||'')+'</textarea></div>';
   return h;
 }
+// Jednorazowe przypisanie pór wszystkim celom.
+function timesSheet(){
+  const gs=S.goals.filter(g=>!isPaused(g));
+  let h='<h2>Pory celów</h2><p class="sub">Kiedy zwykle to robisz? Ekran Dziś ułoży się według tego, a Pixa nie będzie codziennie pytać „kiedy” o cele z ustaloną porą. „W ciągu dnia” to np. woda, kroki i ograniczenia.</p>';
+  h+=gs.map(g=>{const v=goalTime(g);return'<div class="tmr" style="--c:'+catColor(g.cat)+'"><div class="tmn"><span class="gi">'+pix(goalIco(g))+'</span><b>'+esc(g.name)+'</b></div><div class="chips">'+[['r','Rano'],['p','Po poł.'],['w','Wieczorem'],['d','W ciągu dnia']].map(o=>'<button class="pill'+(v===o[0]?' on':'')+'" data-act="tset" data-g="'+g.id+'" data-t="'+o[0]+'">'+o[1]+'</button>').join('')+'</div></div>'}).join('');
+  h+='<div class="actions"><button class="btn main" data-act="timesok">Gotowe</button></div>';
+  return'<div class="scrim" data-act="timesok"></div><div class="sheet" role="dialog" aria-modal="true" aria-label="Pory celów">'+h+'</div>';
+}
+// Przeciąganie celów w trybie „Ułóż”: uchwyt ⠿, upuszczenie na inny cel albo nagłówek sekcji.
+const Drag=(()=>{let st=null;
+  function start(e,h){const row=h.closest('.goal');if(!row)return;e.preventDefault();const r=row.getBoundingClientRect();st={id:h.dataset.drag,row,y0:e.clientY,top:r.top,h:r.height};row.classList.add('dragging');h.setPointerCapture&&h.setPointerCapture(e.pointerId)}
+  function move(e){if(!st)return;const dy=e.clientY-st.y0;st.row.style.transform='translateY('+dy+'px)';
+    document.querySelectorAll('.dropb,.dropa').forEach(x=>x.classList.remove('dropb','dropa'));const t=target(e);if(t&&t.el)t.el.classList.add(t.after?'dropa':'dropb');
+    if(e.clientY<60)window.scrollBy(0,-8);else if(e.clientY>window.innerHeight-90)window.scrollBy(0,8)}
+  function target(e){st.row.style.visibility='hidden';const el=document.elementFromPoint(e.clientX,e.clientY);st.row.style.visibility='';if(!el)return null;
+    const g=el.closest('.goal[data-gid]');if(g&&g.dataset.gid!==st.id){const r=g.getBoundingClientRect();return{el:g,gid:g.dataset.gid,after:e.clientY>r.top+r.height/2,sec:g.closest('[data-sec]').dataset.sec}}
+    const sh=el.closest('.sech[data-sec]');if(sh)return{el:sh,sec:sh.dataset.sec,after:true};return null}
+  function end(e){if(!st)return;const t=target(e),id=st.id;st.row.classList.remove('dragging');st.row.style.transform='';document.querySelectorAll('.dropb,.dropa').forEach(x=>x.classList.remove('dropb','dropa'));st=null;if(t)drop(id,t)}
+  function drop(id,t){const g=S.goals.find(x=>x.id===id);if(!g)return;const L=S.settings.layout||'time';
+    if(t.sec&&!(ui.secLists[t.sec]||[]).includes(id)){
+      if(L==='time'&&'rpwd'.includes(t.sec)&&t.sec.length===1){g.time=t.sec;const p=(S.asst.plan||{})[todayS()];if(p&&SLOT_N[p[id]])delete p[id];toast('„'+g.name+'”: '+TIME_N[t.sec].toLowerCase()+'.')}
+      else if(L==='prio'&&scorable(g)&&['main','imp','extra'].includes(t.sec)){g.prio=t.sec;toast('„'+g.name+'”: '+{main:'główny',imp:'ważny',extra:'dodatkowy'}[t.sec]+'.')}
+      else if(L==='cat'&&t.sec.slice(0,2)==='c:'){g.cat=t.sec.slice(2)}}
+    if(t.gid){const i=S.goals.indexOf(g);S.goals.splice(i,1);let j=S.goals.findIndex(x=>x.id===t.gid);if(t.after)j++;S.goals.splice(j,0,g)}
+    save();render()}
+  document.addEventListener('pointerdown',e=>{const h=e.target.closest('[data-drag]');if(h)start(e,h)});
+  document.addEventListener('pointermove',e=>{if(st)move(e)},{passive:true});
+  document.addEventListener('pointerup',e=>{if(st)end(e)});
+  document.addEventListener('pointercancel',()=>{if(st){st.row.classList.remove('dragging');st.row.style.transform='';st=null}});
+  return{drop};
+})();
 
 /* ---------- widok: Tydzień ---------- */
 function cellHtml(g,d,label){
@@ -2051,7 +2176,7 @@ const Bk={list:null,loading:false,
 function viewSettings(){
   const st=S.settings;
   let h='<div class="datebar"><div class="d">Ustawienia</div></div>';
-  const KINDS=[['mood','Nastrój'],['plan','Plan dnia'],['wplan','Plan tygodnia'],['mit','Najważniejsza rzecz'],['yesterday','Pytanie o wczoraj'],['missing','Braki wieczorem'],['streak','Ochrona serii'],['weekly','Podsumowanie tygodnia'],['monthly','Podsumowanie miesiąca'],['review','Wnioski na koniec tygodnia'],['adjust','Propozycje zmian celów'],['limit','Limity'],['record','Rekordy'],['milestone','Kamienie milowe'],['insight','Wnioski z danych'],['lt','Cele długoterminowe'],['yearly','Podsumowanie roku'],['paused','Wstrzymane cele']];
+  const KINDS=[['mood','Nastrój'],['plan','Plan dnia'],['wplan','Plan tygodnia'],['time','Pory celów'],['mit','Najważniejsza rzecz'],['yesterday','Pytanie o wczoraj'],['missing','Braki wieczorem'],['streak','Ochrona serii'],['weekly','Podsumowanie tygodnia'],['monthly','Podsumowanie miesiąca'],['review','Wnioski na koniec tygodnia'],['adjust','Propozycje zmian celów'],['limit','Limity'],['record','Rekordy'],['milestone','Kamienie milowe'],['insight','Wnioski z danych'],['lt','Cele długoterminowe'],['yearly','Podsumowanie roku'],['paused','Wstrzymane cele']];
   const cPixa='<div class="card"><div class="pxstage" aria-hidden="true"><canvas id="pxstage" width="88" height="126"></canvas><div class="pxst-i"><span class="pxname">Pixa</span><span class="pxst-l">'+lensSvg(S.settings.pixaPal)+'</span></div></div><h3>Asystentka Pixa</h3><p class="sub">Niczego nie zmienia bez Twojej zgody. Dotknij Pixy, żeby zareagowała.</p><div class="offbar" style="margin:0"><button class="sw'+(S.settings.asst?' on':'')+'" data-act="sasst" role="switch" aria-checked="'+!!S.settings.asst+'" aria-label="Asystentka"></button><span><b style="color:var(--fg)">Pokazuj asystentkę</b>'+''+'</span></div><span class="fl">Kolory Pixy</span><div class="chips">'+Object.keys(PixaArt.PALETTES).map(k=>'<button class="pill'+(S.settings.pixaPal===k?' on':'')+'" data-act="pxpal" data-k="'+k+'"><i class="pxsw" style="background:'+PixaArt.PALETTES[k].body+'"></i>'+PixaArt.PALETTES[k].n+'</button>').join('')+'</div><span class="fl">Charakter</span><div class="seg" style="margin-bottom:6px">'+[['soft','Łagodna'],['hard','Twarda']].map(x=>'<button class="'+(S.settings.pixaTone===x[0]?'on':'')+'" data-act="pxtone" data-k="'+x[0]+'">'+x[1]+'</button>').join('')+'</div><p class="gs" style="margin:0 0 12px">'+(S.settings.pixaTone==='hard'?'Np. „Seria 12 dni wisi na włosku. Zrób: Siłownia. Bez wymówek.”':'Np. „Seria 12 dni jest zagrożona. Do dobrego dnia brakuje: Siłownia.”')+'</p><div class="offbar" style="margin:0"><button class="sw'+(S.settings.pixaChat?' on':'')+'" data-act="pxchat" role="switch" aria-checked="'+!!S.settings.pixaChat+'" aria-label="Dymki przy zakładkach"></button><span><b style="color:var(--fg)">Dymki przy zakładkach</b></span></div><div class="seg" style="margin:8px 0 0">'+[['30','Najwyżej co 30 min'],['each','Przy każdym wejściu']].map(x=>'<button class="'+(S.settings.chatEvery===x[0]?'on':'')+'" data-act="chatfreq" data-v="'+x[0]+'">'+x[1]+'</button>').join('')+'</div><span class="fl">Twój dzień</span><div class="row2"><div><label class="fl" style="margin-top:0" for="s-wake"><small>Pytania od</small></label><select id="s-wake" data-chg="swake" style="margin:0">'+[5,6,7,8,9,10,11].map(h=>'<option value="'+h+'"'+((S.settings.wake==null?8:S.settings.wake)===h?' selected':'')+'>'+h+':00</option>').join('')+'</select></div><div><label class="fl" style="margin-top:0" for="s-eve"><small>Wieczór od</small></label><select id="s-eve" data-chg="seve" style="margin:0">'+[17,18,19,20,21,22].map(h=>'<option value="'+h+'"'+(eveH()===h?' selected':'')+'>'+h+':00</option>').join('')+'</select></div></div><p class="gs" style="margin:6px 0 0">Rano Pixa pyta o plan i najważniejszą rzecz, wieczorem domyka dzień: nastrój i to, co miało się udać.</p><span class="fl">O czym mówi</span><div class="chips">'+KINDS.map(x=>'<button class="pill'+(S.asst.off[x[0]]?'':' on')+'" data-act="pxkind" data-k="'+x[0]+'" aria-pressed="'+!S.asst.off[x[0]]+'">'+x[1]+'</button>').join('')+'</div></div>';
   const cRem=remindersCard();
   const cLook='<div class="card"><h3>Wygląd</h3><div class="seg" style="margin:0">'+[['auto','Auto'],['light','Jasny'],['dark','Ciemny']].map(x=>'<button class="'+(ui.theme===x[0]?'on':'')+'" data-act="theme" data-v="'+x[0]+'">'+x[1]+'</button>').join('')+'</div><div class="offbar" style="margin:12px 0 0"><button class="sw'+(S.settings.anim!==false?' on':'')+'" data-act="animt" role="switch" aria-checked="'+(S.settings.anim!==false)+'" aria-label="Animacje"></button><span><b style="color:var(--fg)">Animacje</b></span></div></div>';
@@ -2091,6 +2216,7 @@ function sheetHtml(){
     return'<div class="scrim" data-act="close"></div><div class="sheet" role="dialog" aria-modal="true">'+h+'</div>';
   }
   if(s.kind==='wplan')return wpSheet(s);
+  if(s.kind==='times')return timesSheet();
   if(s.kind==='dayend'){if(!s.ids)Object.assign(s,dcInit(s.d));return dcSheet(s)}
   if(s.kind==='challenge')return Social.chSheet();
   if(s.kind==='xfer')return Social.xferSheet();
@@ -2141,6 +2267,7 @@ function sheetHtml(){
   if(g.type==='limit'&&g.variants&&g.variants.length){g.w=g.w||{};h+='<span class="fl">Jak liczyć poziomy do limitu?</span>'+g.variants.map((v,i)=>'<div class="srow"><span style="flex:1;font-size:13px;min-width:0">'+esc(v)+'</span><select id="gw-'+i+'" data-chg="gw" data-i="'+i+'" style="width:auto;margin:0">'+[1,2,3].map(n=>'<option value="'+n+'"'+((g.w[v]||1)===n?' selected':'')+'>jak '+n+' '+dni(n)+'</option>').join('')+'</select></div>').join('')}
   h+=shareBox(g);
   h+='<span class="fl" data-sec="prio">Priorytet</span>'+(scorable(g)?[['main','Główny','Liczy się potrójnie. Na takich celach budujesz serię.'],['imp','Ważny','Liczy się normalnie.'],['extra','Dodatkowy','Widzisz go i jego statystyki, ale nie wpływa na wynik dnia ani na serię.']].map(o=>'<button class="opt'+((g.prio||'imp')===o[0]?' on':'')+'" data-act="gprio" data-p="'+o[0]+'"><b>'+o[1]+'</b><span>'+o[2]+'</span></button>').join(''):'<p class="gs" style="margin:0">Cel bez minimum nie wlicza się do wyniku dnia ani serii, więc nie ma priorytetu.</p>');
+  {const v=goalTime(g);h+='<span class="fl">Kiedy zwykle? <small>(układa ekran Dziś)</small></span><div class="chips">'+[['r','Rano'],['p','Po południu'],['w','Wieczorem'],['d','W ciągu dnia']].map(o=>'<button class="pill'+(v===o[0]?' on':'')+'" data-act="gtime" data-t="'+o[0]+'">'+o[1]+'</button>').join('')+'</div>'}
   h+='<div class="summary" data-sec="sum" id="sum">'+esc(summary(g))+'</div>';
   const orig=s.isNew?null:S.goals.find(x=>x.id===g.id);
   if(s.del)h+='<p class="gs" style="margin:14px 0 0;color:var(--bad)">Usunięcie zabierze ten cel z wykresów i historii. Jeśli chcesz tylko zrobić przerwę, użyj „Wstrzymaj”.</p>';
@@ -2203,7 +2330,20 @@ function defaults(g,type){
 }
 function act(a,ds){
   const d=ui.date;
+  if(ui.dmenu&&a!=='dmenu'&&a!=='off')ui.dmenu=false;
   switch(a){
+    case'dmenu':ui.dmenu=!ui.dmenu;render();break;
+    case'layout':S.settings.layout=ds.l;ui.secT={};save();render();break;
+    case'arrange':ui.arrange=!ui.arrange;ui.tab='today';render();break;
+    case'sect':{const k=d+'|'+ds.k,secs=todaySections(d),s0=secs.find(x=>x.k===ds.k);ui.secT=ui.secT||{};ui.secT[k]=!(s0&&secOpen(s0,d));render();break}
+    case'donet':{const k=d+'|'+ds.k;ui.doneT=ui.doneT||{};ui.doneT[k]=!ui.doneT[k];render();break}
+    case'times':ui.sheet={kind:'times'};renderSheet();break;
+    case'timesx':S.settings.timesSet=1;save();render();break;
+    case'tset':{const g=S.goals.find(x=>x.id===ds.g);if(g){g.time=ds.t;save();renderSheet()}break}
+    case'timesok':S.settings.timesSet=1;ui.sheet=null;save();render();break;
+    case'gtime':ui.sheet.g.time=ds.t;renderSheet();break;
+    case'amove':{const L=ui.secLists||{},k=Object.keys(L).find(x=>L[x].includes(ds.g));if(!k)break;const l=L[k],i=l.indexOf(ds.g),j=i+(+ds.dir);if(j<0||j>=l.length)break;Drag.drop(ds.g,{gid:l[j],after:+ds.dir>0,sec:k});break}
+    case'camove':{const o=cats(),i=o.indexOf(ds.c),j=i+(+ds.dir);if(i<0||j<0||j>=o.length)break;o.splice(i,1);o.splice(j,0,ds.c);S.settings.catOrder=o;save();render();break}
     case'tour':Tour.go(0);break;
     case'msall':ui.msAll=!ui.msAll;render();break;
     case'mitok':{const m=(S.mit||{})[d];if(m){m.ok=m.ok?null:true;save();render();if(m.ok){const b=document.querySelector('.mitc');FX.pop(b);FX.burst(b,'var(--pxc)');toast('Najważniejsze zrobione!')}}break}
@@ -2223,7 +2363,7 @@ function act(a,ds){
     case'mode':ui.mode=ds.m;render();break;
     case'goday':ui.date=ds.d;ui.tab='today';render();window.scrollTo(0,0);break;
     case'off':if(S.off[d])delete S.off[d];else S.off[d]=true;save();render();break;
-    case'toggle':{const g=S.goals.find(x=>x.id===ds.g),was=num(val(g.id,d))>0;if(was){setVal(g.id,d,0);ui.open[g.id]=false}else{setVal(g.id,d,1);ui.open[g.id]=true}render();if(!was){const b=document.querySelector('#row-'+g.id+' .chk');FX.pop(b);FX.burst(b,FX.col(b));const lx=S.lt.find(x=>x.kind==='sum'&&x.goal===g.id&&!x.doneAt&&x.from<=d&&x.to>=d);if(lx){const c=ltCalc(lx);if(c&&c.pr<1)toast('+1 do „'+lx.name+'”: '+fmt(c.cur)+' z '+fmt(lx.target)+'.')}}break}
+    case'toggle':{const g=S.goals.find(x=>x.id===ds.g),was=num(val(g.id,d))>0;if(!was)noteHour(g.id,d);if(was){setVal(g.id,d,0);ui.open[g.id]=false}else{setVal(g.id,d,1);ui.open[g.id]=true}render();if(!was){const b=document.querySelector('#row-'+g.id+' .chk');FX.pop(b);FX.burst(b,FX.col(b));const lx=S.lt.find(x=>x.kind==='sum'&&x.goal===g.id&&!x.doneAt&&x.from<=d&&x.to>=d);if(lx){const c=ltCalc(lx);if(c&&c.pr<1)toast('+1 do „'+lx.name+'”: '+fmt(c.cur)+' z '+fmt(lx.target)+'.')}}break}
     case'vpick':{const g=S.goals.find(x=>x.id===ds.g);setVal(g.id,d,g.variants[+ds.i]);ui.open[g.id]=false;render();break}
     case'vopen':ui.open[ds.g]=true;render();break;
     case'addc':ui.sheet={kind:'contact',gid:ds.g,l:'m',p:[],np:''};renderSheet();break;
@@ -2238,7 +2378,7 @@ function act(a,ds){
     case'askdelp':ui.sheet.del=+ds.i;renderSheet();break;
     case'editc':{const ev=(val(ds.g,d)||[])[+ds.i];if(!ev)break;ui.sheet={kind:'contact',gid:ds.g,l:ev.l,p:ev.p.slice(),np:'',edit:+ds.i};renderSheet();break}
     case'psel':ui.personSel=ds.i==='-1'?null:S.people[+ds.i];render();break;
-    case'jump':{const el=document.getElementById('row-'+ds.g);if(el){el.scrollIntoView({behavior:'smooth',block:'center'});const i=el.querySelector('input,.chk,.addbtn,.mb');if(i)i.focus({preventScroll:true})}break}
+    case'jump':{if(!document.getElementById('row-'+ds.g)&&ui.tab==='today'){const L=ui.secLists||{},k=Object.keys(L).find(x=>L[x].includes(ds.g));if(k){ui.secT=ui.secT||{};ui.secT[d+'|'+k]=true;ui.doneT=ui.doneT||{};ui.doneT[d+'|'+k]=true;render()}}const el=document.getElementById('row-'+ds.g);if(el){el.scrollIntoView({behavior:'smooth',block:'center'});const i=el.querySelector('input,.chk,.addbtn,.mb');if(i)i.focus({preventScroll:true})}break}
     case'gpause':{const g=S.goals.find(x=>x.id===ui.sheet.g.id);if(!g)break;g.pauses=g.pauses||[];const t=todayS();
       if(isPaused(g)){const l=g.pauses[g.pauses.length-1];if(l.from===t)g.pauses.pop();else l.to=t;toast('Wznowiono: '+g.name+'.')}
       else{g.pauses.push({from:t,to:null});toast('Wstrzymano: '+g.name+'. Historia zostaje.')}
@@ -2369,7 +2509,7 @@ function act(a,ds){
 document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(!el||el.disabled)return;act(el.dataset.act,el.dataset)});
 document.addEventListener('change',e=>{
   const el=e.target,c=el.dataset&&el.dataset.chg;if(!c)return;
-  if(c==='set'){const g=S.goals.find(x=>x.id===el.dataset.g),v=parseNum(el.value);if(v===0&&isMax(g)){S.log[ui.date]=S.log[ui.date]||{};S.log[ui.date][g.id]=0;save()}else setVal(el.dataset.g,ui.date,v);render()}
+  if(c==='set'){const g=S.goals.find(x=>x.id===el.dataset.g),v=parseNum(el.value);if(v!=null)noteHour(g.id,ui.date);if(v===0&&isMax(g)){S.log[ui.date]=S.log[ui.date]||{};S.log[ui.date][g.id]=0;save()}else setVal(el.dataset.g,ui.date,v);render()}
   if(c==='cg'){ui.cg=el.value;render()}
   if(c==='gper'){const g=ui.sheet.g;g.period=el.value;if(g.type==='do'){if(g.period==='day')g.target=1;else if(g.target===1&&!(g.target>1))g.target=3}renderSheet()}
   if(c==='gw'){const g=ui.sheet.g;g.w=g.w||{};g.w[g.variants[+el.dataset.i]]=+el.value;const sum=document.getElementById('sum');if(sum)sum.textContent=summary(g)}
@@ -2439,7 +2579,7 @@ function mergeState(base,l,r){
   const set=(b,a,c)=>{b=b||[];a=a||[];c=c||[];const out=[];a.concat(c).forEach(x=>{if(out.includes(x))return;const inA=a.includes(x),inC=c.includes(x),inB=b.includes(x);if(inB&&(!inA||!inC))return;out.push(x)});return out};
   const asst=(b,a,c)=>{b=b||{};a=a||{};c=c||{};return{snooze:map(b.snooze,a.snooze,c.snooze),off:map(b.off,a.off,c.off),ck:map(b.ck,a.ck,c.ck),plan:map(b.plan,a.plan,c.plan,true),why:map(b.why,a.why,c.why,true)}};
   return Object.assign({},r,l,{mit:map(base.mit,l.mit,r.mit),moodAt:map(base.moodAt,l.moodAt,r.moodAt),log:map(base.log,l.log,r.log,true),mood:map(base.mood,l.mood,r.mood),notes:map(base.notes,l.notes,r.notes),off:map(base.off,l.off,r.off),reviews:map(base.reviews,l.reviews,r.reviews),
-    goals:byId(base.goals,l.goals,r.goals),lt:byId(base.lt,l.lt,r.lt),people:set(base.people,l.people,r.people),settings:map(base.settings,l.settings,r.settings),asst:asst(base.asst,l.asst,r.asst),ms:map(base.ms,l.ms,r.ms),wplan:map(base.wplan,l.wplan,r.wplan,true),msInit:!!(l.msInit||r.msInit),tour:pick(base.tour,l.tour,r.tour)});
+    goals:byId(base.goals,l.goals,r.goals),lt:byId(base.lt,l.lt,r.lt),people:set(base.people,l.people,r.people),settings:map(base.settings,l.settings,r.settings),asst:asst(base.asst,l.asst,r.asst),ms:map(base.ms,l.ms,r.ms),wplan:map(base.wplan,l.wplan,r.wplan,true),ct:map(base.ct,l.ct,r.ct),msInit:!!(l.msInit||r.msInit),tour:pick(base.tour,l.tour,r.tour)});
 }
 // Adresy z powiadomień (#week, #friends, #pixa-week). Działa przy starcie i gdy aplikacja jest już otwarta.
 function navHash(){
@@ -2999,7 +3139,7 @@ const Asst=(()=>{
   const POOLS={night:['sleep','sleep','yawn','meditate','float'],morning:['stretch','yawn','wave','stand','float','perch','groove'],day:['float','stand','perch','orb','peek','dance','groove','think','idea','point','wave'],evening:['float','perch','orb','meditate','think','stand','sleep','groove']};
   const dayPart=()=>{const h=new Date().getHours();return h>=23||h<5?'night':h<10?'morning':h<18?'day':'evening'};
   const tn=(a,b)=>S&&S.settings.pixaTone==='hard'?b:a;
-  const CTX={mood:'wave',start:'wave',missing:'point',yesterday:'think',streak:'wow',review:'think',adjust:'point',limit:'facepalm',paused:'shrug',record:'thumbs',insight:'idea',milestone:'cheer',weekly:'wave',monthly:'wave',wplan:'idea',lt:'point',yearly:'cheer'};
+  const CTX={mood:'wave',start:'wave',missing:'point',yesterday:'think',streak:'wow',review:'think',adjust:'point',limit:'facepalm',paused:'shrug',record:'thumbs',insight:'idea',milestone:'cheer',weekly:'wave',monthly:'wave',wplan:'idea',lt:'point',yearly:'cheer',time:'idea'};
   let pose='float',cur=null,poseT=0,hold=80,ctxPose=null,pokeT=0,frame=0,anim=null;
   const pick=()=>{const P=POOLS[dayPart()],o=P.filter(x=>x!==pose);return o[Math.floor(Math.random()*o.length)]};
   function choose(n){if(n!==pose){pose=n;poseT=0;hold=60+Math.floor(Math.random()*60)}else poseT=0}
@@ -3178,6 +3318,9 @@ const Asst=(()=>{
       // rekord serii
       const r=goalRuns(g);if(r&&r.cur>=3&&r.cur===r.best)add('rec-'+g.id+'-'+r.cur,'record',35,'„'+g.name+'”: '+r.cur+' '+r.u+' z rzędu. '+tn('To Twój rekord!','Rekord. Teraz go pobij.'),[{l:'Dzięki!',f:()=>{}}]);
     });
+    // pory celów: gdy cel jest odhaczany zwykle o innej porze niż ustawiona
+    S.goals.forEach(g=>{if(isPaused(g)||g.type==='contact')return;const a=(S.ct||{})[g.id]||[];if(a.length<8)return;const l=a.slice(-12),c={r:0,p:0,w:0};l.forEach(h=>c[slotOfHour(h)]++);const k=Object.keys(c).sort((x,y)=>c[y]-c[x])[0];
+      if(c[k]/l.length>=.7&&k!==goalTime(g))add('tm-'+g.id+'-'+k,'time',38,tn('„'+g.name+'” odhaczasz zwykle '+SLOT_N[k]+' ('+c[k]+' z '+l.length+' razy). Przenieść do sekcji „'+TIME_N[k]+'”?','„'+g.name+'”: robisz '+SLOT_N[k]+'. Przenieść do „'+TIME_N[k]+'”?'),[{l:'Tak, przenieś',f:()=>{g.time=k;save();toast('„'+g.name+'”: '+TIME_N[k].toLowerCase()+'.')}}],'idea')});
     // cele długoterminowe za planem albo z kulejącymi nawykami (raz w tygodniu)
     S.lt.forEach(x=>{const it=ltTip(x,ws);if(it&&it.warn)add('lt-'+x.id+'-'+ws,'lt',42,it.text,[{l:'Pokaż',f:()=>{ui.tab='goals';render();window.scrollTo(0,0)}}],'point')});
     // podsumowanie roku: ostatnie dni grudnia i pierwszy tydzień stycznia
@@ -3290,7 +3433,7 @@ const Asst=(()=>{
   const slotDue=sl=>new Date().getHours()>=(sl==='r'?12:sl==='p'?17:eveH()+1);
   const doneOn=(g,d)=>num(val(g.id,d))>0;
   // Cele, o które warto zapytać rano o plan: codzienne „do” i tygodniowe „do”, którym brakuje w tym tygodniu.
-  function planGoals(d){const ws=wstart(d);return S.goals.filter(x=>!isPaused(x)&&x.type==='do'&&(x.period==='day'||(x.period==='week'&&hasTarget(x)&&sumRange(x.id,ws,d)<x.target))&&!doneOn(x,d))}
+  function planGoals(d){const ws=wstart(d);return S.goals.filter(x=>!isPaused(x)&&x.type==='do'&&((x.period==='day'&&goalTime(x)==='d')||(x.period==='week'&&hasTarget(x)&&sumRange(x.id,ws,d)<x.target))&&!doneOn(x,d))}
   const bestHint=gid=>{const b=bestSlot(gid);return b?' '+tn('Najlepiej wychodzi Ci '+SLOT_N[b.k]+' ('+P100(b.r)+').','Najskuteczniej: '+SLOT_N[b.k]+'.'):''};
   // Plan tygodnia: w niedzielę od 17 na następny tydzień, w poniedziałek na bieżący (gdy jeszcze go nie ma).
   function wpTarget(){if(S.asst.off.wplan||!wpGoals().length)return null;const dw=new Date().getDay(),h=new Date().getHours(),ws=wstart(todayS()),w=dw===0&&h>=17?addDays(ws,7):dw===1&&h<eveH()?ws:null;return w&&!(S.wplan||{})[w]?w:null}
