@@ -566,12 +566,15 @@ body{background:radial-gradient(var(--dot) 1px,transparent 1.3px) 0 0/16px 16px,
 .dmr{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:11px 0;border-top:1px solid var(--line);font-size:14px;color:var(--fg)}
 .dmr:first-child{border-top:0}.dmr>span{flex:1;min-width:0;display:flex;flex-direction:column}.dmr small{font-size:12px;color:var(--muted)}
 .note.slim{padding:7px 12px}.note.slim p{flex:1;min-width:0;margin:0}.note.offon p{flex:1;margin:0}
-.hero.sm{padding:12px 14px;gap:14px;margin-bottom:10px}
-.hero.sm .ring{width:84px;height:84px}.hero.sm .ring .v b{font-size:28px}.hero.sm .ring .v span{font-size:9.5px}
-.hero.sm .ring .rbg,.hero.sm .ring .rfg{stroke-width:13}
-.hero.sm .hs{gap:8px}.hero.sm .hst .pix{width:22px;height:22px}.hero.sm .hst b{font-size:30px}.hero.sm .hst span{font-size:11px}
+.hero.sm{padding:10px 14px;gap:12px;margin-bottom:10px}
+.hero.sm .ring{width:56px;height:56px}.hero.sm .ring .v b{font-size:19px}
+.hero.sm .ring .v span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.hero.sm .ring .rbg,.hero.sm .ring .rfg{stroke-width:15}
+.hero.sm .hs{flex-direction:row;align-items:center;gap:14px}
+.hero.sm .hst{gap:6px;flex:none}.hero.sm .hst .pix{width:20px;height:20px}.hero.sm .hst b{font-size:28px}.hero.sm .hst span{font-size:10.5px;line-height:1.1}
+.hero.sm .hwk{flex:1;min-width:0}.hero.sm .hwk>span{font-size:11px}.hero.sm .hwk>span b{font-size:17px}.hero.sm .wseg{margin-top:4px}
 .moodl{display:flex;align-items:center;gap:10px;margin:0 2px 12px}
-.moodl .gn{flex:none;font-size:13px;color:var(--muted);font-weight:600}.moodl .mprov{display:block;font-size:10.5px;font-weight:500}
+.moodl .gn{flex:none;width:84px;font-size:13px;color:var(--muted);font-weight:600;line-height:1.2}.moodl .mprov{display:block;font-size:10.5px;font-weight:500;color:var(--fg);opacity:.8}
 .mbs{flex:1;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
 .mbs .mb{height:34px;padding:0;border-radius:10px;justify-content:center}.mbs .mb b{font-size:19px}
 .lay{display:flex;align-items:center;gap:10px;margin:4px 0 6px}
@@ -1548,7 +1551,7 @@ function viewToday(){
   if(ui.ringAnim!==d+'|'+ui.tab){ui.ringAnim=d+'|'+ui.tab;h=h.replace('<div class="ring">','<div class="ring anim">')}
   {const m=(S.mit||{})[d];if(m&&m.t)h+='<div class="mitl"><button class="mitc'+(m.ok?' on':'')+'" data-act="mitok" aria-pressed="'+!!m.ok+'" aria-label="Najważniejsze zrobione">'+(m.ok?pix('star'):'')+'</button><span>Najważniejsze: <b>'+esc(m.t)+'</b></span><button class="link" data-act="mitedit">zmień</button></div>';
    else if(isT&&!(m&&m.skip))h+='<button class="link mitadd" data-act="mitedit">+ Najważniejsza rzecz dnia</button>'}
-  h+='<div class="moodl" id="row-mood"><span class="gn">Nastrój'+(S.mood[d]!=null&&!moodFinal(d)?' <small class="mprov">wstępnie</small>':'')+'</span><div class="mbs">'+[1,2,3,4,5].map(n=>'<button class="mb'+(S.mood[d]===n?' on md'+n:'')+'" data-act="mood" data-v="'+n+'" aria-pressed="'+(S.mood[d]===n)+'" aria-label="'+n+' '+MOODS[n-1]+'" title="'+MOODS[n-1]+'"><b>'+n+'</b></button>').join('')+'</div></div>';
+  h+='<div class="moodl" id="row-mood"><span class="gn">Nastrój'+(S.mood[d]!=null?' <small class="mprov">'+S.mood[d]+' · '+MOODS[S.mood[d]-1]+(!moodFinal(d)?', wstępnie':'')+'</small>':'')+'</span><div class="mbs">'+[1,2,3,4,5].map(n=>'<button class="mb'+(S.mood[d]===n?' on md'+n:'')+'" data-act="mood" data-v="'+n+'" aria-pressed="'+(S.mood[d]===n)+'" aria-label="'+n+' '+MOODS[n-1]+'" title="'+MOODS[n-1]+'"><b>'+n+'</b></button>').join('')+'</div></div>';
   if(!S.off[d]&&((isT&&new Date().getHours()>=eveH())||(d===addDays(t,-1)&&new Date().getHours()<5))&&!dcDone(d))h+='<button class="dcbtn" data-act="dclose" data-d="'+d+'"><span class="dclens">'+lensSvg(S.settings.pixaPal)+'</span><span><b>Domknij dzień</b><small>Nastrój, braki i najważniejsza rzecz na jednym ekranie</small></span><span class="dcgo">›</span></button>';
   if(!S.goals.length)h+='<div class="card empty">Nie masz jeszcze żadnych celów. Dodaj pierwszy w zakładce „Cele”.</div>';
   else h+=todayList(d);
