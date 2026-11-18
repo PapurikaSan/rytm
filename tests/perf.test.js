@@ -14,7 +14,7 @@ const fake=fs.readFileSync(path.join(__dirname,'fake-supabase.js'),'utf8');
     const T=f=>{const a=performance.now();for(let i=0;i<5;i++)f();return +((performance.now()-a)/5).toFixed(1)};const o={};
     for(const t of ['today','week','month','charts','goals','settings'])o[t]=T(()=>{ui.tab=t;render()});
     for(const t of ['today','week','charts'])o[t+'_po_zmianie']=T(()=>{const g=S.goals[0],d=todayS();setVal(g.id,d,num(val(g.id,d))?0:1);ui.tab=t;render()});
-    o.zapis=T(()=>{save()});o.kamienie=T(()=>Ms.compute());o.podpowiedzi=T(()=>Asst.tips());o.seria=T(()=>streak());o.rekord=T(()=>bestStreak());
+    o.zapis=T(()=>{save()});o.wnioski=T(()=>{Learn.reset();Learn.get()});o.kamienie=T(()=>Ms.compute());o.podpowiedzi=T(()=>Asst.tips());o.seria=T(()=>streak());o.rekord=T(()=>bestStreak());
     ui.tab='today';render();return o});
   console.log('110 dni:',JSON.stringify(await measure()));
   // 2 lata danych na tych samych celach

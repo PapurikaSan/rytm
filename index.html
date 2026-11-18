@@ -351,9 +351,9 @@ input,select,textarea{font-size:16px}
 .pxin{display:flex;gap:6px;margin-top:8px}
 .pxin .inp{height:36px;flex:1;min-width:0}
 .pxin .btn{height:36px;padding:0 12px;flex:none}
-.pxhead{display:flex;align-items:center;gap:8px;padding-right:26px}
-.pxtools{display:flex;gap:4px;margin-left:auto}
-.pxtools button{font:600 11px var(--font-body);color:var(--accent);border:1px solid var(--line);border-radius:99px;padding:3px 8px;background:var(--surface)}
+.pxhead{display:flex;align-items:flex-start;gap:8px;padding-right:26px}
+.pxtools{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px;margin-left:auto;min-width:0}
+.pxtools button{font:600 11px var(--font-body);color:var(--accent);border:1px solid var(--line);border-radius:99px;padding:3px 8px;background:var(--surface);white-space:nowrap}
 .pxchips .pill{padding:4px 10px;font-size:12px}
 .fclock{font:700 34px var(--font-display);font-variant-numeric:tabular-nums;letter-spacing:.02em;margin:2px 0 6px}
 .brw{display:flex;align-items:center;gap:14px;margin:8px 0 4px}
@@ -607,6 +607,21 @@ body{background:radial-gradient(var(--dot) 1px,transparent 1.3px) 0 0/16px 16px,
 /* płynne przejścia między zakładkami (iOS 18+, Chrome); pasek zakładek i nagłówek stoją w miejscu */
 ::view-transition-old(root),::view-transition-new(root){animation-duration:.22s}
 .nav{view-transition-name:rnav}.top{view-transition-name:rtop}
+/* wnioski, profil, eksperymenty */
+.sig{display:inline-block;font-size:10.5px;font-weight:600;letter-spacing:.02em;white-space:nowrap;color:var(--muted)}
+.sig.s3{color:var(--good)}.sig.s2{color:color-mix(in srgb,var(--accent) 80%,var(--fg))}.sig.s1{color:var(--warn)}.sig.s0{font-weight:500}
+.learnb{margin:0 0 10px}.learnb span{font-size:12.5px;color:var(--muted)}.learnb b{font:400 17px var(--font-pixel);color:var(--fg)}.learnb .bar-o{margin-top:5px}
+.trait{display:flex;gap:12px;padding:11px 0;border-top:1px solid var(--line)}.trait:first-of-type{border-top:0}
+.trait .gi{width:34px;height:34px;border-radius:10px;--c:var(--pxc,var(--accent))}
+.trait .tm{flex:1;min-width:0}.trait .tt{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:2px}.trait .tt b{font-size:14.5px}
+.trait .tip{font-size:12.5px;margin-top:4px;color:color-mix(in srgb,var(--pxc,#ff2d1c) 65%,var(--fg))}
+.chg{margin:2px 0 6px}
+.expc{padding:4px 0 8px}.expc .bar-o{margin:6px 0}
+.expp{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 0;border-top:1px solid var(--line);font-size:13.5px}.expp .chip{margin:0;flex:none}
+.xlist{display:flex;flex-direction:column;gap:8px;margin:6px 0 4px;max-height:46vh;overflow:auto}
+.xi{display:flex;flex-direction:column;gap:3px;padding:9px 10px;border-radius:12px;background:color-mix(in srgb,var(--muted) 9%,transparent)}
+.xi .btn{align-self:flex-start;margin-top:4px;padding:6px 14px}
+.dmr .chips .pill{padding:4px 10px;font-size:12px}
 </style>
 </head>
 <body>
@@ -711,7 +726,15 @@ function seed(){
     const P=plan[d]={};
     if(L.gym)P.gym=r2()<.6?'r':'w';else if((dw===0||dw===2||dw===4)||r2()<.25){P.gym=r2()<.2?'r':'w';(why[d]=why[d]||{}).gym=L.sleep!=null&&L.sleep<7?'zm':['czas','zm','czas','zap'][Math.floor(r2()*4)]}
     P.eat=L.eat?(r2()<.7?'p':'w'):(r2()<.6?'w':'p')}
-  return {goals,people,log,off,notes,reviews,mood,lt,asst:{plan,why},sample:true,settings:Object.assign(JSON.parse(JSON.stringify(DEF_SET)),{timesSet:1})};
+  // godziny odhaczeń, notatki i nastrój z ciągu dnia (osobne losowanie): wcześniejszy start = częściej dobry dzień, medytacja rano trzyma się lepiej
+  const eh={},moodAm={},r3=rng(31),NB=['Dużo pracy, zmęczony.','Praca do późna, bez sił.','Zmęczony, mało snu.','Stres w pracy.'],NG=['Spacer z Anią, super dzień.','Trening i spacer, dobra energia.','Spokojny dzień, dużo czytania.','Rower i spotkanie, świetnie.'],NN=['Zwykły dzień.','Dom, zakupy, nic szczególnego.'];
+  for(let i=70;i>=1;i--){const d=addDays(t,-i),L=log[d]||{},n=Object.keys(L).length;if(off[d]||!n)continue;
+    const e=eh[d]={};e._f=Math.max(6,Math.min(21,Math.round(7+(12-n)*1.1+(r3()-.5)*4)));
+    if(L.meditate){const am=r3()<.55;e.meditate=am?7+Math.floor(r3()*3):19+Math.floor(r3()*3);if(!am&&r3()<.5){const nx=addDays(d,1);if(log[nx]&&nx<t)delete log[nx].meditate}}
+    if(L.read)e.read=20+Math.floor(r3()*3);
+    if(mood[d]!=null&&r3()<.6){moodAm[d]=Math.max(1,Math.min(5,mood[d]-(r3()<.6?1:0)))}
+    if(!notes[d]&&r3()<.4){const m=mood[d]||3;const pool=m<=2?NB:m>=4?NG:NN;notes[d]=pool[Math.floor(r3()*pool.length)]}}
+  return {goals,people,log,off,notes,reviews,mood,lt,asst:{plan,why},eh,moodAm,moodAt:Object.fromEntries(Object.keys(moodAm).map(d=>[d,'f'])),sample:true,settings:Object.assign(JSON.parse(JSON.stringify(DEF_SET)),{timesSet:1})};
 }
 function fixState(o){
   o.settings=o.settings||{};
@@ -731,8 +754,8 @@ function fixState(o){
   if(typeof o.settings.pixaChat!=='boolean')o.settings.pixaChat=true;
   if(!Array.isArray(o.settings.msGroups))o.settings.msGroups=[];
   if(!Array.isArray(o.settings.msGen))o.settings.msGen=o.settings.msGroups.slice(); // kamienie ogólne (dobre dni, seria): dotąd szły razem z resztą
-  o.asst=o.asst||{};o.asst.snooze=o.asst.snooze||{};o.asst.off=o.asst.off||{};o.asst.ck=o.asst.ck||{};o.asst.plan=o.asst.plan||{};o.asst.why=o.asst.why||{};{const lim=addDays(todayS(),-14);Object.keys(o.asst.ck).forEach(k=>{if(k<lim)delete o.asst.ck[k]});{const l2=addDays(todayS(),-120);Object.keys(o.asst.plan).forEach(k=>{if(k<l2)delete o.asst.plan[k]});Object.keys(o.asst.why).forEach(k=>{if(k<l2)delete o.asst.why[k]})}}
-  o.wplan=o.wplan||{};o.ct=o.ct||{};if(!['time','prio','cat'].includes(o.settings.layout))o.settings.layout='time';{const l3=addDays(todayS(),-120);Object.keys(o.wplan).forEach(k=>{if(k<l3)delete o.wplan[k]})}
+  o.asst=o.asst||{};o.asst.snooze=o.asst.snooze||{};o.asst.off=o.asst.off||{};o.asst.ck=o.asst.ck||{};o.asst.plan=o.asst.plan||{};o.asst.why=o.asst.why||{};o.asst.trs=o.asst.trs||{};{const lim=addDays(todayS(),-14);Object.keys(o.asst.ck).forEach(k=>{if(k<lim)delete o.asst.ck[k]});{const l2=addDays(todayS(),-120);Object.keys(o.asst.plan).forEach(k=>{if(k<l2)delete o.asst.plan[k]});Object.keys(o.asst.why).forEach(k=>{if(k<l2)delete o.asst.why[k]})}}
+  o.wplan=o.wplan||{};o.ct=o.ct||{};o.eh=o.eh||{};o.moodAm=o.moodAm||{};o.dtype=o.dtype||{};if(!Array.isArray(o.exp))o.exp=[];{const l4=addDays(todayS(),-200);['eh','moodAm'].forEach(k=>Object.keys(o[k]).forEach(d=>{if(d<l4)delete o[k][d]}))}if(!['time','prio','cat'].includes(o.settings.layout))o.settings.layout='time';{const l3=addDays(todayS(),-120);Object.keys(o.wplan).forEach(k=>{if(k<l3)delete o.wplan[k]})}
   if(!Array.isArray(o.settings.reminders))o.settings.reminders=[{id:'r1',kind:'missing',time:'21:00',days:[0,1,2,3,4,5,6],on:true},{id:'r2',kind:'review',time:'20:00',days:[6],on:true}];
   if(!o.settings.remW){o.settings.remW=1;if(!o.settings.reminders.some(r=>r.kind==='weekly'))o.settings.reminders.push({id:'r3',kind:'weekly',time:'09:00',days:[0],on:true})}
   if(!o.ms||typeof o.ms!=='object'){o.ms={};o.msInit=false}
@@ -907,28 +930,232 @@ function habitStrength0(g){
   }
   return any?s:null;
 }
-function insights(){return memo('ins',insights0)}
-function insights0(){
-  const t=todayS(),ds=Object.keys(S.log).concat(Object.keys(S.mood)).sort();if(!ds.length)return[];
-  const days=range(ds[0],t).filter(d=>!S.off[d]),out=[];
-  const doneDay=(g,d)=>{const r=val(g.id,d);if(g.type==='qty')return r!=null?qtyOk(g,r):null;if(g.type==='range')return r!=null?evalRange(g,r).status==='ok':null;return num(r)>0};
-  S.goals.forEach(g=>{
-    if(isMeasure(g))return;const A=[],B=[];
-    days.forEach(d=>{const m=S.mood[d];if(m==null)return;const x=doneDay(g,d);if(x==null)return;(x?A:B).push(m)});
-    if(A.length>=5&&B.length>=5){const df=avg(A)-avg(B);if(Math.abs(df)>=.3)out.push({w:Math.abs(df)/4,t:'Nastrój w dni '+(g.type==='qty'||g.type==='range'?'z celem „'+g.name+'” w normie':'z: '+g.name),a:avg(A),b:avg(B),u:'',good:df>0,n:[A.length,B.length]})}
-  });
-  S.goals.filter(isCheck).forEach(c=>{
-    S.goals.filter(r=>r.type==='range').forEach(r=>{
-      const A=[],B=[];
-      days.forEach(d=>{const n=addDays(d,1);if(n>t)return;const v=val(r.id,n);if(v==null)return;(num(val(c.id,d))>0?A:B).push(v)});
-      if(A.length>=8&&B.length>=8){const df=avg(A)-avg(B),rel=Math.abs(df)/(r.ok||1);if(rel>=.6)out.push({w:rel/4,t:r.name+' następnego dnia po: '+c.name,a:avg(A),b:avg(B),u:' '+r.unit,good:null,n:[A.length,B.length]})}
+/* ---------- Learn: wnioski z siłą sygnału, wzorce, profil „Jak działasz”, eksperymenty ---------- */
+// Wszystko liczone na telefonie, raz dziennie (pamięć do zmiany dnia, celów albo liczby dni z wpisami).
+// Siła sygnału: test permutacyjny (losowe przetasowanie dni w obrębie tego samego typu dnia: praca/wolne/wyjazd),
+// więc różnica, która mogłaby wyjść przypadkiem albo z samego weekendu, nie jest podawana jako fakt.
+const STR_N={3:'mocny',2:'średni',1:'przeczucie'};
+const sigHtml=s=>'<span class="sig s'+s+'" title="Siła sygnału">'+'●'.repeat(s)+'○'.repeat(3-s)+' '+STR_N[s]+'</span>';
+const dtypeAuto=d=>((parse(d).getDay()+6)%7)>=5?'f':'w';
+const dtypeOf=d=>(S.dtype&&S.dtype[d])||dtypeAuto(d);
+const DTYPE_N={w:'Praca',f:'Wolne',t:'Wyjazd'};
+const LEARN_DAYS=42;
+const Learn=(()=>{
+  let cache=null,ckey='';
+  const Phi=z=>{const t=1/(1+.2316419*z),d=.3989423*Math.exp(-z*z/2);return 1-d*t*(.3193815+t*(-.3565638+t*(1.781478+t*(-1.821256+t*1.330274))))};
+  // poprawka na wiele porównań naraz (Benjamini–Hochberg w każdej rodzinie): mocny i średni muszą ją przejść, przeczucie to sam wynik bez poprawki
+  function grade(list,m){const srt=list.slice().sort((a,b)=>a.p-b.p);srt.forEach((x,i)=>{const q=Math.min(1,x.p*Math.max(m,srt.length)/(i+1));x.q=q;x.s=q<.01?3:q<.05?2:x.p<.05?1:0})}
+  const NP=160;
+  const fold=s=>s.toLowerCase().replace(/ł/g,'l').normalize('NFD').replace(/[̀-ͯ]/g,'');
+  const P1=x=>Math.round(x*100)+'%';
+  const f1=x=>fmt(Math.round(x*10)/10);
+  // wnioski dotyczą tylko minionych dni, więc dzisiejsze wpisy nie wymuszają ponownego liczenia
+  function key(){const t=todayS(),past=o=>{let n=0;for(const k in o||{})if(k<t)n++;return n};return t+'|'+S.goals.map(g=>g.id+g.type+(g.target||'')+(g.dir||'')+(g.pauses?g.pauses.length:'')).join(',')+'|'+past(S.log)+'|'+past(S.mood)+'|'+past(S.notes)+'|'+past(S.dtype)+'|'+past(S.off)}
+  // ---- test permutacyjny z dopasowaniem do typu dnia ----
+  function test(rows,minN,minRaw){
+    // rows: [{x:0/1, y:liczba, s:typ dnia}]; minRaw: najmniejsza surowa różnica, poniżej której nie ma co liczyć
+    const A=rows.filter(r=>r.x),B=rows.filter(r=>!r.x);minN=minN||5;
+    if(A.length<minN||B.length<minN)return null;
+    if(minRaw&&Math.abs(avg(A.map(r=>r.y))-avg(B.map(r=>r.y)))<minRaw)return null;
+    const ms={},cnt={};rows.forEach(r=>{ms[r.s]=(ms[r.s]||0)+r.y;cnt[r.s]=(cnt[r.s]||0)+1});Object.keys(ms).forEach(k=>ms[k]/=cnt[k]);
+    const res=rows.map(r=>r.y-ms[r.s]),xs=rows.map(r=>r.x);
+    const eff=x=>{let sa=0,na=0,sb=0,nb=0;for(let i=0;i<res.length;i++){if(x[i]){sa+=res[i];na++}else{sb+=res[i];nb++}}return na&&nb?sa/na-sb/nb:0};
+    const e0=eff(xs),groups={};rows.forEach((r,i)=>{(groups[r.s]=groups[r.s]||[]).push(i)});
+    const rnd=rng(rows.length*7919+Math.round(Math.abs(e0)*1e4)),xp=xs.slice(),es=[];
+    for(let k=0;k<NP;k++){Object.values(groups).forEach(ix=>{const v=ix.map(i=>xs[i]);for(let i=v.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1)),t=v[i];v[i]=v[j];v[j]=t}ix.forEach((i,j)=>{xp[i]=v[j]})});es.push(eff(xp))}
+    // p z rozkładu przetasowań (przybliżenie normalne, żeby rozróżniać też bardzo mocne sygnały)
+    const sd=Math.sqrt(es.reduce((q,v)=>q+v*v,0)/es.length)||1e-9,p=2*(1-Phi(Math.abs(e0)/sd));
+    return{e:e0,p,a:avg(A.map(r=>r.y)),b:avg(B.map(r=>r.y)),n:[A.length,B.length],s:0};
+  }
+  // ---- dzienne zdarzenie celu: 1/0, null = brak danych ----
+  const first={};
+  function firstEntry(g){if(first[g.id]!==undefined)return first[g.id];const d=logDays().find(x=>S.log[x]&&S.log[x][g.id]!=null);return first[g.id]=d||null}
+  const badEv=g=>g.type==='limit'||isMax(g);
+  function ev(g,d){
+    if(isMeasure(g)||pausedAt(g,d))return null;const f=firstEntry(g);if(!f||d<f)return null;
+    const v=val(g.id,d);
+    if(g.type==='do'||g.type==='contact'||g.type==='limit')return num(v)>0?1:0;
+    if(g.type==='qty'){if(typeof v!=='number')return null;return isMax(g)?(v>g.target?1:0):(g.target?(v>=g.target?1:0):(v>0?1:0))}
+    if(g.type==='range'){if(typeof v!=='number')return null;return evalRange(g,v).status==='ok'?1:0}
+    return null;
+  }
+  const evName=g=>g.type==='qty'&&isMax(g)?'„'+g.name+'” ponad limit':g.type==='qty'?'„'+g.name+'” w celu':g.type==='range'?'„'+g.name+'” w normie':g.type==='limit'?'„'+g.name+'”':'„'+g.name+'”';
+  const dailyish=g=>(g.type==='do'&&g.period==='day')||g.type==='qty'||g.type==='range';
+  function compute(){
+    for(const k in first)delete first[k];
+    const t=todayS(),ld=logDays(),start=ld.length?(ld[0]>addDays(t,-180)?ld[0]:addDays(t,-180)):t;
+    const H=start<t?range(start,addDays(t,-1)).filter(d=>!S.off[d]):[];
+    const gs=S.goals.filter(g=>!isMeasure(g));
+    const F=[],T=[],fam={};
+    const add=(o,r,f)=>{if(!o||!r)return;o.p=r.p;o.f=f||o.k;(fam[o.f]=fam[o.f]||[]).push(o)};
+    const tested={};const T0=test;const testF=(f,rows,minN,minRaw)=>{const r=T0(rows,minN,minRaw);if(rows.length)tested[f]=(tested[f]||0)+1;return r};
+    // 1) nastrój tego samego dnia i następnego
+    gs.forEach(g=>{
+      const r0=[],r1=[];H.forEach(d=>{const x=ev(g,d);if(x==null)return;if(S.mood[d]!=null)r0.push({x,y:S.mood[d],s:dtypeOf(d)});const n=addDays(d,1);if(n<t&&S.mood[n]!=null&&!S.off[n])r1.push({x,y:S.mood[n],s:dtypeOf(n)})});
+      const a=Math.abs,r=testF('mood',r0,5,.2),q=testF('mood',r1,5,.2);
+      const lab=badEv(g)?'W dni, gdy był '+evName(g):g.type==='qty'||g.type==='range'?'W dni z '+evName(g):'W dni z '+evName(g);
+      if(r&&a(r.e)>=.25)add({id:'m-'+g.id,k:'mood',gid:g.id,w:a(r.e),good:r.e>0,e:r.e,a:r.a,b:r.b,n:r.n,t:lab+' nastrój średnio '+f1(r.a)+', w pozostałe '+f1(r.b)+'.'},r,'mood');
+      if(q&&a(q.e)>=.25&&!(r&&r.p<=q.p&&a(r.e)>=a(q.e)))add({id:'m1-'+g.id,k:'mood1',gid:g.id,w:a(q.e)*.9,good:q.e>0,e:q.e,a:q.a,b:q.b,n:q.n,t:'Nastrój następnego dnia po '+(badEv(g)?'dniu, gdy był ':'')+evName(g)+': '+f1(q.a)+', w pozostałe '+f1(q.b)+'.'},q,'mood');
     });
-    const A=[],B=[];
-    days.forEach(d=>{const n=addDays(d,1);if(n>t||S.mood[n]==null)return;(num(val(c.id,d))>0?A:B).push(S.mood[n])});
-    if(c.type==='limit'&&A.length>=5&&B.length>=5){const df=avg(A)-avg(B);if(Math.abs(df)>=.3)out.push({w:Math.abs(df)/4,t:'Nastrój następnego dnia po: '+c.name,a:avg(A),b:avg(B),u:'',good:df>0,n:[A.length,B.length]})}
-  });
-  return out.sort((x,y)=>y.w-x.w).slice(0,6);
-}
+    // 2) wartość celu „zakres” (np. sen) następnego dnia
+    S.goals.filter(r=>r.type==='range').forEach(R=>gs.forEach(g=>{if(g.id===R.id)return;
+      const rows=[];H.forEach(d=>{const x=ev(g,d),n=addDays(d,1);if(x==null||n>=t)return;const v=val(R.id,n);if(typeof v!=='number')return;rows.push({x,y:v,s:dtypeOf(n)})});
+      const r=testF('next',rows,6,(R.ok||1)*.3);if(r&&Math.abs(r.e)/(R.ok||1)>=.4)add({id:'n-'+g.id+R.id,k:'next',gid:g.id,w:Math.abs(r.e)/(R.ok||1)/3,good:(r.e>0)===(R.target>=r.b),e:r.e,a:r.a,b:r.b,n:r.n,t:'„'+R.name+'” następnego dnia po '+(badEv(g)?'dniu, gdy był ':'')+evName(g)+': średnio '+f1(r.a)+' '+R.unit+', w pozostałe '+f1(r.b)+' '+R.unit+'.'},r,'next')}));
+    // 3) nawyki, które się ciągną albo gryzą (ten sam dzień)
+    const lifts=[];
+    gs.forEach(A=>S.goals.filter(B=>B.id!==A.id&&dailyish(B)&&!isMeasure(B)).forEach(B=>{
+      const rows=[];H.forEach(d=>{const x=ev(A,d),y=ev(B,d);if(x==null||y==null)return;rows.push({x,y,s:dtypeOf(d)})});
+      const r=testF('lift',rows,6,.15);if(!r||Math.abs(r.a-r.b)<.18)return;
+      const goodB=!badEv(B),pull=(r.e>0)===goodB;lifts.push({A,B,r,pull})}));
+    // ta sama para w obie strony: zostaje mocniejsza
+    {const best={};lifts.forEach(L=>{const k=[L.A.id,L.B.id].sort().join('|');if(!best[k]||L.r.p<best[k].r.p)best[k]=L});lifts.splice(0,lifts.length,...Object.values(best))}
+    lifts.forEach(L=>{L.o={p:L.r.p}});grade(lifts.map(L=>L.o),tested.lift||lifts.length);lifts.forEach(L=>{L.r.s=L.o.s});
+    lifts.forEach(L=>{const {A,B,r,pull}=L;add({id:'l-'+A.id+B.id,k:'lift',gid:A.id,w:Math.abs(r.a-r.b)*.8,good:pull&&!badEv(A)?true:pull?null:false,a:r.a,b:r.b,n:r.n,
+      t:(badEv(A)?'Gdy był '+evName(A):'W dni z '+evName(A))+', '+evName(B)+' '+(badEv(B)?'zdarza się':'udaje się')+' w '+P1(r.a)+', w pozostałe w '+P1(r.b)+'.'},r,'lift')});
+    // kotwica: nawyk, który najmocniej pociąga za sobą inne
+    {const sc={};lifts.filter(L=>L.pull&&!badEv(L.A)&&L.r.e!==0).forEach(L=>{const k=L.A.id;sc[k]=sc[k]||{A:L.A,n:0,w:0,list:[]};sc[k].n++;sc[k].w+=L.r.s*(L.r.a-L.r.b);sc[k].list.push(L)});
+      const best=Object.values(sc).filter(x=>x.list.some(L=>L.r.s>=1)&&(x.n>=2||x.w>=.5)).sort((a,b)=>b.w-a.w)[0];
+      if(best){const l=best.list.sort((a,b)=>(b.r.a-b.r.b)-(a.r.a-a.r.b)).slice(0,3),s=Math.max(...l.map(x=>x.r.s));
+        T.push({id:'anchor',ic:'tgt',s,w:2+best.w,title:'Twoja kotwica: '+best.A.name,gid:best.A.id,t:'W dni z „'+best.A.name+'” łatwiej o resztę: '+l.map(x=>'„'+x.B.name+'” '+P1(x.r.a)+' zamiast '+P1(x.r.b)).join(', ')+'.',tip:'Zacznij dzień od „'+best.A.name+'”, a reszta pójdzie łatwiej.'})}}
+    // pułapka: zdarzenie, które najbardziej psuje inne nawyki albo nastrój
+    // pułapka: tylko to, co ograniczasz (limit, „najwyżej”), gdy psuje inny nawyk albo nastrój
+    grade(fam.mood||[],tested.mood);
+    {const bad=lifts.filter(L=>!L.pull&&badEv(L.A)&&L.r.s>=1).sort((a,b)=>b.r.s*Math.abs(b.r.a-b.r.b)-a.r.s*Math.abs(a.r.a-a.r.b))[0];
+      const moodBad=(fam.mood||[]).filter(x=>x.s>=1&&(x.k==='mood'||x.k==='mood1')&&x.good===false&&badEv(S.goals.find(g=>g.id===x.gid)||{})).sort((a,b)=>b.s*b.w-a.s*a.w)[0];
+      if(bad&&(!moodBad||bad.r.s>=moodBad.s))T.push({id:'trap',ic:'ban',s:bad.r.s,w:1.5+Math.abs(bad.r.a-bad.r.b),title:'Twoja pułapka: '+bad.A.name,gid:bad.A.id,t:(badEv(bad.A)?'Gdy był '+evName(bad.A):'W dni z '+evName(bad.A))+', '+evName(bad.B)+' wychodzi tylko w '+P1(bad.r.a)+' (zwykle '+P1(bad.r.b)+').',tip:'Gdy to się zdarza, zrób „'+bad.B.name+'” wcześniej w ciągu dnia.'});
+      else if(moodBad)T.push({id:'trap',ic:'ban',s:moodBad.s,w:1.5+moodBad.w,title:'Twoja pułapka: '+(S.goals.find(g=>g.id===moodBad.gid)||{}).name,gid:moodBad.gid,t:moodBad.t,tip:'Warto to ograniczać zwłaszcza przed ważnymi dniami.'})}
+    // 4) dwa dni z rzędu poza normą (np. sen) a nastrój
+    S.goals.filter(r=>r.type==='range').forEach(R=>{const rows=[];H.forEach(d=>{const p=addDays(d,-1),v=val(R.id,d),u=val(R.id,p);if(S.mood[d]==null||typeof v!=='number'||typeof u!=='number')return;const low=x=>x<R.target&&evalRange(R,x).status!=='ok';rows.push({x:low(v)&&low(u)?1:0,y:S.mood[d],s:dtypeOf(d)})});
+      const r=testF('mood',rows,4,.2);if(r&&r.e<=-.3)add({id:'c-'+R.id,k:'cum',gid:R.id,w:Math.abs(r.e),good:false,a:r.a,b:r.b,n:r.n,t:'Dwa dni z rzędu „'+R.name+'” poniżej normy: nastrój '+f1(r.a)+', zwykle '+f1(r.b)+'. Jedna słabsza noc tak nie działa.'},r,'mood')});
+    // 5) połączenia: dwa dobre nawyki razem i tylko jeden z nich
+    {const top=(fam.mood||[]).filter(x=>x.k==='mood'&&x.good&&!badEv(S.goals.find(g=>g.id===x.gid)||{})).sort((a,b)=>b.w-a.w).slice(0,4).map(x=>S.goals.find(g=>g.id===x.gid));
+      for(let i=0;i<top.length;i++)for(let j=i+1;j<top.length;j++){const A=top[i],B=top[j],rows=[];H.forEach(d=>{const a=ev(A,d),b=ev(B,d);if(a==null||b==null||S.mood[d]==null||a+b===0)return;rows.push({x:a+b===2?1:0,y:S.mood[d],s:dtypeOf(d)})});
+        const r=testF('combo',rows,5,.25);if(r&&r.e>=.3)add({id:'x-'+A.id+B.id,k:'combo',w:r.e+.1,good:true,a:r.a,b:r.b,n:r.n,t:'„'+A.name+'” i „'+B.name+'” razem: nastrój '+f1(r.a)+', a tylko jedno z nich: '+f1(r.b)+'. Razem działają mocniej.'},r,'combo')}}
+    // 6) najważniejsza rzecz dnia
+    {const rows=[],rg=[];H.forEach(d=>{const m=S.mit&&S.mit[d];if(!m||!m.t)return;const x=m.ok===true?1:0;if(S.mood[d]!=null)rows.push({x,y:S.mood[d],s:dtypeOf(d)})});
+      const r=testF('mood',rows,4,.2);if(r&&Math.abs(r.e)>=.3)add({id:'mit',k:'mit',w:Math.abs(r.e),good:r.e>0,a:r.a,b:r.b,n:r.n,t:'Gdy najważniejsza rzecz dnia jest zrobiona, nastrój średnio '+f1(r.a)+', gdy nie: '+f1(r.b)+'.'},r,'mood');
+      H.forEach(d=>{const m=S.mit&&S.mit[d];rg.push({x:m&&m.t?1:0,y:goodDay(d)?1:0,s:dtypeOf(d)})});const q=test(rg,5);if(q)grade([q],1);
+      if(q&&q.e>=.12&&q.s)T.push({id:'mot-mit',ic:'star',s:q.s,w:1+q.e,title:'Napędza Cię: najważniejsza rzecz dnia',t:'W dni z wpisaną najważniejszą rzeczą dobry dzień w '+P1(q.a)+', bez niej w '+P1(q.b)+'.',tip:'Rano wpisz jedną rzecz. To u Ciebie działa.'})}
+    // 7) słowa w notatkach a nastrój
+    {const STOP=new Set('ale jak juz jest bylo byla bardzo dzis dzien dnia tylko troche potem jeszcze ktory ktora ktore sobie mnie mialem mialam jestem bylem bylam przez przed kiedy wiec tego tym taki takie takze oraz albo dobry dobra dobrze dzisiaj wczoraj jutro'.split(' '));
+      const occ={},forms={};H.forEach(d=>{const n=S.notes&&S.notes[d];if(!n)return;const seen=new Set();(n.match(/[A-Za-zÀ-ž]+/g)||[]).forEach(w=>{const f=fold(w);if(f.length<4||STOP.has(f))return;const st=f.slice(0,5);if(seen.has(st))return;seen.add(st);(occ[st]=occ[st]||[]).push(d);const fm=forms[st]=forms[st]||{};fm[w.toLowerCase()]=(fm[w.toLowerCase()]||0)+1})});
+      Object.keys(occ).filter(k=>occ[k].length>=4).forEach(k=>{const set=new Set(occ[k]),rows=[];H.forEach(d=>{if(S.mood[d]!=null)rows.push({x:set.has(d)?1:0,y:S.mood[d],s:dtypeOf(d)})});
+        const r=testF('word',rows,4,.3);const w=Object.keys(forms[k]).sort((a,b)=>forms[k][b]-forms[k][a])[0];
+        if(r&&Math.abs(r.e)>=.4)add({id:'w-'+k,k:'word',w:Math.abs(r.e)*.8,good:r.e>0,a:r.a,b:r.b,n:r.n,t:'Gdy w notatce pojawia się „'+w+'”, nastrój średnio '+f1(r.a)+' (inne dni '+f1(r.b)+').'},r,'word')})}
+    // 8) typ dnia (gdy ustawiany ręcznie)
+    if(Object.keys(S.dtype||{}).length>=5){const sc=d=>dayScore(d);['f','t'].forEach(k=>{const rows=H.filter(d=>sc(d)!=null).map(d=>({x:dtypeOf(d)===k?1:0,y:sc(d),s:'a'}));const r=testF('dtype',rows,4,.08);
+      if(r&&Math.abs(r.e)>=.12)add({id:'dt-'+k,k:'dtype',w:Math.abs(r.e)*2,good:r.e>0,a:r.a,b:r.b,n:r.n,t:(k==='t'?'Na wyjazdach':'W dni wolne')+' realizacja celów '+P1(r.a)+', w pozostałe '+P1(r.b)+'.'},r,'dtype')})}
+    // ---- wzorce zachowania ----
+    const seq=H.map(d=>({d,g:goodDay(d)?1:0,sc:dayScore(d)}));
+    // odporność: po słabszym dniu (po co najmniej 2 dobrych) ile dni do powrotu; domino
+    function bounce(list){const out=[];for(let i=2;i<list.length;i++){if(list[i].g===0&&list[i-1].g===1&&list[i-2].g===1){let k=i+1;while(k<list.length&&!list[k].g)k++;if(k<list.length)out.push(k-i)}}return out}
+    {const b=bounce(seq);if(b.length>=3){const m=avg(b),s=b.length>=12?3:b.length>=6?2:1;let bb=0,nb=0,bg=0,ng=0;for(let i=1;i<seq.length;i++){if(seq[i-1].g){ng++;if(!seq[i].g)bg++}else{nb++;if(!seq[i].g)bb++}}
+      const pBB=nb?bb/nb:0,pBG=ng?bg/ng:0;
+      if(pBB-pBG>=.2&&nb>=6)T.push({id:'domino',ic:'bang',s,w:1.6+(pBB-pBG),title:'Domino: słabszy dzień ciągnie kolejny',t:'Po słabszym dniu następny też jest słabszy w '+P1(pBB)+', po dobrym tylko w '+P1(pBG)+'. Wracasz średnio po '+f1(m)+' '+(m<1.5?'dniu':'dniach')+'.',tip:'Dzień po wpadce jest u Ciebie najważniejszy. Wtedy wystarczy wersja minimum.'});
+      else if(m<=1.6)T.push({id:'bounce',ic:'flame',s,w:1.2+(1.6-m),title:'Szybko się odbijasz',t:'Po przerwanej serii dobry dzień wraca średnio po '+f1(m)+' '+(m<1.5?'dniu':'dniach')+'. Wpadki Cię nie wykolejają.',tip:'Nie przejmuj się jednym gorszym dniem, Twoje dane pokazują, że wracasz.'})}}
+    // wszystko albo nic
+    {const v=seq.filter(x=>x.sc!=null).map(x=>x.sc);if(v.length>=14){const lo=v.filter(x=>x<.3).length/v.length,hi=v.filter(x=>x>.8).length/v.length;
+      if(lo+hi>=.72&&lo>=.18&&hi>=.18)T.push({id:'aon',ic:'chart',s:v.length>=42?3:v.length>=21?2:1,w:1.4,title:'Wszystko albo nic',t:P1(lo+hi)+' dni to albo prawie komplet, albo prawie zero. Dni „pół na pół” zdarzają się rzadko.',tip:'Na gorszy dzień ustal wersję minimum (np. 5 minut zamiast 30). Liczy się, żeby nie było zera.'})}}
+    // złota godzina: pierwsze odhaczenie
+    {const rows=H.filter(d=>S.eh&&S.eh[d]&&S.eh[d]._f!=null).map(d=>({h:S.eh[d]._f,g:goodDay(d)?1:0,s:dtypeOf(d)}));let best=null;
+      if(rows.length>=10)for(let h=9;h<=19;h++){const r=test(rows.map(x=>({x:x.h<h?1:0,y:x.g,s:x.s})),5,.15);if(r&&r.e>=.2&&(!best||r.p<best.r.p))best={h,r}}
+      if(best)grade([best.r],6);
+      if(best&&best.r.s)T.push({id:'gold',ic:'sun',s:best.r.s,w:1.5+best.r.e,h:best.h,title:'Złota godzina: przed '+best.h+':00',t:'Gdy pierwsze odhaczenie jest przed '+best.h+':00, dobry dzień w '+P1(best.r.a)+'. Gdy później, w '+P1(best.r.b)+'.',tip:'Odhacz coś małego przed '+best.h+':00, choćby wodę.'})}
+    // pora a wytrwałość (cel odhaczany rano/wieczorem: czy następnego dnia też)
+    S.goals.filter(g=>dailyish(g)&&!badEv(g)).forEach(g=>{const by={r:[],p:[],w:[]};H.forEach(d=>{const h=S.eh&&S.eh[d]&&S.eh[d][g.id];if(h==null||ev(g,d)!==1)return;const n=addDays(d,1);if(n>=t)return;const x=ev(g,n);if(x==null)return;by[slotOfHour(h)].push(x)});
+      const c=Object.keys(by).filter(k=>by[k].length>=5).map(k=>({k,v:avg(by[k]),n:by[k].length}));if(c.length<2)return;c.sort((a,b)=>b.v-a.v);const a=c[0],b=c[c.length-1];
+      if(a.v-b.v>=.25)T.push({id:'slot-'+g.id,ic:'cal',s:a.n+b.n>=24?2:1,w:1+a.v-b.v,gid:g.id,slot:a.k,title:'„'+g.name+'” '+SLOT_N[a.k]+' trzyma się lepiej',t:'Gdy robisz „'+g.name+'” '+SLOT_N[a.k]+', następnego dnia też w '+P1(a.v)+'. '+SLOT_N[b.k].charAt(0).toUpperCase()+SLOT_N[b.k].slice(1)+' tylko w '+P1(b.v)+'.',tip:'Ustaw „'+g.name+'” na '+SLOT_N[a.k]+'.'})});
+    // rytm tygodnia
+    {const DN=['poniedziałki','wtorki','środy','czwartki','piątki','soboty','niedziele'],by=[[],[],[],[],[],[],[]];seq.forEach(x=>{if(x.sc!=null)by[(parse(x.d).getDay()+6)%7].push(x.sc)});
+      const ok=by.map((a,i)=>({i,v:a.length>=3?avg(a):null,n:a.length})).filter(x=>x.v!=null);
+      if(ok.length>=5){ok.sort((a,b)=>b.v-a.v);const b=ok[0],w=ok[ok.length-1];if(b.v-w.v>=.12)T.push({id:'week',ic:'cal',s:Math.min(b.n,w.n)>=8?2:1,w:1+(b.v-w.v),wd:w.i,title:'Rytm tygodnia',t:'Najmocniejsze są '+DN[b.i]+' ('+P1(b.v)+'), najsłabsze '+DN[w.i]+' ('+P1(w.v)+').',tip:'Na '+DN[w.i]+' zaplanuj mniej albo zacznij od kotwicy.'})}}
+    // miesiąc miodowy nowych celów
+    {const drops=[];S.goals.filter(g=>!isMeasure(g)&&hasTarget(g)&&g.type!=='limit').forEach(g=>{const f=firstEntry(g);if(!f||diffDays(f,t)<42)return;const wk=[0,1,2,3,4,5].map(k=>goalCompletion(g,addDays(f,7*k),addDays(f,7*k+6)));if(wk[0]==null||wk[0]<.5)return;const k=wk.findIndex((v,i)=>i>0&&v!=null&&v<wk[0]*.7);if(k>0)drops.push(k)});
+      if(drops.length>=2){const m=avg(drops);T.push({id:'honey',ic:'heart',s:drops.length>=4?2:1,w:1.1,wk:m,title:'Miesiąc miodowy: ok. '+Math.round(m*7)+' dni',t:'Nowe cele trzymasz mocno przez około '+Math.round(m*7)+' dni, potem zwykle słabną.',tip:'Przy nowym celu ten moment jest najważniejszy. Przypomnę Ci.'})}}
+    // fala: ostatnie tygodnie
+    {const W=[0,1,2,3].map(k=>{const a=addDays(t,-7*(k+1)),b=addDays(t,-7*k-1),v=range(a,b).filter(d=>!S.off[d]).map(d=>dayScore(d)).filter(x=>x!=null);return v.length>=4?avg(v):null}).reverse();
+      if(W.every(x=>x!=null)){if(W[1]<W[2]&&W[2]<W[3]&&W[3]-W[0]>=.1)T.push({id:'wave',ic:'chart',s:2,w:1.3,title:'Fala wznosząca',t:'Trzy tygodnie z rzędu lepiej: realizacja z '+P1(W[0])+' do '+P1(W[3])+'.',tip:'To dobry moment, żeby podnieść poprzeczkę w jednym celu.'});
+        else if(W[1]>W[2]&&W[2]>W[3]&&W[0]-W[3]>=.1)T.push({id:'wave',ic:'chart',s:2,w:1.3,title:'Lekki dołek',t:'Trzy tygodnie z rzędu trochę słabiej: z '+P1(W[0])+' do '+P1(W[3])+'. To normalne, każdy ma fale.',tip:'Zmniejsz na chwilę jeden cel albo spróbuj eksperymentu.'})}}
+    // nastrój w ciągu dnia (wstępny i wieczorny)
+    {const df=H.filter(d=>S.moodAm&&S.moodAm[d]!=null&&S.mood[d]!=null&&S.moodAt&&S.moodAt[d]==='f').map(d=>S.mood[d]-S.moodAm[d]);
+      if(df.length>=6){const m=avg(df);if(Math.abs(m)>=.3)T.push({id:'arc',ic:'sun',s:df.length>=15?2:1,w:1+Math.abs(m),title:m>0?'Dzień się u Ciebie rozkręca':'Dzień u Ciebie słabnie',t:m>0?'Wieczorem oceniasz dzień średnio o '+f1(m)+' lepiej niż w ciągu dnia. Kiepski poranek to jeszcze nie kiepski dzień.':'Wieczorem oceniasz dzień średnio o '+f1(-m)+' gorzej niż w ciągu dnia. Warto zadbać o popołudnie.',tip:m>0?'Gdy rano jest słabo, daj dniu szansę.':'Zaplanuj coś przyjemnego na późne popołudnie.'})}}
+    // rozpęd: po 3 dniach z rzędu i po przerwie
+    {let a3=0,n3=0,a0=0,n0=0;S.goals.filter(g=>dailyish(g)&&!badEv(g)).forEach(g=>{for(let i=3;i<H.length;i++){const d=H[i],x=ev(g,d);if(x==null)continue;const p=[1,2,3].map(k=>ev(g,H[i-k]));if(p.some(v=>v==null))continue;if(p.every(v=>v===1)){n3++;a3+=x}else if(p[0]===0&&p[1]===0){n0++;a0+=x}}});
+      if(n3>=20&&n0>=20){const p3=a3/n3,p0=a0/n0;if(p3-p0>=.3)T.push({id:'momentum',ic:'flame',s:n3>=60&&n0>=60?3:2,w:1+p3-p0,title:'Rozpęd działa na Ciebie mocno',t:'Po 3 dniach z rzędu robisz nawyk dalej w '+P1(p3)+'. Po 2 dniach przerwy wracasz tylko w '+P1(p0)+'.',tip:'Łatwiej utrzymać niż zacząć. Nie dopuszczaj do drugiego dnia przerwy.'})}}
+    // plan tygodnia jako motywator
+    {const wg=wpGoals();if(wg.length){const W={y:[],n:[]};for(let k=1;k<=16;k++){const ws=addDays(wstart(t),-7*k);if(ws<start)break;const c=groupCompletion(wg,ws,addDays(ws,6));if(c==null)continue;(S.wplan&&S.wplan[ws]?W.y:W.n).push(c)}
+      if(W.y.length>=2&&W.n.length>=2){const d=avg(W.y)-avg(W.n);if(d>=.1)T.push({id:'mot-plan',ic:'cal',s:W.y.length+W.n.length>=8?2:1,w:1+d,title:'Napędza Cię: plan tygodnia',t:'W tygodniach z planem realizacja '+P1(avg(W.y))+', bez planu '+P1(avg(W.n))+'.',tip:'W niedzielę wieczorem 30 sekund na plan.'})}}}
+    // pora zaczynania dnia
+    {const f=H.map(d=>S.eh&&S.eh[d]&&S.eh[d]._f).filter(x=>x!=null);if(f.length>=10){const m=avg(f);if(m<10)T.push({id:'early',ic:'sun',s:1,w:.8,title:'Ranny ptak',t:'Pierwsze odhaczenie zwykle około '+Math.round(m)+':00. Najwięcej robisz przed południem.'});else if(m>=18)T.push({id:'early',ic:'moon',s:1,w:.8,title:'Wieczorne rozliczenie',t:'Odhaczasz zwykle po '+Math.round(m)+':00, raz a porządnie wieczorem.',tip:'Jeśli coś robisz rano, odhacz od razu. Lepiej działa na serię.'})}}
+    // zmiany w czasie: odporność teraz i 2 miesiące temu
+    const changes=[];{const half=addDays(t,-60),s1=seq.filter(x=>x.d<half&&x.d>=addDays(t,-120)),s2=seq.filter(x=>x.d>=half),b1=bounce(s1),b2=bounce(s2);
+      if(b1.length>=3&&b2.length>=3){const m1=avg(b1),m2=avg(b2);if(Math.abs(m1-m2)>=.5)changes.push((m2<m1?'Szybciej się odbijasz: ':'Wolniej wracasz po wpadce: ')+'2–4 miesiące temu dobry dzień wracał po '+f1(m1)+' '+(m1<1.5?'dniu':'dniach')+', teraz po '+f1(m2)+'.')}
+      const g1=s1.filter(x=>x.sc!=null),g2=s2.filter(x=>x.sc!=null);if(g1.length>=20&&g2.length>=20){const a=g1.filter(x=>x.g).length/g1.length,b=g2.filter(x=>x.g).length/g2.length;if(Math.abs(b-a)>=.08)changes.push('Dobre dni: '+P1(a)+' dni 2–4 miesiące temu, teraz '+P1(b)+'.')}}
+    ['next','combo','word','dtype'].forEach(f=>grade(fam[f]||[],tested[f]));
+    Object.keys(fam).forEach(f=>{let l=fam[f].filter(x=>x.s>=1).sort((a,b)=>a.p-b.p);if(f==='combo'||f==='word')l=l.slice(0,3);F.push(...l)});
+    F.sort((a,b)=>b.s-a.s||a.p-b.p);T.sort((a,b)=>b.s*b.w-a.s*a.w);
+    const known=new Set();const traits=T.filter(x=>{if(known.has(x.id))return false;known.add(x.id);return true});
+    return{F,T:traits,changes,days:ld.length,lifts};
+  }
+  function get(){const k=key();if(!cache||k!==ckey){try{cache=compute()}catch(e){console.warn('learn',e);cache={F:[],T:[],changes:[],days:logDays().length,lifts:[]}}ckey=k}return cache}
+  function reset(){cache=null}
+  return{get,reset,ev,badEv};
+})();
+function insights(){return Learn.get().F}
+
+/* ---------- eksperymenty (14 dni): Pixa proponuje, Ty akceptujesz, na koniec porównanie z 4 tygodniami wcześniej ---------- */
+// S.exp: [{id,k,gid,title,how,from,to,status:'on'|'end'|'stop',base,res,ctx,prev,kept,checked}]
+const Exp=(()=>{
+  const LEN=14,P1=x=>Math.round(x*100)+'%',cap=x=>x.charAt(0).toUpperCase()+x.slice(1);
+  const active=()=>(S.exp||[]).find(x=>x.status==='on');
+  const metrics={
+    goal:(x,a,b)=>{const g=S.goals.find(y=>y.id===x.gid);return g?goalCompletion(g,a,b):null},
+    any:(x,a,b)=>{const g=S.goals.find(y=>y.id===x.gid);if(!g)return null;const ds=range(a,b).filter(d=>!S.off[d]&&!pausedAt(g,d));return ds.length?ds.filter(d=>val(g.id,d)!=null&&(typeof val(g.id,d)!=='number'||val(g.id,d)>0||isMax(g))).length/ds.length:null},
+    good:(x,a,b)=>{const ds=range(a,b).filter(d=>!S.off[d]);return ds.length>=5?ds.filter(goodDay).length/ds.length:null},
+    mood:(x,a,b)=>{const v=range(a,b).map(d=>S.mood[d]).filter(v=>v!=null);return v.length>=5?avg(v):null},
+    plan:(x,a,b)=>{const g=wpGoals();return g.length?groupCompletion(g,a,b):null}
+  };
+  const MN={goal:'realizacja celu',any:'dni z wpisem',good:'dobre dni',mood:'średni nastrój',plan:'realizacja celów z planu'};
+  const fmtM=(m,v)=>v==null?'–':m==='mood'?fmt(Math.round(v*10)/10):P1(v);
+  const thr=m=>m==='mood'?.25:.1;
+  function ctxOf(gid){const g=S.goals.find(y=>y.id===gid),ws=wstart(todayS()),w=g&&S.wplan?[(S.wplan[ws]||{})[gid],(S.wplan[addDays(ws,-7)]||{})[gid]]:null;return JSON.stringify(g?[g.type,g.period,g.target,goalTime(g),w]:[S.goals.length])}
+  // Kandydaci: z wniosków i wzorców, a gdy danych mało, ogólne (zawsze można zapytać Pixę).
+  function candidates(){
+    const L=Learn.get(),out=[],t=todayS(),seen=new Set();
+    const push=o=>{if(seen.has(o.k))return;seen.add(o.k);out.push(o)};
+    L.T.forEach(x=>{
+      if(x.id.startsWith('slot-')&&x.gid&&goalTime(S.goals.find(g=>g.id===x.gid)||{})!==x.slot)push({k:'slot|'+x.gid+'|'+x.slot,type:'slot',gid:x.gid,slot:x.slot,m:'goal',s:x.s,title:'„'+(S.goals.find(g=>g.id===x.gid)||{}).name+'” '+SLOT_N[x.slot],how:'Przez 14 dni rób „'+(S.goals.find(g=>g.id===x.gid)||{}).name+'” '+SLOT_N[x.slot]+'. Na ekranie Dziś przeniosę go do tej pory.',why:x.t});
+      if(x.id==='anchor'){const g=S.goals.find(y=>y.id===x.gid)||{},daily=g.period==='day'||g.type!=='do';push({k:'anchor|'+x.gid,type:'anchor',gid:x.gid,m:'good',s:x.s,title:'Zaczynaj dzień od „'+g.name+'”',how:daily?'Przez 14 dni zrób „'+g.name+'” przed południem, zanim zajmiesz się resztą.':'Przez 14 dni w dni z „'+g.name+'” rób go przed południem, zanim zajmiesz się resztą.',why:x.t})}
+      if(x.id==='gold')push({k:'gold|'+x.h,type:'gold',m:'good',s:x.s,title:'Pierwsze odhaczenie przed '+x.h+':00',how:'Przez 14 dni odhacz cokolwiek przed '+x.h+':00, nawet najmniejszą rzecz.',why:x.t});
+      if(x.id==='trap'&&x.gid){const g=S.goals.find(y=>y.id===x.gid);if(g&&Learn.badEv(g))push({k:'trap|'+x.gid,type:'trap',gid:x.gid,m:'good',s:x.s,title:'14 dni bez: '+g.name+(isMax(g)?' ponad limit':''),how:'Przez 14 dni trzymaj „'+g.name+'” '+(isMax(g)?'w limicie':'na zero')+'. Zobaczymy, co to zmieni.',why:x.t})}
+      if(x.id==='mot-mit')push({k:'mit',type:'mit',m:'good',s:x.s,title:'Najważniejsza rzecz codziennie',how:'Przez 14 dni każdego ranka wpisz jedną najważniejszą rzecz.',why:x.t});
+      if(x.id==='mot-plan')push({k:'plan',type:'plan',m:'plan',s:x.s,title:'Plan tygodnia przez 2 tygodnie',how:'Zaplanuj ten i następny tydzień (Kalendarz → Tydzień → Zaplanuj).',why:x.t});
+      if((x.id==='aon'||x.id==='domino'))push({k:'min',type:'min',m:'good',s:x.s,title:'Wersja minimum w słabsze dni',how:'Przez 14 dni w gorszy dzień rób chociaż najmniejszą wersję celów głównych (5 minut, 1 strona). Liczy się, żeby nie było zera.',why:x.t});
+    });
+    L.F.filter(x=>x.k==='next'&&x.good===false&&x.s>=2).slice(0,1).forEach(x=>{const g=S.goals.find(y=>y.id===x.gid);if(g&&Learn.badEv(g))push({k:'trap|'+g.id,type:'trap',gid:g.id,m:'mood',s:x.s,title:'14 dni bez: '+g.name+(isMax(g)?' ponad limit':''),how:'Przez 14 dni trzymaj „'+g.name+'” '+(isMax(g)?'w limicie':'na zero')+'.',why:x.t})});
+    // ogólne (gdy brak danych albo jako dodatkowe pomysły)
+    const weak=S.goals.filter(g=>!isPaused(g)&&g.type==='do'&&hasTarget(g)).map(g=>({g,v:goalCompletion(g,addDays(t,-27),t)})).filter(o=>o.v!=null&&o.v<.6).sort((a,b)=>a.v-b.v)[0];
+    if(weak){const g=weak.g,sl=goalTime(g)==='r'?'w':'r';push({k:'slot|'+g.id+'|'+sl,type:'slot',gid:g.id,slot:sl,m:'goal',s:0,title:'„'+g.name+'” '+SLOT_N[sl],how:'Przez 14 dni rób „'+g.name+'” '+SLOT_N[sl]+'. Sprawdzimy, czy ta pora pasuje Ci lepiej.',why:'„'+g.name+'” idzie ostatnio w '+P1(weak.v)+'. Zmiana pory to najprostszy eksperyment.'})}
+    const mitDays=range(addDays(t,-13),addDays(t,-1)).filter(d=>S.mit&&S.mit[d]&&S.mit[d].t).length;
+    if(mitDays<7)push({k:'mit',type:'mit',m:'good',s:0,title:'Najważniejsza rzecz codziennie',how:'Przez 14 dni każdego ranka wpisz jedną najważniejszą rzecz.',why:'U wielu osób jedna jasna rzecz na dzień podnosi liczbę dobrych dni.'});
+    if(wpGoals().length&&!Object.keys(S.wplan||{}).some(w=>w>=addDays(wstart(t),-21)))push({k:'plan',type:'plan',m:'plan',s:0,title:'Plan tygodnia przez 2 tygodnie',how:'Zaplanuj ten i następny tydzień (Kalendarz → Tydzień → Zaplanuj).',why:'Plan z góry zdejmuje codzienne decyzje „kiedy”.'});
+    // filtr: nie powtarzaj nieudanych, chyba że zmienił się plan tygodnia albo cel; udanych i trwających nie proponuj
+    return out.filter(allowed).sort((a,b)=>b.s-a.s);
+  }
+  // Czy wolno zaproponować: trwający i udany nie wracają; nieudany albo przerwany tylko po zmianie planu tygodnia albo celu i min. 3 tygodniach.
+  function allowed(c){const t=todayS(),past=(S.exp||[]).filter(x=>x.k===c.k);if(past.some(x=>x.status==='on'||(x.res&&x.res.ok)))return false;const last=past[past.length-1];if(!last)return true;return last.ctx!==ctxOf(c.gid)&&diffDays(last.to,t)>=21}
+  function start(c){if(active())return active();const t=todayS(),x={id:'x'+Date.now(),k:c.k,type:c.type,gid:c.gid||null,slot:c.slot||null,m:c.m,title:c.title,how:c.how,why:c.why,from:t,to:addDays(t,LEN-1),status:'on',ctx:ctxOf(c.gid),base:metrics[c.m](c,addDays(t,-28),addDays(t,-1))};(S.exp=S.exp||[]).push(x);save();return x}
+  function finish(x,stopped){const t=todayS(),end=stopped?addDays(t,-1):x.to,v=end>=x.from?metrics[x.m](x,x.from,end):null;x.status=stopped?'stop':'end';x.res={v,base:x.base,ok:v!=null&&x.base!=null&&v-x.base>=thr(x.m),end};if(stopped)x.to=end<x.from?x.from:end;x.ctx=ctxOf(x.gid);save();return x}
+  function now(x){const t=todayS(),end=t>x.to?x.to:addDays(t,-1);return end>=x.from?metrics[x.m](x,x.from,end):null}
+  // eksperyment z porą zmienia, w której sekcji Dziś stoi cel
+  const slotFor=gid=>{const x=active();return x&&x.type==='slot'&&x.gid===gid?x.slot:null};
+  function resText(x){const r=x.res;if(!r||r.v==null||r.base==null)return'Za mało danych, żeby ocenić.';const d=r.v-r.base;return cap(MN[x.m])+': '+fmtM(x.m,r.v)+' (wcześniej '+fmtM(x.m,r.base)+')'+(r.ok?'. Działa!':Math.abs(d)<thr(x.m)?'. Bez wyraźnej różnicy.':'. Wyszło słabiej.')}
+  // koniec eksperymentu: po ostatnim dniu wynik liczy się sam (raz), Pixa go ogłasza
+  function tick(){const x=active();if(x&&todayS()>x.to)finish(x)}
+  const qt=t=>/^„/.test(t)?t:'„'+t+'”';
+  return{active,candidates,allowed,start,finish,now,slotFor,resText,fmtM,MN,LEN,tick,metrics,thr,qt,cap};
+})();
+
 function ltCalc(x){
   const t=todayS(),end=x.to<t?x.to:t,g=S.goals.find(y=>y.id===x.goal);
   const total=Math.max(1,diffDays(x.from,x.to)),el=Math.min(total,Math.max(0,diffDays(x.from,end)+1)),frac=x.from>t?0:el/total;
@@ -1300,7 +1527,9 @@ const planOf=(d,gid)=>{const v=(((S.asst||{}).plan||{})[d]||{})[gid];if(v!==unde
 // Nastrój zaznaczony przed wieczorem jest wstępny; wieczorem Pixa pyta, czy zostaje na cały dzień.
 const eveH=()=>S.settings.evening==null?20:S.settings.evening;
 const moodFinal=d=>S.mood[d]!=null&&(d<todayS()||!S.moodAt||S.moodAt[d]===undefined||S.moodAt[d]==='f');
-function setMood(d,v){S.mood[d]=v;S.moodAt=S.moodAt||{};S.moodAt[d]=(d===todayS()&&new Date().getHours()<eveH())?new Date().getHours():'f'}
+function setMood(d,v){S.mood[d]=v;S.moodAt=S.moodAt||{};const pre=d===todayS()&&new Date().getHours()<eveH();S.moodAt[d]=pre?new Date().getHours():'f';
+  // pierwszy nastrój zaznaczony w ciągu dnia (do porównania z wieczornym)
+  if(pre){S.moodAm=S.moodAm||{};if(S.moodAm[d]==null)S.moodAm[d]=v}}
 // Świetny dzień: wszystkie liczone cele (główne i ważne) zrobione; cel tygodniowy zaplanowany na dziś musi być dziś odhaczony.
 function perfectDay(d){return memo('pd|'+d,()=>{if(S.off[d])return false;const gs=S.goals.filter(g=>!pausedAt(g,d)&&scorable(g)&&PW[g.prio||'imp']>0);
   return gs.length>0&&gs.every(g=>{if(g.type==='do'&&g.period!=='day'&&planOf(d,g.id))return num(val(g.id,d))>0;const v=goalDayScoreW(g,d);return v!=null&&v>=1})})}
@@ -1466,7 +1695,9 @@ const LENS_C={};
 function lensSvg(k){if(LENS_C[k])return LENS_C[k];const L=lensCol(k),G=["....oooo....","..oorrrroo..",".orhrRRrrro.",".orrRRRRrro.","orrRRyyRRrro","orRRywwyRRro","orRRywwyRRro","orrRRyyRRrro",".orrRRRRrro.",".orrrRRrrro.","..oorrrroo..","....oooo...."],C={o:L[0],r:L[1],R:L[2],y:L[3],w:L[4],h:L[3]};let r='';G.forEach((row,y)=>[...row].forEach((ch,x)=>{if(C[ch])r+='<rect x="'+x+'" y="'+y+'" width="1" height="1" fill="'+C[ch]+'"/>'}));return LENS_C[k]='<svg viewBox="0 0 12 12" aria-hidden="true">'+r+'</svg>'}
 const CHECK_SVG='<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5l4 4 8-9"/></svg>';
 // Godzina odhaczenia na ekranie Dziś (ostatnie 20 razy): z tego Pixa uczy się, kiedy zwykle robisz dany cel.
-function noteHour(gid,d){if(d!==todayS())return;const c=S.ct||(S.ct={}),a=(c[gid]||[]).concat(new Date().getHours());c[gid]=a.slice(-20)}
+function noteHour(gid,d){if(d!==todayS())return;const h=new Date().getHours(),c=S.ct||(S.ct={}),a=(c[gid]||[]).concat(h);c[gid]=a.slice(-20);
+  // godziny odhaczeń danego dnia (pierwsze odhaczenie dnia i każdego celu) dla wzorców: złota godzina, pora a wytrwałość
+  const e=(S.eh||(S.eh={}))[d]||(S.eh[d]={});if(e[gid]==null)e[gid]=h;if(e._f==null||h<e._f)e._f=h}
 function rowHtml(g,d){
   const raw=val(g.id,d),st=goalState(g,d);let ctl='',extra='';
   if(isCheck(g)){
@@ -1498,7 +1729,7 @@ const slotOfHour=h=>h<12?'r':h<17?'p':'w';
 const curSlot=()=>slotOfHour(new Date().getHours());
 const isLimitish=g=>g.type==='limit'||isMax(g);
 // Gdzie cel trafia danego dnia: plan na ten dzień (odpowiedź Pixie, plan tygodnia) ma pierwszeństwo przed stałą porą.
-function daySlot(g,d){const p=planOf(d,g.id);if(SLOT_N[p])return p;if(p===0&&!num(val(g.id,d)))return'x';return goalTime(g)}
+function daySlot(g,d){const p=planOf(d,g.id);if(SLOT_N[p])return p;if(p===0&&!num(val(g.id,d)))return'x';const x=d>=todayS()?Exp.slotFor(g.id):null;return x||goalTime(g)}
 // „Zrobione” do zwinięcia: ograniczenia nigdy (trzeba je móc zaznaczyć do wieczora), ilość „co najmniej” dopiero po osiągnięciu celu.
 function rowDone(g,d){if(g.type==='limit')return false;const v=val(g.id,d);
   if(isMeasure(g))return range(periodBounds(g,d)[0],d).some(x=>val(g.id,x)!=null);
@@ -1547,7 +1778,7 @@ function viewToday(){
   const monthOff=Object.keys(S.off).filter(x=>x.slice(0,7)===d.slice(0,7)).length;
   const sc=dayScore(d),wk=groupCompletion(S.goals,wstart(d),addDays(wstart(d),6));
   let h='<div class="datebar"><button class="iconbtn" data-act="prev" aria-label="Poprzedni dzień">‹</button><div class="d">'+dt.toLocaleDateString('pl-PL',{weekday:'long'})+'<small>'+dt.toLocaleDateString('pl-PL',{day:'numeric',month:'long',year:'numeric'})+'</small></div>'+(isT?'':'<button class="iconbtn" data-act="goto-today">Dziś</button>')+'<button class="iconbtn" data-act="next" aria-label="Następny dzień"'+(isT?' disabled':'')+'>›</button><button class="iconbtn dmore'+(ui.dmenu?' on':'')+'" data-act="dmenu" aria-label="Więcej" aria-expanded="'+!!ui.dmenu+'">⋯</button></div>';
-  if(ui.dmenu)h+='<div class="dmenu"><div class="dmr"><span>Dzień wolny (choroba)<small>Nie przerywa serii'+(monthOff?' · w tym miesiącu: '+monthOff:'')+'</small></span><button class="sw'+(S.off[d]?' on':'')+'" data-act="off" role="switch" aria-checked="'+(!!S.off[d])+'" aria-label="Dzień wolny (choroba, siła wyższa). Nie przerywa serii."></button></div><button class="dmr" data-act="times"><span>Przypisz pory celom<small>Rano, po południu, wieczorem, w ciągu dnia</small></span>›</button><button class="dmr" data-act="arrange"><span>Ułóż kolejność celów</span>›</button></div>';
+  if(ui.dmenu)h+='<div class="dmenu"><div class="dmr"><span>Dzień wolny (choroba)<small>Nie przerywa serii'+(monthOff?' · w tym miesiącu: '+monthOff:'')+'</small></span><button class="sw'+(S.off[d]?' on':'')+'" data-act="off" role="switch" aria-checked="'+(!!S.off[d])+'" aria-label="Dzień wolny (choroba, siła wyższa). Nie przerywa serii."></button></div><div class="dmr"><span>Typ dnia<small>Opcjonalnie. Pomaga Pixie w wnioskach</small></span><div class="chips">'+['w','f','t'].map(k=>'<button class="pill'+(dtypeOf(d)===k?' on':'')+'" data-act="dtype" data-k="'+k+'">'+DTYPE_N[k]+'</button>').join('')+'</div></div><button class="dmr" data-act="times"><span>Przypisz pory celom<small>Rano, po południu, wieczorem, w ciągu dnia</small></span>›</button><button class="dmr" data-act="arrange"><span>Ułóż kolejność celów</span>›</button></div>';
   if(S.sample)h+='<div class="note slim"><p><b>Dane przykładowe.</b> Wymyślone wpisy.</p><button class="link" data-act="clear">Zacznij od zera</button></div>';
   if(S.off[d])h+='<div class="note offon"><p><b>Dzień wolny.</b> Seria jest bezpieczna.</p><button class="link" data-act="off">Wyłącz</button></div>';
   h+=heroHtml(d,sc,streak(),wk).replace('class="card hero','class="card hero sm');
@@ -1964,6 +2195,26 @@ const Ms=(()=>{
   }
   return{compute,check,card,short};
 })();
+// Karta „Jak działasz”: profil z wzorców (siła sygnału), zmiany w czasie, eksperymenty.
+function profileCard(){
+  const L=Learn.get(),x=Exp.active(),past=(S.exp||[]).filter(e=>e.status!=='on').slice(-3).reverse();
+  let h='<div class="card prof"><h3>Jak działasz</h3><p class="sub">Pixa uczy się z Twoich wpisów. Kropki to siła sygnału: ●●● mocny, ●○○ przeczucie.</p>';
+  if(L.days<LEARN_DAYS)h+='<div class="learnb"><span>Pixa się uczy: <b>'+L.days+'</b> z '+LEARN_DAYS+' dni</span><div class="bar-o"><div class="bar-i" style="width:'+Math.round(L.days/LEARN_DAYS*100)+'%"></div></div></div>';
+  const show=ui.profAll?L.T:L.T.slice(0,6);
+  h+=show.length?show.map(t=>'<div class="trait"><span class="gi">'+pix(t.ic||'star')+'</span><div class="tm"><div class="tt"><b>'+esc(t.title)+'</b>'+sigHtml(t.s)+'</div><div class="gs">'+esc(t.t)+'</div>'+(t.tip?'<div class="tip">→ '+esc(t.tip)+'</div>':'')+'</div></div>').join(''):'<p class="empty">Na razie za mało danych na wzorce. Pierwsze pojawią się po 2–3 tygodniach wpisów.</p>';
+  if(L.T.length>6)h+='<button class="caltog" data-act="profall">'+(ui.profAll?'Pokaż mniej':'Pokaż wszystkie ('+L.T.length+')')+'</button>';
+  if(L.changes.length)h+='<div class="cat" style="margin:14px 0 4px">Zmiana w czasie</div>'+L.changes.map(c=>'<p class="gs chg">'+esc(c)+'</p>').join('');
+  h+='<div class="cat" style="margin:14px 0 4px">Eksperymenty</div>';
+  if(x){const day=Math.min(Exp.LEN,diffDays(x.from,todayS())+1),v=Exp.now(x);h+='<div class="expc"><b>'+esc(x.title)+'</b><div class="gs">Dzień '+day+' z '+Exp.LEN+'. '+esc(x.how)+'</div><div class="bar-o"><div class="bar-i" style="width:'+Math.round(day/Exp.LEN*100)+'%"></div></div><div class="gs">'+Exp.cap(Exp.MN[x.m])+': na razie '+Exp.fmtM(x.m,v)+', wcześniej '+Exp.fmtM(x.m,x.base)+'</div></div>'}
+  else h+='<p class="gs" style="margin:0 0 6px">Sprawdź na sobie, co działa: 14 dni, a potem porównanie z wcześniejszym okresem.</p>';
+  h+=past.map(e=>'<div class="expp"><span>'+esc(e.title)+'</span><span class="chip '+(e.res&&e.res.ok?'ok':'var')+'">'+(e.res&&e.res.ok?(e.kept?'działa, zostaje':'działa'):e.status==='stop'?'przerwany':'bez efektu')+'</span></div>').join('');
+  h+='<button class="btn" style="margin-top:8px;width:100%" data-act="expask">'+(x?'Eksperyment w Pixie':'Zapytaj Pixę o eksperyment')+'</button>';
+  return h+'</div>';
+}
+function insightsCard(){
+  const F=insights(),show=ui.insAll?F:F.slice(0,6);
+  return'<div class="card"><h3>Wnioski</h3><p class="sub">Co idzie u Ciebie w parze. Porównanie w tych samych typach dni (praca, wolne), więc sam weekend nie zmyli wyniku. Wskazówka, nie dowód.</p>'+(F.length?show.map(x=>'<div class="ins"><div class="gn" style="font-size:14px">'+esc(x.t)+'</div><div class="gs">'+sigHtml(x.s)+' · dni: '+x.n[0]+' / '+x.n[1]+'</div></div>').join('')+(F.length>6?'<button class="caltog" style="margin-top:8px" data-act="insall">'+(ui.insAll?'Pokaż mniej':'Pokaż wszystkie ('+F.length+')')+'</button>':''):'<p class="empty">Za mało danych. Wnioski pojawią się po kilku tygodniach wpisów, szczególnie nastroju.</p>')+'</div>';
+}
 function progressCard(){
   const pg=progress();
   if(!pg.L)return'<div class="card"><h3>Postęp</h3><p class="empty">Porównanie z wcześniejszym okresem pokażę po 2 tygodniach wpisów'+(pg.left>0?' (zostało '+pg.left+' '+dni(pg.left)+')':'')+'.</p></div>';
@@ -1990,7 +2241,7 @@ function viewCharts(){
   let h='<div class="seg">'+modes.map(m=>'<button class="'+(ui.mode===m[0]?'on':'')+'" data-act="mode" data-m="'+m[0]+'">'+m[1]+'</button>').join('')+'</div>';
   const rp=groupCompletion(S.goals,a,t);
   h+='<div class="tiles"><div class="tile"><b>'+streak()+'</b><span>obecna seria</span></div><div class="tile"><b>'+bestStreak()+'</b><span>najdłuższa seria</span></div><div class="tile"><b>'+(rp==null?'–':Math.round(rp*100)+'%')+'</b><span>realizacja w zakresie</span></div></div>';
-  h+=yearCard()+progressCard();
+  h+=yearCard()+profileCard()+progressCard();
   h+=Ms.card();
   h+='<div class="card"><h3>Kalendarz</h3><p class="sub">20 tygodni. Ciemniej = więcej zaliczonych celów.</p>'+svgHeat()+'<div class="legend">mniej <i class="lv0"></i><i class="lv1"></i><i class="lv2"></i><i class="lv3"></i><i class="lv4"></i> więcej</div></div>';
   h+='<div class="card"><h3>Realizacja celów</h3><p class="sub">Średnio ze wszystkich celów.</p>'+svgBars(bk.map(b=>({label:b.label,v:groupCompletion(S.goals,b.a,b.b)})))+'</div>';
@@ -2023,8 +2274,7 @@ function viewCharts(){
     const hs=habitStrength(g);
     h+='<div class="card"><h3>Liczby bezwzględne</h3>'+sel+(()=>{const r=goalRuns(g),parts=[];if(r&&(r.cur||r.best))parts.push('Seria: <b style="color:var(--fg)">'+r.cur+' '+r.u+'</b> · rekord: <b style="color:var(--fg)">'+r.best+' '+r.ub+'</b>');if(hs!=null)parts.push('Siła nawyku: <b style="color:var(--fg)">'+Math.round(hs*100)+'%</b>');return parts.length?'<p class="sub" style="margin-top:-2px">'+parts.join(' · ')+'</p>':''})()+body+br+'</div>';
   }
-  {const ins=insights();
-   h+='<div class="card"><h3>Wnioski</h3><p class="sub">Z Twoich wpisów. Wskazówka, nie dowód.</p>'+(ins.length?ins.map(x=>'<div class="ins"><div class="gn" style="font-size:14px">'+esc(x.t)+'</div><div class="gs">Z tym: <b class="'+(x.good===true?'st-ok':x.good===false?'st-bad':'')+'">'+fmt(x.a)+x.u+'</b> · bez tego: <b>'+fmt(x.b)+x.u+'</b> · dni: '+x.n[0]+' / '+x.n[1]+'</div></div>').join(''):'<p class="empty">Za mało danych. Wnioski pojawią się po kilku tygodniach wpisów, szczególnie nastroju.</p>')+'</div>'}
+  h+=insightsCard();
   h+=plansCard();
   {const hs=S.goals.map(g=>({g,v:habitStrength(g)})).filter(x=>x.v!=null).sort((x,y)=>y.v-x.v);
    h+='<div class="card"><h3>Siła nawyków</h3><p class="sub">Rośnie, gdy robisz swoje. Jeden gorszy dzień jej nie zeruje.</p>'+hbars(hs.map(x=>({k:x.g.name,v:x.v,pct:x.v,t:Math.round(x.v*100)+'%'})))+'</div>'}
@@ -2184,7 +2434,7 @@ const Bk={list:null,loading:false,
 function viewSettings(){
   const st=S.settings;
   let h='<div class="datebar"><div class="d">Ustawienia</div></div>';
-  const KINDS=[['mood','Nastrój'],['plan','Plan dnia'],['wplan','Plan tygodnia'],['time','Pory celów'],['mit','Najważniejsza rzecz'],['yesterday','Pytanie o wczoraj'],['missing','Braki wieczorem'],['streak','Ochrona serii'],['weekly','Podsumowanie tygodnia'],['monthly','Podsumowanie miesiąca'],['review','Wnioski na koniec tygodnia'],['adjust','Propozycje zmian celów'],['limit','Limity'],['record','Rekordy'],['milestone','Kamienie milowe'],['insight','Wnioski z danych'],['lt','Cele długoterminowe'],['yearly','Podsumowanie roku'],['paused','Wstrzymane cele']];
+  const KINDS=[['mood','Nastrój'],['plan','Plan dnia'],['wplan','Plan tygodnia'],['time','Pory celów'],['pattern','Wzorce i profil'],['exp','Eksperymenty'],['mit','Najważniejsza rzecz'],['yesterday','Pytanie o wczoraj'],['missing','Braki wieczorem'],['streak','Ochrona serii'],['weekly','Podsumowanie tygodnia'],['monthly','Podsumowanie miesiąca'],['review','Wnioski na koniec tygodnia'],['adjust','Propozycje zmian celów'],['limit','Limity'],['record','Rekordy'],['milestone','Kamienie milowe'],['insight','Wnioski z danych'],['lt','Cele długoterminowe'],['yearly','Podsumowanie roku'],['paused','Wstrzymane cele']];
   const cPixa='<div class="card"><div class="pxstage" aria-hidden="true"><canvas id="pxstage" width="88" height="126"></canvas><div class="pxst-i"><span class="pxname">Pixa</span><span class="pxst-l">'+lensSvg(S.settings.pixaPal)+'</span></div></div><h3>Asystentka Pixa</h3><p class="sub">Niczego nie zmienia bez Twojej zgody. Dotknij Pixy, żeby zareagowała.</p><div class="offbar" style="margin:0"><button class="sw'+(S.settings.asst?' on':'')+'" data-act="sasst" role="switch" aria-checked="'+!!S.settings.asst+'" aria-label="Asystentka"></button><span><b style="color:var(--fg)">Pokazuj asystentkę</b>'+''+'</span></div><span class="fl">Kolory Pixy</span><div class="chips">'+Object.keys(PixaArt.PALETTES).map(k=>'<button class="pill'+(S.settings.pixaPal===k?' on':'')+'" data-act="pxpal" data-k="'+k+'"><i class="pxsw" style="background:'+PixaArt.PALETTES[k].body+'"></i>'+PixaArt.PALETTES[k].n+'</button>').join('')+'</div><span class="fl">Charakter</span><div class="seg" style="margin-bottom:6px">'+[['soft','Łagodna'],['hard','Twarda']].map(x=>'<button class="'+(S.settings.pixaTone===x[0]?'on':'')+'" data-act="pxtone" data-k="'+x[0]+'">'+x[1]+'</button>').join('')+'</div><p class="gs" style="margin:0 0 12px">'+(S.settings.pixaTone==='hard'?'Np. „Seria 12 dni wisi na włosku. Zrób: Siłownia. Bez wymówek.”':'Np. „Seria 12 dni jest zagrożona. Do dobrego dnia brakuje: Siłownia.”')+'</p><div class="offbar" style="margin:0"><button class="sw'+(S.settings.pixaChat?' on':'')+'" data-act="pxchat" role="switch" aria-checked="'+!!S.settings.pixaChat+'" aria-label="Dymki przy zakładkach"></button><span><b style="color:var(--fg)">Dymki przy zakładkach</b></span></div><div class="seg" style="margin:8px 0 0">'+[['30','Najwyżej co 30 min'],['each','Przy każdym wejściu']].map(x=>'<button class="'+(S.settings.chatEvery===x[0]?'on':'')+'" data-act="chatfreq" data-v="'+x[0]+'">'+x[1]+'</button>').join('')+'</div><span class="fl">Twój dzień</span><div class="row2"><div><label class="fl" style="margin-top:0" for="s-wake"><small>Pytania od</small></label><select id="s-wake" data-chg="swake" style="margin:0">'+[5,6,7,8,9,10,11].map(h=>'<option value="'+h+'"'+((S.settings.wake==null?8:S.settings.wake)===h?' selected':'')+'>'+h+':00</option>').join('')+'</select></div><div><label class="fl" style="margin-top:0" for="s-eve"><small>Wieczór od</small></label><select id="s-eve" data-chg="seve" style="margin:0">'+[17,18,19,20,21,22].map(h=>'<option value="'+h+'"'+(eveH()===h?' selected':'')+'>'+h+':00</option>').join('')+'</select></div></div><p class="gs" style="margin:6px 0 0">Rano Pixa pyta o plan i najważniejszą rzecz, wieczorem domyka dzień: nastrój i to, co miało się udać.</p><span class="fl">O czym mówi</span><div class="chips">'+KINDS.map(x=>'<button class="pill'+(S.asst.off[x[0]]?'':' on')+'" data-act="pxkind" data-k="'+x[0]+'" aria-pressed="'+!S.asst.off[x[0]]+'">'+x[1]+'</button>').join('')+'</div></div>';
   const cRem=remindersCard();
   const cLook='<div class="card"><h3>Wygląd</h3><div class="seg" style="margin:0">'+[['auto','Auto'],['light','Jasny'],['dark','Ciemny']].map(x=>'<button class="'+(ui.theme===x[0]?'on':'')+'" data-act="theme" data-v="'+x[0]+'">'+x[1]+'</button>').join('')+'</div><div class="offbar" style="margin:12px 0 0"><button class="sw'+(S.settings.anim!==false?' on':'')+'" data-act="animt" role="switch" aria-checked="'+(S.settings.anim!==false)+'" aria-label="Animacje"></button><span><b style="color:var(--fg)">Animacje</b></span></div></div>';
@@ -2308,6 +2558,7 @@ const Badge={last:null,set(force){try{if(!S||!('setAppBadge' in navigator))retur
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')Badge.set(true)});
 function render(){
   if(!S)return;
+  try{Exp.tick()}catch(e){console.warn('exp',e)}
   document.documentElement.style.setProperty('--pxc',lensCol(S.settings.pixaPal)[2]);
   if(S.tour==='new'&&ui.tour==null&&!ui.sheet&&ui.tab==='today'&&!Social.pendingJoin){ui.tour=0;ui.tourLens=false;ui.asstOpen=false}
   if(!render.chatted){render.chatted=true;setTimeout(()=>Asst.chat(ui.tab),1500)}
@@ -2342,7 +2593,7 @@ function defaults(g,type){
 }
 function act(a,ds){
   const d=ui.date;
-  if(ui.dmenu&&a!=='dmenu'&&a!=='off')ui.dmenu=false;
+  if(ui.dmenu&&a!=='dmenu'&&a!=='off'&&a!=='dtype')ui.dmenu=false;
   switch(a){
     case'dmenu':ui.dmenu=!ui.dmenu;render();break;
     case'layout':S.settings.layout=ds.l;ui.secT={};save();render();break;
@@ -2408,6 +2659,10 @@ function act(a,ds){
     case'wpday':{const x=ui.sheet.p[ds.g],i=+ds.i;x.d=x.d.includes(i)?x.d.filter(y=>y!==i):x.d.concat(i).sort((a,b)=>a-b);renderSheet();break}
     case'wpslot':ui.sheet.p[ds.g].s=ds.s;renderSheet();break;
     case'wpsave':{const s=ui.sheet,o={};Object.keys(s.p).forEach(id=>{if(s.p[id].d.length)o[id]={d:s.p[id].d,s:s.p[id].s||''}});if(Object.keys(o).length)S.wplan[s.ws]=o;else delete S.wplan[s.ws];ui.sheet=null;save();render();toast(Object.keys(o).length?'Plan tygodnia zapisany. Rano tylko przypomnę.':'Plan wyczyszczony. Rano będę pytać jak dotąd.');break}
+    case'profall':ui.profAll=!ui.profAll;render();break;
+    case'insall':ui.insAll=!ui.insAll;render();break;
+    case'expask':ui.asstOpen=true;ui.xp='list';ui.say=null;render();break;
+    case'dtype':{const k=ds.k;S.dtype=S.dtype||{};if(k===dtypeAuto(d)&&!S.dtype[d])break;if(k===dtypeAuto(d))delete S.dtype[d];else S.dtype[d]=k;save();render();break}
     case'progall':ui.progAll=!ui.progAll;render();break;
     case'dclose':dcOpen(ds.d||dcDay());break;
     case'dcmood':{const s=ui.sheet,v=+ds.v;setMood(s.d,v);S.moodAt[s.d]='f';save();renderSheet();break}
@@ -2490,13 +2745,14 @@ function act(a,ds){
       if(!isCheck(g))delete g.variants;
       if(g.w)Object.keys(g.w).forEach(k=>{if(!(g.variants||[]).includes(k)||g.w[k]<=1)delete g.w[k]});
       const i=S.goals.findIndex(x=>x.id===g.id);
+      if(i<0&&!g.created)g.created=todayS();
       if(i>=0)S.goals[i]=g;else S.goals.push(g);
       const wasNew=!S.goals.some(x=>x.id===g.id&&x!==g)&&i<0;ui.sheet=null;save();
       if(wasNew&&ui.asstOpen&&S.settings.asst)ui.chatTip={id:'saved-'+g.id,text:(S.settings.pixaTone==='hard'?'„'+g.name+'” dodany. Teraz codziennie odhaczaj.':'Gotowe! „'+g.name+'” jest na liście. Znajdziesz go w zakładce Dziś.'),acts:[{l:'Pokaż w Dziś',f:()=>{ui.tab='today';ui.date=todayS();render();window.scrollTo(0,0);setTimeout(()=>act('jump',{g:g.id}),60)}},{l:'Dodaj kolejny',f:()=>openGoal(null)}],pose:'cheer'};
       render();toast('Zapisano cel.');break;
     }
     case'delp':{const u=withUndo('Usunięto osobę z listy.');setTimeout(u,0);const p=S.people[+ds.i];S.people.splice(+ds.i,1);if(ui.sheet&&ui.sheet.kind==='people'){ui.sheet.del=null;if(ui.sheet.back)ui.sheet.back.p=ui.sheet.back.p.filter(x=>x!==p)}save();render();break}
-    case'clear':{ui.confirm=null;const u=withUndo('Wyczyszczono wpisy. Cele zostały.');S.log={};S.off={};S.people=[];S.notes={};S.reviews={};S.mood={};S.lt.forEach(x=>{if(x.kind==='manual')x.count=0;delete x.doneAt});S.sample=false;S.ms={};S.msInit=false;S.mit={};S.moodAt={};S.wplan={};S.asst.plan={};S.asst.why={};S.asst.ck={};save();render();u();break}
+    case'clear':{ui.confirm=null;const u=withUndo('Wyczyszczono wpisy. Cele zostały.');S.log={};S.off={};S.people=[];S.notes={};S.reviews={};S.mood={};S.lt.forEach(x=>{if(x.kind==='manual')x.count=0;delete x.doneAt});S.sample=false;S.ms={};S.msInit=false;S.mit={};S.moodAt={};S.wplan={};S.eh={};S.moodAm={};S.exp=[];S.ct={};S.asst.plan={};S.asst.why={};S.asst.ck={};save();render();u();break}
     case'askreseed':ui.confirm='reseed';render();break;
     case'start':Sync.start(ds.k);window.scrollTo(0,0);break;
     case'reseed':{const u=withUndo('Wczytano dane przykładowe.');ui.confirm=null;S=seed();save();render();u();break}
@@ -2591,9 +2847,9 @@ function mergeState(base,l,r){
   const map=(b,a,c,deep)=>{b=b||{};a=a||{};c=c||{};const o={};new Set([...Object.keys(a),...Object.keys(c),...Object.keys(b)]).forEach(k=>{const v=deep?map(b[k],a[k],c[k],false):pick(b[k],a[k],c[k]);if(v===undefined||v===null)return;if(deep&&!Object.keys(v).length)return;o[k]=v});return o};
   const byId=(b,a,c)=>{const ix=x=>{const m={};(x||[]).forEach(e=>{m[e.id]=e});return m},B=ix(b),A=ix(a),C=ix(c),ids=(a||[]).map(e=>e.id).concat((c||[]).map(e=>e.id).filter(id=>!A[id]));return[...new Set(ids)].map(id=>pick(B[id],A[id],C[id])).filter(Boolean)};
   const set=(b,a,c)=>{b=b||[];a=a||[];c=c||[];const out=[];a.concat(c).forEach(x=>{if(out.includes(x))return;const inA=a.includes(x),inC=c.includes(x),inB=b.includes(x);if(inB&&(!inA||!inC))return;out.push(x)});return out};
-  const asst=(b,a,c)=>{b=b||{};a=a||{};c=c||{};return{snooze:map(b.snooze,a.snooze,c.snooze),off:map(b.off,a.off,c.off),ck:map(b.ck,a.ck,c.ck),plan:map(b.plan,a.plan,c.plan,true),why:map(b.why,a.why,c.why,true)}};
+  const asst=(b,a,c)=>{b=b||{};a=a||{};c=c||{};return{snooze:map(b.snooze,a.snooze,c.snooze),off:map(b.off,a.off,c.off),ck:map(b.ck,a.ck,c.ck),plan:map(b.plan,a.plan,c.plan,true),why:map(b.why,a.why,c.why,true),trs:map(b.trs,a.trs,c.trs)}};
   return Object.assign({},r,l,{mit:map(base.mit,l.mit,r.mit),moodAt:map(base.moodAt,l.moodAt,r.moodAt),log:map(base.log,l.log,r.log,true),mood:map(base.mood,l.mood,r.mood),notes:map(base.notes,l.notes,r.notes),off:map(base.off,l.off,r.off),reviews:map(base.reviews,l.reviews,r.reviews),
-    goals:byId(base.goals,l.goals,r.goals),lt:byId(base.lt,l.lt,r.lt),people:set(base.people,l.people,r.people),settings:map(base.settings,l.settings,r.settings),asst:asst(base.asst,l.asst,r.asst),ms:map(base.ms,l.ms,r.ms),wplan:map(base.wplan,l.wplan,r.wplan,true),ct:map(base.ct,l.ct,r.ct),msInit:!!(l.msInit||r.msInit),tour:pick(base.tour,l.tour,r.tour)});
+    goals:byId(base.goals,l.goals,r.goals),lt:byId(base.lt,l.lt,r.lt),people:set(base.people,l.people,r.people),settings:map(base.settings,l.settings,r.settings),asst:asst(base.asst,l.asst,r.asst),ms:map(base.ms,l.ms,r.ms),wplan:map(base.wplan,l.wplan,r.wplan,true),ct:map(base.ct,l.ct,r.ct),eh:map(base.eh,l.eh,r.eh,true),moodAm:map(base.moodAm,l.moodAm,r.moodAm),dtype:map(base.dtype,l.dtype,r.dtype),exp:byId(base.exp,l.exp,r.exp),msInit:!!(l.msInit||r.msInit),tour:pick(base.tour,l.tour,r.tour)});
 }
 // Adresy z powiadomień (#week, #friends, #pixa-week). Działa przy starcie i gdy aplikacja jest już otwarta.
 function navHash(){
@@ -3153,7 +3409,7 @@ const Asst=(()=>{
   const POOLS={night:['sleep','sleep','yawn','meditate','float'],morning:['stretch','yawn','wave','stand','float','perch','groove'],day:['float','stand','perch','orb','peek','dance','groove','think','idea','point','wave'],evening:['float','perch','orb','meditate','think','stand','sleep','groove']};
   const dayPart=()=>{const h=new Date().getHours();return h>=23||h<5?'night':h<10?'morning':h<18?'day':'evening'};
   const tn=(a,b)=>S&&S.settings.pixaTone==='hard'?b:a;
-  const CTX={mood:'wave',start:'wave',missing:'point',yesterday:'think',streak:'wow',review:'think',adjust:'point',limit:'facepalm',paused:'shrug',record:'thumbs',insight:'idea',milestone:'cheer',weekly:'wave',monthly:'wave',wplan:'idea',lt:'point',yearly:'cheer',time:'idea'};
+  const CTX={mood:'wave',start:'wave',missing:'point',yesterday:'think',streak:'wow',review:'think',adjust:'point',limit:'facepalm',paused:'shrug',record:'thumbs',insight:'idea',milestone:'cheer',weekly:'wave',monthly:'wave',wplan:'idea',lt:'point',yearly:'cheer',time:'idea',pattern:'idea',exp:'think'};
   let pose='float',cur=null,poseT=0,hold=80,ctxPose=null,pokeT=0,frame=0,anim=null;
   const pick=()=>{const P=POOLS[dayPart()],o=P.filter(x=>x!==pose);return o[Math.floor(Math.random()*o.length)]};
   function choose(n){if(n!==pose){pose=n;poseT=0;hold=60+Math.floor(Math.random()*60)}else poseT=0}
@@ -3246,6 +3502,16 @@ const Asst=(()=>{
   function startCk(d,list,mood){ui.ck={d,q:(mood&&(S.mood[d]==null||!moodFinal(d))&&!S.off[d]?['mood']:[]).concat(list.map(g=>g.id)),i:0,n:0};ui.asstOpen=true;ui.say=null;choose('think')}
   const dayWord=d=>d===todayS()?'Dziś':d===addDays(todayS(),-1)?'Wczoraj':shortDate(d);
   const names=l=>l.slice(0,4).map(g=>g.name).join(', ')+(l.length>4?' i '+(l.length-4)+' więcej':'');
+  let xCands=[];
+  function expBubble(){
+    const x=Exp.active(),past=(S.exp||[]).filter(e=>e.status!=='on');
+    if(ui.xp==='hist')return'<p class="pxtxt">Twoje eksperymenty:</p>'+(past.length?'<div class="xlist">'+past.slice().reverse().slice(0,6).map(e=>'<div class="xi"><b>'+esc(e.title)+'</b><span class="gs">'+shortDate(e.from)+' – '+shortDate(e.to)+'. '+esc(Exp.resText(e))+(e.kept?' Zostało na stałe.':'')+'</span></div>').join('')+'</div>':'<p class="gs">Jeszcze żadnego. Zacznij pierwszy.</p>')+'<div class="pxfoot"><button class="link" data-asst="xback">Wróć</button><button class="link" data-asst="xclose">Zamknij</button></div>';
+    if(x){const day=Math.min(Exp.LEN,diffDays(x.from,todayS())+1),v=Exp.now(x);
+      return'<div class="pxstep">Eksperyment · dzień '+day+' z '+Exp.LEN+'</div><p class="pxtxt"><b>'+esc(x.title)+'</b>. '+esc(x.how)+'</p><p class="gs" style="margin:0 0 8px">'+Exp.cap(Exp.MN[x.m])+': na razie '+Exp.fmtM(x.m,v)+', przez 4 tygodnie wcześniej '+Exp.fmtM(x.m,x.base)+'.</p><div class="pxfoot"><button class="link" data-asst="xstop">Zakończ wcześniej</button><button class="link" data-asst="xhist">Historia</button><button class="link" data-asst="xclose">Zamknij</button></div>'}
+    xCands=Exp.candidates().slice(0,3);
+    if(!xCands.length)return'<p class="pxtxt">'+tn('Na razie nie mam nowego pomysłu na eksperyment. Potrzebuję trochę więcej Twoich wpisów.','Brak nowego eksperymentu. Najpierw więcej danych.')+'</p><div class="pxfoot"><button class="link" data-asst="xhist">Historia</button><button class="link" data-asst="xclose">Zamknij</button></div>';
+    return'<p class="pxtxt">'+tn('Sprawdźmy na Tobie, co działa. Wybierz eksperyment na 14 dni:','Eksperyment na 14 dni. Wybierz:')+'</p><div class="xlist">'+xCands.map((c,j)=>'<div class="xi"><b>'+esc(c.title)+'</b>'+(c.s?sigHtml(c.s):'<span class="sig s0">pomysł ogólny</span>')+'<span class="gs">'+esc(c.why)+'</span><button class="btn main" data-asst="xstart" data-j="'+j+'">Zacznij</button></div>').join('')+'</div><div class="pxfoot"><button class="link" data-asst="xhist">Historia</button><button class="link" data-asst="xclose">Zamknij</button></div>';
+  }
   function ckBubble(){
     const c=ui.ck;
     if(c.i>=c.q.length)return'<p class="pxtxt">Gotowe! '+dayWord(c.d)+' uzupełniony'+(c.n?' ('+c.n+' '+(c.n===1?'wpis':'wpisy')+')':'')+'.</p><div class="pxact"><button class="btn main" data-asst="ckend">Dzięki!</button></div>';
@@ -3335,6 +3601,24 @@ const Asst=(()=>{
     // pory celów: gdy cel jest odhaczany zwykle o innej porze niż ustawiona
     S.goals.forEach(g=>{if(isPaused(g)||g.type==='contact')return;const a=(S.ct||{})[g.id]||[];if(a.length<8)return;const l=a.slice(-12),c={r:0,p:0,w:0};l.forEach(h=>c[slotOfHour(h)]++);const k=Object.keys(c).sort((x,y)=>c[y]-c[x])[0];
       if(c[k]/l.length>=.7&&k!==goalTime(g))add('tm-'+g.id+'-'+k,'time',38,tn('„'+g.name+'” odhaczasz zwykle '+SLOT_N[k]+' ('+c[k]+' z '+l.length+' razy). Przenieść do sekcji „'+TIME_N[k]+'”?','„'+g.name+'”: robisz '+SLOT_N[k]+'. Przenieść do „'+TIME_N[k]+'”?'),[{l:'Tak, przenieś',f:()=>{g.time=k;save();toast('„'+g.name+'”: '+TIME_N[k].toLowerCase()+'.')}}],'idea')});
+    // eksperymenty: wynik po końcu, połowa, sprawdzenie miesiąc po przyjęciu, propozycja (najwyżej raz w tygodniu)
+    try{const goProf=()=>{ui.tab='charts';render();setTimeout(()=>{const el=document.querySelector('.prof');if(el)el.scrollIntoView({behavior:'smooth',block:'start'})},60)};
+      (S.exp||[]).forEach(x=>{
+        if(x.status==='end'&&!x.seen){const ok=x.res&&x.res.ok;add('xe-'+x.id,'exp',88,'Koniec eksperymentu '+Exp.qt(x.title)+'. '+Exp.resText(x)+(ok?tn(' Zostawiamy tak na stałe?',' Zostawiamy?'):tn(' Nie każdy eksperyment musi wyjść, teraz wiemy więcej.',' Nie zadziałało. Szukamy dalej.')),
+          ok?[{l:'Zostawiamy',f:()=>{x.seen=1;x.kept=1;if(x.type==='slot'){const g=S.goals.find(y=>y.id===x.gid);if(g)g.time=x.slot}},t:'Zostaje na stałe.'},{l:'Wracam do starego',neg:1,f:()=>{x.seen=1}}]:[{l:'OK',f:()=>{x.seen=1}},{l:'Inny eksperyment',neg:1,f:()=>{x.seen=1;ui.xp='list'}}],ok?'cheer':'shrug')}
+        if(x.status==='on'){const day=diffDays(x.from,t)+1;if(day>=7&&day<=9){const v=Exp.now(x);if(v!=null&&x.base!=null)add('xm-'+x.id,'exp',58,'Połowa eksperymentu '+Exp.qt(x.title)+'. '+Exp.cap(Exp.MN[x.m])+': '+Exp.fmtM(x.m,v)+' (wcześniej '+Exp.fmtM(x.m,x.base)+'). '+(v-x.base>=Exp.thr(x.m)?tn('Wygląda obiecująco!','Idzie dobrze.'):tn('Jeszcze tydzień, trzymaj się planu.','Jeszcze tydzień. Trzymaj się.')),[{l:'Dzięki',f:()=>{}}],'point')}}
+        if(x.kept&&!x.checked&&diffDays(x.to,t)>=30){const v=Exp.metrics[x.m](x,addDays(t,-28),addDays(t,-1));if(v!=null&&x.base!=null)add('xc-'+x.id,'exp',55,'Miesiąc temu przyjąłeś '+Exp.qt(x.title)+'. '+Exp.cap(Exp.MN[x.m])+' teraz '+Exp.fmtM(x.m,v)+', przed eksperymentem '+Exp.fmtM(x.m,x.base)+'. '+(v-x.base>=Exp.thr(x.m)/2?tn('Nadal działa!','Działa dalej.'):tn('Efekt osłabł. Może czas na nowy pomysł?','Efekt zniknął. Nowy eksperyment?')),[{l:'OK',f:()=>{x.checked=1}}],'idea')}
+      });
+      if(!Exp.active()&&!(S.exp||[]).some(x=>x.status==='end'&&!x.seen)){const c=Exp.candidates().find(c=>c.s>=2);if(c)add('xp-'+ws+'-'+c.k,'exp',33,tn('Mam pomysł na eksperyment: '+Exp.qt(c.title)+'. ','Eksperyment: '+Exp.qt(c.title)+'. ')+c.why+' 14 dni, potem porównam.',[{l:'Zacznij',f:()=>{Exp.start(c);if(c.type==='plan')setTimeout(()=>wpOpen(wstart(todayS())),50)},t:'Startujemy! Będę śledzić wynik.'},{l:'Inne pomysły',neg:1,f:()=>{ui.xp='list'}}],'idea')}
+      // wzorce: przypomnienia w Twoich słabszych momentach
+      const L=Learn.get(),tr=id=>L.T.find(x=>x.id===id),yd=addDays(t,-1);
+      {const g=tr('gold');if(g&&g.s>=2&&hour>=g.h-2&&hour<g.h&&!(S.eh&&S.eh[t])&&!Object.keys(S.log[t]||{}).length)add('pg-'+t,'pattern',66,tn('Do '+g.h+':00 niedaleko. U Ciebie dni, w których coś odhaczasz przed tą godziną, są dużo częściej udane. Odhacz coś małego?','Przed '+g.h+':00 odhacz cokolwiek. Tak wygrywasz dni.'),[{l:'Pokaż Dziś',f:()=>{ui.tab='today';ui.date=t;render()}}],'point')}
+      {const g=tr('domino');if(g&&P==='morning'&&!S.off[yd]&&dayScore(yd)!=null&&!goodDay(yd))add('pd-'+t,'pattern',64,tn('Wczoraj był słabszy dzień. U Ciebie dzień po wpadce decyduje, czy ciągnie się dalej. Dziś wystarczy wersja minimum.','Wczoraj słabo. Dziś przerwij domino. Minimum, ale zrób.'),[{l:'Jasne',f:()=>{}}],'comfort')}
+      {const g=tr('week');if(g&&P==='morning'&&(new Date().getDay()+6)%7===g.wd){const a=tr('anchor');add('pw-'+t,'pattern',40,tn('Ten dzień tygodnia zwykle idzie Ci najsłabiej. ','Twój najsłabszy dzień tygodnia. ')+(a?'Zacznij od „'+(S.goals.find(x=>x.id===a.gid)||{}).name+'”, to Twoja kotwica.':'Zaplanuj dziś trochę mniej.'),[{l:'OK',f:()=>{}}],'point')}}
+      {const g=tr('honey');if(g)S.goals.forEach(x=>{if(isPaused(x))return;const f=x.created||null;if(!f)return;const n=diffDays(f,t);if(n>=Math.round(g.wk*7)-3&&n<=Math.round(g.wk*7)+3)add('ph-'+x.id,'pattern',45,'„'+x.name+'” masz od '+n+' dni. '+tn('To moment, w którym nowe cele zwykle Ci słabną. Trzymaj się, za chwilę będzie z górki.','Teraz nowe cele zwykle Ci odpadają. Nie tym razem.'),[{l:'Dam radę',f:()=>{}}],'flex')})}
+      // nowa mocna cecha w profilu
+      {const seenT=S.asst.trs||{};const nw=L.T.find(x=>x.s>=2&&!seenT[x.id]);if(nw)add('pt-'+nw.id,'pattern',30,'Odkryłam coś o Tobie. '+nw.title+'. '+nw.t,[{l:'Pokaż profil',f:()=>{(S.asst.trs=S.asst.trs||{})[nw.id]=t;goProf()}},{l:'Ciekawe',neg:1,f:()=>{(S.asst.trs=S.asst.trs||{})[nw.id]=t}}],'idea')}
+    }catch(e){console.warn('learn tips',e)}
     // cele długoterminowe za planem albo z kulejącymi nawykami (raz w tygodniu)
     S.lt.forEach(x=>{const it=ltTip(x,ws);if(it&&it.warn)add('lt-'+x.id+'-'+ws,'lt',42,it.text,[{l:'Pokaż',f:()=>{ui.tab='goals';render();window.scrollTo(0,0)}}],'point')});
     // podsumowanie roku: ostatnie dni grudnia i pierwszy tydzień stycznia
@@ -3342,7 +3626,7 @@ const Asst=(()=>{
     // wniosek z planów (o której porze wychodzi, co przeszkadza)
     try{const pi=planInsights()[0];if(pi)add(pi.id,'insight',22,'Zauważyłam coś w Twoich planach. '+pi.t+(pi.tip?' '+pi.tip:''),[{l:'Ciekawe',f:()=>{}}],'idea')}catch(e){}
     // wniosek z danych
-    try{const ins=insights().find(x=>x.good===true);if(ins)add('ins-'+ins.t,'insight',20,'Zauważyłam coś w Twoich danych. '+ins.t+': średnio '+fmt(ins.a)+ins.u+', a bez tego '+fmt(ins.b)+ins.u+'.',[{l:'Ciekawe',f:()=>{}}])}catch(e){}
+    try{const ins=insights().find(x=>x.good===true&&x.s>=2);if(ins)add('ins-'+ins.id,'insight',20,'Zauważyłam coś w Twoich danych (sygnał '+STR_N[ins.s]+'). '+ins.t,[{l:'Ciekawe',f:()=>{}}])}catch(e){}
     return out.sort((a,b)=>b.pr-a.pr);
   }
   function snooze(tp){const days=tp.kind==='mood'||tp.kind==='missing'||tp.kind==='yesterday'||tp.kind==='streak'?1:tp.kind==='adjust'||tp.kind==='limit'?7:14;S.asst.snooze[tp.id]=addDays(todayS(),days);save()}
@@ -3360,16 +3644,17 @@ const Asst=(()=>{
       root.innerHTML=(ui.say?sayHtml(ui.say):'')+'<button class="hal'+(fresh?' on':'')+(ui.say?' talk':'')+'" data-asst="open" aria-label="'+(has?'Pixa ma dla Ciebie '+tipsCache.length+' '+(tipsCache.length===1?'wiadomość':'wiadomości'):'Otwórz asystentkę Pixę')+'"><span class="lens">'+lensSvg(S.settings.pixaPal)+'</span></button>';
       return;
     }
-    const mode=ui.ck?'ck':ui.mitEdit?'mit':(ui.fset||focus||ui.fdone)?'focus':ui.breath?'breath':null;
+    const mode=ui.ck?'ck':ui.mitEdit?'mit':(ui.fset||focus||ui.fdone)?'focus':ui.breath?'breath':ui.xp?'exp':null;
     const tp=mode?null:tipsCache[idx];
     let bub;
     if(mode==='ck')bub=ckBubble();
     else if(mode==='mit'){const m=S.mit[todayS()]||{};bub='<p class="pxtxt">'+tn('Co jest dziś najważniejsze? Jedna rzecz, po której uznasz dzień za udany.','Jedna najważniejsza rzecz na dziś:')+'</p><div class="pxin"><input class="inp ckin" id="mitin" maxlength="80" autocomplete="off" placeholder="np. skończyć raport" value="'+esc(m.t||'')+'"><button class="btn main" data-asst="mitsave">Zapisz</button></div><div class="pxfoot"><button class="link" data-asst="mitskip">Dziś bez</button><button class="link" data-asst="mitclose">Anuluj</button></div>'}
     else if(mode==='focus')bub=focusBubble();
     else if(mode==='breath')bub=breathBubble();
+    else if(mode==='exp')bub=expBubble();
     else if(!tp)bub='<p class="pxtxt">Wszystko gra. Nie mam teraz żadnych pytań. Zajrzę, gdy coś zauważę.</p>';
     else bub='<p class="pxtxt">'+esc(tp.text)+'</p><div class="pxact">'+tp.actions.map((a,j)=>a.mood?'<button class="mb md'+a.mood+'" data-asst="do" data-j="'+j+'" aria-label="'+esc(a.l)+'"><b>'+a.mood+'</b></button>':'<button class="btn'+(a.neg?'':' main')+'" data-asst="do" data-j="'+j+'">'+esc(a.l)+'</button>').join('')+'</div><div class="pxfoot">'+(tp.nf?'':'<button class="link" data-asst="later">Nie teraz</button><button class="link" data-asst="never">Nie pokazuj takich</button>')+(tipsCache.length>1?'<button class="link pxnext" data-asst="next">'+(idx+1)+'/'+tipsCache.length+' ›</button>':'')+'</div>';
-    root.innerHTML='<div class="pxpanel" role="dialog" aria-label="Pixa, asystentka"><div class="pxavw"><canvas class="pxav" width="88" height="126" data-asst="poke" role="img" aria-label="Pixa"></canvas></div><div class="pxbub"><div class="pxhead"><span class="pxname">Pixa</span>'+(mode?'':'<span class="pxtools"><button data-asst="ftool">Minutnik</button><button data-asst="btool">Oddech</button></span>')+'</div>'+bub+'</div><button class="pxclose" data-asst="close" aria-label="Zamknij asystentkę">×</button></div>';
+    root.innerHTML='<div class="pxpanel" role="dialog" aria-label="Pixa, asystentka"><div class="pxavw"><canvas class="pxav" width="88" height="126" data-asst="poke" role="img" aria-label="Pixa"></canvas></div><div class="pxbub"><div class="pxhead"><span class="pxname">Pixa</span>'+(mode?'':'<span class="pxtools"><button data-asst="ftool">Minutnik</button><button data-asst="btool">Oddech</button><button data-asst="xtool">Eksperyment</button></span>')+'</div>'+bub+'</div><button class="pxclose" data-asst="close" aria-label="Zamknij asystentkę">×</button></div>';
     const cv=root.querySelector('.pxav');
     if(!mode)setCtx(tp);
     if(reduced()){PixaArt.draw(cv,0,ctxPose||'stand',null,S.settings.pixaPal);return}
@@ -3381,9 +3666,17 @@ const Asst=(()=>{
     if(a==='sayopen'&&ui.say){ui.chatTip=ui.say;ui.say=null;lastSay=null;ui.asstOpen=true;idx=0;choose(ui.chatTip.pose||'wave');paint();return}
     if(a==='sayact'&&ui.say){const it=ui.say,x=it.acts[+el.dataset.j];ui.say=null;lastSay=null;react(null,x.neg?null:{});x.f();const nx=x.next?x.next():null;save();if(x.t)toast(x.t);if(!ui.asstOpen&&(ui.tab==='today'||ui.tab==='goals'))render();else paint();if(nx){ui.say=nx;lastSay={it:nx,at:Date.now()};sayY=window.scrollY;clearTimeout(sayT);sayT=setTimeout(()=>{if(ui.say===nx){ui.say=null;paint()}},15000);paint()}return}
     if(a==='open'){const it=ui.say||(S.settings.pixaChat&&lastSay&&Date.now()-lastSay.at<120000?lastSay.it:null);ui.say=null;ui.chatTip=it;if(it){lastSay=null;choose(it.pose||'wave')}ui.asstOpen=true;idx=0;try{localStorage.setItem(openedKey,todayS())}catch(x){}paint()}
-    if(a==='close'){ui.asstOpen=false;ui.chatTip=null;ui.mitEdit=false;ui.ck=null;ui.fset=null;ui.fdone=null;if(ui.breath&&!bPhase())ui.breath=null;paint()}
-    if(a==='ftool'){ui.ck=null;ui.breath=null;ui.fdone=null;if(!focus)ui.fset={g:(S.goals.find(g=>isMin(g)&&!isPaused(g))||{}).id||null,m:25};paint();return}
-    if(a==='btool'){ui.ck=null;ui.fset=null;ui.fdone=null;ui.breath={start:Date.now()};choose('breathe');pokeT=0;paint();return}
+    if(a==='close'){ui.asstOpen=false;ui.chatTip=null;ui.mitEdit=false;ui.ck=null;ui.xp=null;ui.fset=null;ui.fdone=null;if(ui.breath&&!bPhase())ui.breath=null;paint()}
+    if(a==='xtool'){ui.ck=null;ui.breath=null;ui.fset=null;ui.fdone=null;ui.xp='list';choose('think');pokeT=0;paint();return}
+    if(a==='xclose'){ui.xp=null;paint();return}
+    if(a==='xhist'){ui.xp='hist';paint();return}
+    if(a==='xback'){ui.xp='list';paint();return}
+    if(a==='xstart'){const c=(xCands||[])[+el.dataset.j];if(!c)return;Exp.start(c);react(null,{mood:5});toast(tn('Startujemy! 14 dni, będę śledzić wynik.','Start. 14 dni, bez wymówek.'));
+      if(c.type==='mit'&&!(S.mit[todayS()]&&S.mit[todayS()].t)){ui.xp=null;ui.mitEdit=true}
+      if(ui.tab==='today'||ui.tab==='charts')render();else paint();if(c.type==='plan'){wpOpen(wstart(todayS()))}return}
+    if(a==='xstop'){const x=Exp.active();if(x){Exp.finish(x,true);react(null,null);toast('Eksperyment przerwany. Wynik zapisany.')}ui.xp='hist';if(ui.tab==='today'||ui.tab==='charts')render();else paint();return}
+    if(a==='ftool'){ui.ck=null;ui.xp=null;ui.breath=null;ui.fdone=null;if(!focus)ui.fset={g:(S.goals.find(g=>isMin(g)&&!isPaused(g))||{}).id||null,m:25};paint();return}
+    if(a==='btool'){ui.ck=null;ui.fset=null;ui.fdone=null;ui.xp=null;ui.breath={start:Date.now()};choose('breathe');pokeT=0;paint();return}
     if(a==='fgoal'){ui.fset.g=el.dataset.g||null;paint();return}
     if(a==='fmin'){ui.fset.m=+el.dataset.m;paint();return}
     if(a==='fstart'){fStart();paint();return}
@@ -3421,7 +3714,7 @@ const Asst=(()=>{
   function sayHtml(it){return'<div class="pxsay" role="status"><button class="pxsayx" data-asst="sayx" aria-label="Zamknij dymek">×</button><p class="pxsayt" data-asst="sayopen"><b>Pixa</b> '+esc(it.text)+'</p>'+(it.acts&&it.acts.length?'<div class="pxsayact">'+it.acts.slice(0,4).map((x,j)=>'<button class="btn'+(j===0?' main':'')+'" data-asst="sayact" data-j="'+j+'">'+esc(x.l)+'</button>').join('')+'</div>':'')+'</div>'}
   function chat(tab,force){
     if(!S||!S.settings.asst||!S.settings.pixaChat||ui.sheet||ui.tour!=null||tab==='settings')return false;
-    if(ui.asstOpen&&(ui.ck||ui.mitEdit||ui.fset||ui.fdone||ui.breath||focus))return false;
+    if(ui.asstOpen&&(ui.ck||ui.mitEdit||ui.fset||ui.fdone||ui.breath||ui.xp||focus))return false;
     const g=grpOf(tab);if(!force&&g===lastGrp&&Date.now()-lastAt<20000)return false;
     if(!force&&S.settings.chatEvery!=='each'&&chatLast[g]&&Date.now()-chatLast[g]<30*60000)return false;
     if(g==='friends'&&!Social.data().loaded){ui.chatWait=true;return false}
@@ -3490,6 +3783,7 @@ const Asst=(()=>{
         gs.filter(x=>x.act==='sleep'||(x.type==='range'&&x.unit==='h')).forEach(x=>{if(val(x.id,t)==null)add('sl-'+x.id+t,tn('Dzień dobry! Ile spałeś?','Raport snu: ile godzin?'),[{l:'Wpisz',f:fill(t,x)}],'stretch')});
         planGoals(t).forEach(x=>{if(planOf(t,x.id)!==undefined)return;const need=x.period==='week'?x.target-tot(x):0;
           add('plan-'+x.id+t,(x.period==='week'&&need>=left?tn('Żeby zaliczyć „'+x.name+'” w tym tygodniu, dziś musi się udać. Kiedy?','„'+x.name+'”: dziś obowiązkowo. Kiedy?'):tn('Kiedy dziś „'+x.name+'”?','„'+x.name+'”: kiedy?'))+(x.period==='week'?' W tym tygodniu '+tot(x)+'/'+x.target+'.':'')+bestHint(x.id),planActs(x.id,t),'think')});
+        {const x=Exp.active();if(x)add('xr-'+t,tn('Eksperyment, dzień '+(diffDays(x.from,t)+1)+' z '+Exp.LEN+': ','Eksperyment, dzień '+(diffDays(x.from,t)+1)+': ')+x.how,[],'point')}
         {const wp=(S.wplan||{})[ws]||{},pl=gs.filter(x=>x.type==='do'&&wp[x.id]&&!doneOn(x,t)&&SLOT_N[planOf(t,x.id)]);if(pl.length)add('tp-'+t,tn('Dziś w planie: ','Plan na dziś: ')+pl.map(x=>x.name+' ('+SLOT_N[planOf(t,x.id)]+')').join(', ')+'.',[],'point')}
         gs.filter(x=>isMeasure(x)&&x.period==='week').forEach(x=>{if(diffDays(ws,t)>=3&&!range(ws,t).some(d=>val(x.id,d)!=null))add('me-'+x.id+ws,tn('Rano to dobry moment na pomiar: „'+x.name+'”.','„'+x.name+'”: pomiar teraz.'),[{l:'Wpisz',f:fill(t,x)}],'point')});
         add('hi-'+t+'m',mit&&mit.t?tn('Dzień dobry! Dziś najważniejsze: „'+mit.t+'”. Dasz radę.','Plan jest: „'+mit.t+'”. Do roboty.'):tn('Dzień dobry! Seria: '+st+' '+dni(st)+'. Dobrego dnia.','Pobudka. Seria '+st+'. Nie psujemy jej.'),[],'stretch');
@@ -3508,7 +3802,7 @@ const Asst=(()=>{
         {const miss=toPerfect(t);if(perfectDay(t))add('pf-'+t,tn('Wszystko na dziś zrobione. Świetny dzień!','Komplet. Świetny dzień.'),[],'spin');else if(goodDay(t))add('gd-'+t+miss.length,tn('Dobry dzień już jest. Do świetnego brakuje: '+names(miss)+'.','Dobry dzień zaliczony. Do kompletu: '+names(miss)+'.'),[],'cheer');else if(st>=2)add('st-'+t,tn('Seria '+st+' dni czeka na dzisiejszy dobry dzień.','Seria '+st+'. Dziś jeszcze niezaliczone.'),[],'point')}
         gs.filter(x=>x.type==='limit').forEach(x=>{const pb=periodBounds(x,t),tt=sumRange(x.id,pb[0],t),PP=x.period==='month'?'w tym miesiącu':'w tym tygodniu';
           if(tt===x.target&&tt>0)add('lf-'+x.id+pb[0]+tt,tn('„'+x.name+'”: limit '+PP+' już wykorzystany. Dziś lepiej odpuścić.','„'+x.name+'”: limit wyczerpany.'),[],'point')});
-        try{const ins=insights()[0];if(ins)add('in-'+ins.t,'Ciekawostka z Twoich danych: '+ins.t.charAt(0).toLowerCase()+ins.t.slice(1)+' średnio '+fmt(ins.a)+ins.u+', w pozostałe dni '+fmt(ins.b)+ins.u+'.',[],'idea')}catch(e){}
+        try{const ins=insights()[0];if(ins)add('in-'+ins.id,'Ciekawostka z Twoich danych: '+ins.t,[],'idea')}catch(e){}
         const wd=new Date().getDay();
         if(wd>=1&&wd<=5&&h>=9&&h<17&&!focus)add('fc-'+t+'-'+h,tn('Może 25 minut skupienia? Wyciszę wszystko poza Tobą i zegarem.','25 minut pełnego skupienia. Start?'),[{l:'Start',f:()=>{ui.asstOpen=true;ui.fset={g:(S.goals.find(g=>isMin(g)&&!isPaused(g))||{}).id||null,m:25}}}],'work');
         if(h>=13&&h<16)add('br-'+t,tn('Minuta oddechu na reset po obiedzie?','Minuta oddechu. Reset.'),[{l:'Zróbmy to',f:()=>{ui.asstOpen=true;ui.breath={start:Date.now()};choose('breathe')}}],'breathe');
@@ -3550,7 +3844,7 @@ const Asst=(()=>{
         if(pg.up.length)add('pg-'+t,tn('W porównaniu z poprzednim '+per+' idziesz do przodu w '+pg.up.length+' '+(pg.up.length===1?'rzeczy':'rzeczach')+'. Najbardziej: „'+pg.up[0].name+'”.','Progres w '+pg.up.length+'. Najmocniej: „'+pg.up[0].name+'”.'),[],'cheer');
         if(pg.dn.length)add('pgd-'+t,tn('Trochę gorzej niż poprzednim '+per+': „'+pg.dn[0].name+'”. Nic straconego.','Spadek: „'+pg.dn[0].name+'”. Popraw to.'),[],'think')}}
       try{planInsights().forEach(x=>add('pi-'+x.id,'Z Twoich planów: '+x.t+(x.tip?' '+x.tip:''),[],'idea'))}catch(e){}
-      try{insights().forEach(x=>add('in-'+x.t,'Zauważyłam coś. '+x.t+': średnio '+fmt(x.a)+x.u+', w pozostałe dni '+fmt(x.b)+x.u+'.',[],'idea'))}catch(e){}
+      try{Learn.get().T.slice(0,4).forEach(x=>add('tr-'+x.id,(x.s>=2?'':'Mam przeczucie. ')+x.title+'. '+x.t+(x.tip?' '+x.tip:''),[],'idea'));insights().slice(0,4).forEach(x=>add('in-'+x.id,(x.s>=2?'Zauważyłam coś. ':'Mam przeczucie, jeszcze niepewne. ')+x.t,[],'idea'))}catch(e){}
       {const a=groupCompletion(S.goals,addDays(t,-27),t),b=groupCompletion(S.goals,addDays(t,-55),addDays(t,-28));if(a!=null&&b!=null&&firstDay()<=addDays(t,-40)){const d=Math.round((a-b)*100);add('tr-'+t,'Realizacja celów z ostatnich 4 tygodni: '+Math.round(a*100)+'%, wcześniej '+Math.round(b*100)+'%.'+(d>=3?tn(' Idzie w górę!',' Progres.'):d<=-3?tn(' Trochę spadło, ale to do odrobienia.',' Spadek. Czas docisnąć.'):' Stabilnie.'),[],d>=3?'cheer':d<=-3?'point':'thumbs')}}
       {const mv=(x,y)=>{const v=range(x,y).map(d=>S.mood[d]).filter(z=>z!=null);return v.length>=5?avg(v):null},a=mv(addDays(t,-13),t),b=mv(addDays(t,-27),addDays(t,-14));
         if(a!=null&&b!=null)add('mo-'+t,'Średni nastrój z dwóch tygodni: '+fmt(a)+' (wcześniej '+fmt(b)+').'+(a-b>=.3?tn(' Lepiej!',' Lepiej.'):a-b<=-.3?tn(' Gorzej. Zadbaj o sen i ruch.',' Gorzej. Sen i ruch, bez dyskusji.'):''),[],a>=b?'love':'comfort')}
