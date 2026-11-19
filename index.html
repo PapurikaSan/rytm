@@ -684,7 +684,9 @@ const DEF_SET={streak:.7,mainReq:true,mainSoft:false,len:{meeting:{s:'do 1 h',m:
 function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 // Dane przykładowe: uniwersalny zestaw, który pokazuje wszystkie rodzaje celów (zaznaczanie, ilość, „najwyżej”, zakres, limit, pomiar, spotkania).
 const TRAIN=['Siłownia','Bieganie','Rower','Joga','W domu'];
-function seed(){
+// Dane przykładowe: n dni (30 = początek, 100 = wszystko w akcji, 365 = rok). Dodatki pokazują wszystkie funkcje wniosków.
+function seed(n){
+  n=Math.max(14,Math.min(400,+n||100));
   const goals=[
     {id:'gym',name:'Trening',cat:'Ruch',type:'do',period:'week',target:3,variants:TRAIN.slice()},
     {id:'steps',name:'Kroki',cat:'Ruch',type:'qty',period:'day',target:8000,unit:'kroków'},
@@ -705,25 +707,29 @@ function seed(){
   const r=rng(11),log={},off={},t=todayS();
   const pick=a=>a[Math.floor(r()*a.length)];
   const mood={};
-  for(let i=110;i>=1;i--){
+  // deszcz (osobne losowanie): w deszczowe dni mniej kroków
+  const rain={};{const rr=rng(43);for(let i=n;i>=1;i--)rain[addDays(t,-i)]=rr()<.3}
+  for(let i=n;i>=1;i--){
     const d=addDays(t,-i),dw=(parse(d).getDay()+6)%7,we=dw>=5,L={};
     if(((dw===0||dw===2||dw===4)&&r()<.8)||(we&&r()<.2))L.gym=pick(TRAIN);
     if(r()<.93)L.steps=Math.round((5500+r()*5000+(L.gym?1500:0)+(we?1200:0))/100)*100;
+    if(rain[d]&&L.steps)L.steps=Math.max(2500,L.steps-2800);
     if(r()<.9)L.screen=Math.round((1+r()*2.5+(we?.8:0))*4)/4;
     if(r()<.95)L.sleep=Math.round((7.5+(r()-.5)*1.3-(L.screen>3?.7:0))*2)/2;
     if(r()<.85)L.water=Math.round((1.2+r()*1.4)*4)/4;
     if(r()<.75)L.eat=1;
-    if(dw===0&&r()<.9)L.weight=Math.round((76-(110-i)*.025+(r()-.5)*.6)*10)/10;
+    if(dw===0&&r()<.9)L.weight=Math.round((76-(n-i)/Math.max(n,110)*2.8+(r()-.5)*.6)*10)/10;
     if(r()<(we?.45:.15))L.sweets=1;
     if(r()<.86)L.read=Math.round(11+r()*24);
     if(r()<.7)L.lang=Math.round((10+r()*15)/5)*5;
     if(r()<.45)L.meditate=pick([5,10,10,15]);
     if(r()<(we?.55:.2)){const n=r()<.35?2:1,p=[];while(p.length<n){const x=pick(people);if(!p.includes(x))p.push(x)}L.meet=[{p,l:pick(['s','m','m','l'])}]}
     if(r()<.35)L.call=[{p:[],l:pick(['s','m','l'])}];
-    if(r()<.9){const m=2.9+(L.gym?.5:0)+(L.meet?.4:0)+(L.sleep!=null&&Math.abs(L.sleep-7.5)<=.5?.5:0)-(L.screen>3?.4:0)+(r()-.5)*1.4;mood[d]=Math.max(1,Math.min(5,Math.round(m)))}
+    // nastrój: trening, spotkania i sen w normie pomagają, długi ekran szkodzi; od „nowej pracy” (24 dni temu) lepiej; krótsze dni trochę gorzej
+    if(r()<.9){const m=2.9+(L.gym?.5:0)+(L.meet?.4:0)+(L.sleep!=null&&Math.abs(L.sleep-7.5)<=.5?.5:0)-(L.screen>3?.4:0)+(n>=60&&i<=24?.5:0)+(dayLen(d,52)-12)*.1+(r()-.5)*1.4;mood[d]=Math.max(1,Math.min(5,Math.round(m)))}
     log[d]=L;
   }
-  off[addDays(t,-40)]=true;off[addDays(t,-39)]=true;
+  if(n>=45){off[addDays(t,-40)]=true;off[addDays(t,-39)]=true}
   const notes={};notes[addDays(t,-1)]='Długi dzień w pracy, ale trening zrobiony.';notes[addDays(t,-3)]='Spacer w parku i dobra rozmowa.';notes[addDays(t,-9)]='Za długo przy telefonie wieczorem. Jutro wcześniej spać.';
   const reviews={};reviews[wstart(addDays(t,-7))]={good:'Trzy treningi i codziennie trochę czytania.',improve:'Mniej telefonu wieczorem, wcześniej spać.'};
   const wd=Object.keys(log).sort().find(d=>d>=addDays(t,-100)&&log[d].weight!=null),y=t.slice(0,4);
@@ -735,19 +741,33 @@ function seed(){
   ];
   // plany z odpowiedzi dla Pixy (osobne losowanie, żeby nie zmieniać reszty danych): rano trening wychodzi częściej niż wieczorem
   const plan={},why={},r2=rng(23);
-  for(let i=45;i>=1;i--){const d=addDays(t,-i),L=log[d]||{},dw=(parse(d).getDay()+6)%7;if(off[d])continue;
+  for(let i=Math.min(45,n);i>=1;i--){const d=addDays(t,-i),L=log[d]||{},dw=(parse(d).getDay()+6)%7;if(off[d])continue;
     const P=plan[d]={};
     if(L.gym)P.gym=r2()<.6?'r':'w';else if((dw===0||dw===2||dw===4)||r2()<.25){P.gym=r2()<.2?'r':'w';(why[d]=why[d]||{}).gym=L.sleep!=null&&L.sleep<7?'zm':['czas','zm','czas','zap'][Math.floor(r2()*4)]}
     P.eat=L.eat?(r2()<.7?'p':'w'):(r2()<.6?'w':'p')}
   // godziny odhaczeń, notatki i nastrój z ciągu dnia (osobne losowanie): wcześniejszy start = częściej dobry dzień, medytacja rano trzyma się lepiej
   const eh={},moodAm={},r3=rng(31),NB=['Dużo pracy, zmęczony.','Praca do późna, bez sił.','Zmęczony, mało snu.','Stres w pracy.'],NG=['Spacer z Anią, super dzień.','Trening i spacer, dobra energia.','Spokojny dzień, dużo czytania.','Rower i spotkanie, świetnie.'],NN=['Zwykły dzień.','Dom, zakupy, nic szczególnego.'];
-  for(let i=70;i>=1;i--){const d=addDays(t,-i),L=log[d]||{},n=Object.keys(L).length;if(off[d]||!n)continue;
+  for(let i=Math.min(120,n);i>=1;i--){const d=addDays(t,-i),L=log[d]||{},n=Object.keys(L).length;if(off[d]||!n)continue;
     const e=eh[d]={};e._f=Math.max(6,Math.min(21,Math.round(7+(12-n)*1.1+(r3()-.5)*4)));
     if(L.meditate){const am=r3()<.55;e.meditate=am?7+Math.floor(r3()*3):19+Math.floor(r3()*3);if(!am&&r3()<.5){const nx=addDays(d,1);if(log[nx]&&nx<t)delete log[nx].meditate}}
     if(L.read)e.read=20+Math.floor(r3()*3);
     if(mood[d]!=null&&r3()<.6){moodAm[d]=Math.max(1,Math.min(5,mood[d]-(r3()<.6?1:0)))}
     if(!notes[d]&&r3()<.4){const m=mood[d]||3;const pool=m<=2?NB:m>=4?NG:NN;notes[d]=pool[Math.floor(r3()*pool.length)]}}
-  return {goals,people,log,off,notes,reviews,mood,lt,asst:{plan,why},eh,moodAm,moodAt:Object.fromEntries(Object.keys(moodAm).map(d=>[d,'f'])),sample:true,settings:Object.assign(JSON.parse(JSON.stringify(DEF_SET)),{timesSet:1})};
+  // dodatki do nowych funkcji (osobne losowanie): zdarzenia, typ dnia, najważniejsza rzecz, plany tygodnia, eksperymenty, pogoda
+  const r4=rng(41),events=[],dtype={},mit={},wplan={},exp=[],wx={};
+  if(n>=45)events.push({id:'ev-ch',k:'choroba',from:addDays(t,-40),to:addDays(t,-39),t:'Przeziębienie'});
+  if(n>=50)events.push({id:'ev-ur',k:'urlop',from:addDays(t,-33),to:addDays(t,-30),t:'Wypad w góry'});
+  if(n>=60)events.push({id:'ev-zm',k:'zmiana',from:addDays(t,-24),to:null,t:'Nowa praca'});
+  if(n>=220)events.push({id:'ev-ur2',k:'urlop',from:addDays(t,-200),to:addDays(t,-190),t:'Wakacje nad morzem'});
+  if(n>=20)[13,14,15].forEach(k=>{dtype[addDays(t,-k)]='t'});
+  {const MT=['Skończyć raport','Zadzwonić do mamy','Trening przed pracą','Zakupy na tydzień','Przeczytać rozdział','Posprzątać biurko','Opłacić rachunki','Odpisać na maile'];
+    for(let i=Math.min(45,n);i>=1;i--){const d=addDays(t,-i);if(off[d]||r4()>.75)continue;const m=mood[d]||3;mit[d]={t:MT[Math.floor(r4()*MT.length)],ok:m>=4?r4()<.9:m>=3?r4()<.7:r4()<.3}}}
+  for(let k=1;k<=Math.min(10,Math.floor(n/7)-1);k++){const ws=wstart(addDays(t,-7*k)),c=range(ws,addDays(ws,6)).filter(d=>log[d]&&log[d].gym).length;if(c>=3)wplan[ws]={gym:{d:[0,2,4],s:'r'},eat:{d:[0,1,2,3,4,5,6],s:'p'}}}
+  if(n>=45)exp.push({id:'xs1',k:'slot|gym|r',type:'slot',gid:'gym',slot:'r',m:'goal',title:'„Trening” rano',how:'Przez 14 dni rób „Trening” rano.',why:'Zaplanowany rano udawał się częściej.',from:addDays(t,-44),to:addDays(t,-31),status:'end',base:.62,res:{v:.81,base:.62,ok:true,end:addDays(t,-31)},ctx:'',seen:1,cmp:{}});
+  if(n>=25)exp.push({id:'xs2',k:'ab|demo',type:'ab',m:'ab',gid:null,cause:{gid:null,t:'Kawa po 14:00'},out:'mood',title:'„Kawa po 14:00”: z tym i bez',how:'Na zmianę: dzień z „Kawa po 14:00”, dzień bez.',why:'Twój eksperyment',from:addDays(t,-22),to:addDays(t,-9),status:'end',res:{a:3.1,b:3.8,n:[6,7],p:.02,s:2,ok:true,end:addDays(t,-9)},ctx:'',seen:1,cmp:{}});
+  {const rw=rng(44);for(let i=n;i>=-1;i--){const d=addDays(t,-i),dl=dayLen(d,52);wx[d]={r:rain[d]?Math.round((3+rw()*9)*10)/10:0,t:Math.round(4+(dl-8)*1.7+(rw()-.5)*4),s:rain[d]?Math.round(rw()*20)/10:Math.round((dl*.5+rw()*3)*10)/10}}}
+  const settings=Object.assign(JSON.parse(JSON.stringify(DEF_SET)),{timesSet:1,wx:{on:true,demo:true,name:'Warszawa (przykład)',lat:52.2,lon:21}});
+  return {goals,people,log,off,notes,reviews,mood,lt,asst:{plan,why},eh,moodAm,moodAt:Object.fromEntries(Object.keys(moodAm).map(d=>[d,'f'])),events,dtype,mit,wplan,exp,wx,wxAt:t,sampleN:n,sample:true,settings};
 }
 function fixState(o){
   o.settings=o.settings||{};
@@ -1156,7 +1176,8 @@ const Learn=(()=>{
       add({id:'dose-'+g.id,k:'dose',gid:g.id,w:best.r-worst.r,good:true,a:best.m,b:worst.m,n:[best.n,pts.length-best.n],t:tx,sug,lo:best.lo,hi:best.hi},r,'dose');
     });
     // ---- pora roku: długość dnia a nastrój ----
-    {const lat=(S.settings.wx&&S.settings.wx.lat)||52,rows=H.filter(d=>S.mood[d]!=null).map(d=>({dl:dayLen(d,lat),y:S.mood[d],s:dtypeOf(d),d}));
+    // pora roku potrzebuje dłuższego okna: do roku wstecz (jedno lekkie porównanie)
+    {const lat=(S.settings.wx&&S.settings.wx.lat)||52,s2=ld.length?(ld[0]>addDays(t,-365)?ld[0]:addDays(t,-365)):t,H2=s2<t?range(s2,addDays(t,-1)).filter(d=>!S.off[d]&&fullDay(d)&&!inEvent(d)):[],rows=H2.filter(d=>S.mood[d]!=null).map(d=>({dl:dayLen(d,lat),y:S.mood[d],s:dtypeOf(d),d}));
       if(rows.length>=40){const ds=rows.map(r=>r.dl).sort((a,b)=>a-b),lo=ds[Math.floor(ds.length/3)],hi=ds[Math.floor(ds.length*2/3)];
         if(hi-lo>=1.2){const r=testF('ctx',rows.filter(x=>x.dl<=lo||x.dl>=hi).map(x=>({x:x.dl<=lo?1:0,y:x.y,s:x.s,d:x.d})),10,.25);
           if(r&&r.e<0)add({id:'season',k:'season',w:Math.abs(r.e),good:false,a:r.a,b:r.b,n:r.n,t:'W krótsze dni (poniżej '+f1(lo)+' h światła) nastrój średnio '+f1(r.a)+', w dłuższe '+f1(r.b)+'. To nie Twoja wina, światło działa na każdego.',tip:'Jesienią i zimą wyjdź rano na dwór, choćby na 10 minut.'},r,'ctx')}}}
@@ -1240,7 +1261,15 @@ const Learn=(()=>{
     const tip=c.T.find(x=>x.tip&&x.s>=2)||c.T.find(x=>x.tip);if(tip)P.push('Na ten miesiąc: '+tip.tip);
     P.push('Trzymam kciuki. Pixa');return P.join('\n\n')}
   function reset(){cache=null}
-  return{get,raw,reset,ev,badEv,fresh,forecast,fcAcc,monthly,kindOf,test};
+  // Dane przykładowe: prognozy z ostatnich 30 dni i listy od Pixy za poprzednie miesiące (żeby było widać, jak to wygląda).
+  function demo(){reset();const c=get(),t=todayS(),f0=logDays()[0];if(!f0)return;S.fc=S.fc||{};S.prof=S.prof||{};S.letters=S.letters||{};
+    if(c.fc)range(addDays(t,-30),addDays(t,-1)).forEach(d=>{if(d<addDays(f0,28)||S.off[d])return;const f=forecast(d);if(f)S.fc[d]={p:Math.round(f.p*100)}});
+    const ids=c.T.filter(x=>x.s>=1).map(x=>x.id),ti=Object.fromEntries(c.T.map(x=>[x.id,x.title]));ti.early='Ranny ptak';
+    const nM=Math.min(3,Math.floor(diffDays(f0,t)/31));for(let k=nM;k>=1;k--){let m=mstart(t);for(let i=0;i<k;i++)m=mstart(addDays(m,-1));if(m<mstart(f0))continue;const ym=m.slice(0,7);
+      S.prof[ym]={ids:ids.slice(0,Math.max(1,ids.length-k)).concat(k>=2?['early']:[]),ti,at:m};
+      const nx=mstart(addDays(m,40));S.letters[ym]={t:letter(ym,c),at:k===1?t:nx,read:k===1?0:1}}
+    reset()}
+  return{get,raw,reset,ev,badEv,fresh,forecast,fcAcc,monthly,kindOf,test,demo};
 })();
 function insights(){return Learn.get().F}
 
@@ -1419,7 +1448,7 @@ function yearRecap(y){return memo('yr|'+y,()=>{
   const lt=S.lt.filter(x=>(x.doneAt&&x.doneAt.slice(0,4)===y)||(x.kind!=='done'&&x.to.slice(0,4)===y&&(()=>{const c=ltCalc(x);return c&&c.pr>=1})())).length;
   return{y,n:days.length,good:good.length,perfect,best,bm:bmk?{name:parse(bmk+'-01').toLocaleDateString('pl-PL',{month:'long'}),n:bm[bmk]}:null,mood:mv.length?avg(mv):null,mit,lines,ms,lt};
 })}
-const recapYear=()=>{const t=todayS(),m=t.slice(5,7);return m==='12'?t.slice(0,4):m==='01'?String(+t.slice(0,4)-1):null};
+const recapYear=()=>{const t=todayS(),m=t.slice(5,7);return m==='12'||(S&&S.sample&&S.sampleN>=300)?t.slice(0,4):m==='01'?String(+t.slice(0,4)-1):null};
 function yearCard(){const y=recapYear();if(!y)return'';const r=yearRecap(y);if(!r)return'';
   return'<div class="card yr" id="yr"><h3>Twój rok '+y+'</h3><p class="sub">'+(y===todayS().slice(0,4)?'Do dziś. Pełne podsumowanie zostanie tu do końca stycznia.':'Cały rok w liczbach.')+'</p><div class="tiles"><div class="tile"><b>'+r.good+'</b><span>dobre dni</span></div><div class="tile"><b>'+r.perfect+'</b><span>świetne dni</span></div><div class="tile"><b>'+r.best+'</b><span>najdłuższa seria</span></div></div>'+
     '<ul class="yrl">'+(r.bm?'<li>Najlepszy miesiąc: <b>'+esc(r.bm.name)+'</b> ('+r.bm.n+' dobrych dni)</li>':'')+(r.mood!=null?'<li>Średni nastrój: <b>'+fmt(Math.round(r.mood*10)/10)+'</b></li>':'')+(r.mit?'<li>Najważniejsza rzecz dnia zrobiona: <b>'+r.mit+'</b> '+raz(r.mit)+'</li>':'')+(r.ms?'<li>Kamienie milowe: <b>'+r.ms+'</b></li>':'')+(r.lt?'<li>Osiągnięte cele długoterminowe: <b>'+r.lt+'</b></li>':'')+r.lines.map(l=>'<li>'+esc(l)+'</li>').join('')+'</ul></div>'}
@@ -2380,7 +2409,7 @@ function profileCard(){
 }
 function insightsCard(){
   const L=Learn.get(),F=L.F,show=ui.insAll?F:F.slice(0,6);
-  return'<div class="card"><h3>Wnioski</h3><p class="sub">Co idzie u Ciebie w parze. Porównanie w tych samych typach dni (praca, wolne), więc sam weekend nie zmyli wyniku. Liczę tylko pełne dni: '+L.nFull+' z '+L.nAll+' (dni bez wpisów pomijam). Wskazówka, nie dowód.</p>'+(F.length?show.map(x=>'<div class="ins'+(((S.fb||{})[x.id]||{}).v==='known'?' kn':'')+'"><div class="gn" style="font-size:14px">'+esc(x.t)+'</div><div class="gs">'+sigHtml(x.s)+' · dni: '+x.n[0]+' / '+x.n[1]+'</div>'+fbBar(x)+'</div>').join('')+(F.length>6?'<button class="caltog" style="margin-top:8px" data-act="insall">'+(ui.insAll?'Pokaż mniej':'Pokaż wszystkie ('+F.length+')')+'</button>':''):'<p class="empty">Za mało danych. Wnioski pojawią się po kilku tygodniach wpisów, szczególnie nastroju.</p>')+'</div>';
+  return'<div class="card"><h3>Wnioski</h3><p class="sub">Co idzie u Ciebie w parze. Porównanie w tych samych typach dni (praca, wolne), więc sam weekend nie zmyli wyniku. Liczę pełne dni z ostatniego pół roku: '+L.nFull+' z '+L.nAll+' (dni bez wpisów pomijam). Wskazówka, nie dowód.</p>'+(F.length?show.map(x=>'<div class="ins'+(((S.fb||{})[x.id]||{}).v==='known'?' kn':'')+'"><div class="gn" style="font-size:14px">'+esc(x.t)+'</div><div class="gs">'+sigHtml(x.s)+' · dni: '+x.n[0]+' / '+x.n[1]+'</div>'+fbBar(x)+'</div>').join('')+(F.length>6?'<button class="caltog" style="margin-top:8px" data-act="insall">'+(ui.insAll?'Pokaż mniej':'Pokaż wszystkie ('+F.length+')')+'</button>':''):'<p class="empty">Za mało danych. Wnioski pojawią się po kilku tygodniach wpisów, szczególnie nastroju.</p>')+'</div>';
 }
 // Dowód: dni z ostatnich 12 tygodni, na których opiera się wniosek.
 function evidSheet(s){const L=Learn.get(),x=L.F.find(y=>y.id===s.id)||L.T.find(y=>y.id===s.id);if(!x)return'';const ev=new Set(x.ev||[]),t=todayS(),end=addDays(t,-1),st=addDays(wstart(end),-77);
@@ -2405,13 +2434,13 @@ function lettersSheet(s){const ks=Object.keys(S.letters||{}).sort().reverse();le
 // Pogoda (opcjonalnie): do Open-Meteo trafia tylko wybrane miasto (współrzędne zaokrąglone do ok. 10 km).
 const Wx={busy:false,res:null,q:'',
   async geo(q){Wx.q=q;try{const r=await fetch('https://geocoding-api.open-meteo.com/v1/search?count=5&language=pl&format=json&name='+encodeURIComponent(q));const j=await r.json();Wx.res=(j.results||[]).map(x=>({n:x.name+(x.admin1?', '+x.admin1:''),lat:Math.round(x.latitude*10)/10,lon:Math.round(x.longitude*10)/10}));if(!Wx.res.length)toast('Nie znalazłam takiego miejsca.')}catch(e){Wx.res=[];toast('Nie udało się wyszukać. Sprawdź internet.')}render()},
-  async refresh(force){const w=S&&S.settings.wx;if(!w||!w.on||w.lat==null||Wx.busy)return;const t=todayS();if(!force&&S.wxAt===t)return;Wx.busy=true;
+  async refresh(force){const w=S&&S.settings.wx;if(!w||!w.on||w.lat==null||w.demo||Wx.busy)return;const t=todayS();if(!force&&S.wxAt===t)return;Wx.busy=true;
     try{const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude='+w.lat+'&longitude='+w.lon+'&daily=precipitation_sum,temperature_2m_max,sunshine_duration&past_days=92&forecast_days=2&timezone=auto');const j=await r.json(),D=j.daily;
       if(D&&D.time){S.wx=S.wx||{};D.time.forEach((d,i)=>{S.wx[d]={r:D.precipitation_sum[i],t:D.temperature_2m_max[i],s:D.sunshine_duration&&D.sunshine_duration[i]!=null?Math.round(D.sunshine_duration[i]/360)/10:null}});S.wxAt=t;save();render()}}catch(e){}Wx.busy=false},
   card(){const w=S.settings.wx||{};let h='<div class="card"><h3>Pogoda we wnioskach</h3><p class="sub">Pixa sprawdzi, jak deszcz i słońce wpływają na Twoje nawyki i nastrój, i rano ostrzeże przed deszczem. Do serwisu pogodowego Open-Meteo trafia tylko wybrane miasto, bez Twoich danych.</p><div class="offbar" style="margin:0"><button class="sw'+(w.on?' on':'')+'" data-act="wxon" role="switch" aria-checked="'+!!w.on+'" aria-label="Pogoda we wnioskach"></button><span><b style="color:var(--fg)">'+(w.on&&w.name?esc(w.name):'Wyłączona')+'</b></span></div>';
     if(w.on){h+='<div class="srow" style="margin-top:10px"><input class="inp" id="wxq" placeholder="Miasto, np. Kraków" value="'+esc(Wx.q||'')+'"><button class="btn" style="flex:none" data-act="wxfind">Szukaj</button></div>';
       if(Wx.res&&Wx.res.length)h+='<div class="chips" style="margin-top:8px">'+Wx.res.map((r,i)=>'<button class="pill" data-act="wxpick" data-i="'+i+'">'+esc(r.n)+'</button>').join('')+'</div>';
-      if(w.lat!=null)h+='<p class="gs" style="margin:8px 0 0">'+(S.wxAt?'Pogoda pobrana: '+Object.keys(S.wx||{}).length+' dni.':'Pobieram pogodę…')+'</p>'}
+      if(w.lat!=null)h+='<p class="gs" style="margin:8px 0 0">'+(w.demo?'Pogoda przykładowa (wymyślona). Wpisz swoje miasto, żeby pobrać prawdziwą.':S.wxAt?'Pogoda pobrana: '+Object.keys(S.wx||{}).length+' dni.':'Pobieram pogodę…')+'</p>'}
     return h+'</div>'}};
 function progressCard(){
   const pg=progress();
@@ -2643,7 +2672,7 @@ function viewSettings(){
   const cCats='<div class="card"><h3>Kategorie</h3><p class="sub">Nazwy i kolejność.</p>'+cats().map((c,i)=>'<div class="srow"><input class="inp" id="cat-'+i+'" value="'+esc(c)+'" data-chg="renc" data-c="'+esc(c)+'" aria-label="Nazwa kategorii"><div class="mv"><button data-act="cmove" data-i="'+i+'" data-dir="-1" aria-label="Wyżej">↑</button><button data-act="cmove" data-i="'+i+'" data-dir="1" aria-label="Niżej">↓</button></div></div>').join('')+'</div>';
   const cAcc='<div class="card"><h3>Konto</h3><p class="sub"><b style="color:var(--fg)">'+esc(Sync.email())+'</b> · dane same się zapisują na wszystkich urządzeniach.</p><div class="actions" style="margin-top:0"><button class="btn" data-auth="changepw">Zmień hasło</button><button class="btn" data-auth="logout">Wyloguj</button></div></div>';
   const cBk='<div class="card"><h3>Kopie automatyczne</h3><p class="sub">Co tydzień, ok. 10 ostatnich. Przywrócenie da się cofnąć.</p><div id="bkbox"><p class="gs" style="margin:0">Wczytuję…</p></div></div>';
-  const cData='<div class="card"><h3>Dane</h3><p class="sub">Kopia do zachowania np. w notatkach. Przywracasz, wklejając ją w pole.</p><div class="actions" style="margin-top:0"><button class="btn" data-act="copy">Kopiuj dane</button><button class="btn" data-act="'+(ui.confirm==='reseed'?'reseed':'askreseed')+'">'+(ui.confirm==='reseed'?'Na pewno? Zastąpi wszystkie Twoje dane':'Wczytaj dane przykładowe')+'</button></div><textarea class="inp" id="imp" style="margin-top:10px" placeholder="Wklej tu kopię danych"></textarea><div class="actions"><button class="btn" data-act="import">Wczytaj z pola</button></div></div><div class="card"><h3>Czyszczenie i reset</h3><p class="sub"><b style="color:var(--fg)">Wyczyść wpisy</b>: cele i ustawienia zostają.</p><div class="actions" style="margin-top:0"><button class="btn" data-act="'+(ui.confirm==='clear'?'clear':'askclear')+'">'+(ui.confirm==='clear'?'Na pewno wyczyścić wpisy?':'Wyczyść wpisy')+'</button></div><p class="sub" style="margin-top:14px"><b style="color:var(--fg)">Pełny reset</b>: wszystko od nowa, konto zostaje.</p><div class="actions" style="margin-top:0"><button class="btn danger" data-act="resetask">Pełny reset konta…</button></div></div>';
+  const cData='<div class="card"><h3>Dane</h3><p class="sub">Kopia do zachowania np. w notatkach. Przywracasz, wklejając ją w pole.</p><div class="actions" style="margin-top:0"><button class="btn" data-act="copy">Kopiuj dane</button>'+(ui.confirm==='reseed'?'':'<button class="btn" data-act="askreseed">Wczytaj dane przykładowe</button>')+'</div>'+(ui.confirm==='reseed'?'<p class="gs" style="margin:8px 0 6px;color:var(--bad)">Zastąpi wszystkie Twoje dane (cofniesz przyciskiem „Cofnij”). Ile dni?</p><div class="actions" style="margin-top:0"><button class="btn" data-act="reseed" data-n="30">Miesiąc</button><button class="btn" data-act="reseed" data-n="100">100 dni</button><button class="btn" data-act="reseed" data-n="365">Rok</button></div>':'')+'<textarea class="inp" id="imp" style="margin-top:10px" placeholder="Wklej tu kopię danych"></textarea><div class="actions"><button class="btn" data-act="import">Wczytaj z pola</button></div></div><div class="card"><h3>Czyszczenie i reset</h3><p class="sub"><b style="color:var(--fg)">Wyczyść wpisy</b>: cele i ustawienia zostają.</p><div class="actions" style="margin-top:0"><button class="btn" data-act="'+(ui.confirm==='clear'?'clear':'askclear')+'">'+(ui.confirm==='clear'?'Na pewno wyczyścić wpisy?':'Wyczyść wpisy')+'</button></div><p class="sub" style="margin-top:14px"><b style="color:var(--fg)">Pełny reset</b>: wszystko od nowa, konto zostaje.</p><div class="actions" style="margin-top:0"><button class="btn danger" data-act="resetask">Pełny reset konta…</button></div></div>';
   const sec=(k,title,sum,inner)=>{const open=ui.setSec===k;return'<button class="secbtn'+(open?' on':'')+'" data-act="setsec" data-k="'+k+'" aria-expanded="'+open+'"><span class="secm"><b>'+title+'</b><small>'+sum+'</small></span><span class="chev" aria-hidden="true">'+(open?'−':'+')+'</span></button>'+(open?'<div class="secbody">'+inner+'</div>':'')};
   const nc=cats().length,plK=n=>n===1?'kategoria':(n%10>=2&&n%10<=4&&(n%100<12||n%100>14))?'kategorie':'kategorii',remN=(st.reminders||[]).filter(r=>r.on).length;
   h+='';
@@ -2876,7 +2905,7 @@ function act(a,ds){
     case'letter':{ui.sheet={kind:'letters',ym:ds.m};if(S.letters[ds.m])S.letters[ds.m].read=1;save();renderSheet();break}
     case'wxon':{const w=S.settings.wx=S.settings.wx||{};w.on=!w.on;save();render();if(w.on&&w.lat!=null)Wx.refresh(true);break}
     case'wxfind':{const q=((document.getElementById('wxq')||{}).value||'').trim();if(q.length<2){toast('Wpisz nazwę miasta.');break}Wx.geo(q);break}
-    case'wxpick':{const r=(Wx.res||[])[+ds.i];if(!r)break;Object.assign(S.settings.wx,{name:r.n,lat:r.lat,lon:r.lon,on:true});Wx.res=null;S.wxAt=null;save();render();Wx.refresh(true);break}
+    case'wxpick':{const r=(Wx.res||[])[+ds.i];if(!r)break;Object.assign(S.settings.wx,{name:r.n,lat:r.lat,lon:r.lon,on:true,demo:false});Wx.res=null;S.wxAt=null;save();render();Wx.refresh(true);break}
     case'insall':ui.insAll=!ui.insAll;render();break;
     case'expask':ui.asstOpen=true;ui.xp='list';ui.say=null;render();break;
     case'dtype':{const k=ds.k;S.dtype=S.dtype||{};if(k===dtypeAuto(d)&&!S.dtype[d])break;if(k===dtypeAuto(d))delete S.dtype[d];else S.dtype[d]=k;save();render();break}
@@ -2969,10 +2998,10 @@ function act(a,ds){
       render();toast('Zapisano cel.');break;
     }
     case'delp':{const u=withUndo('Usunięto osobę z listy.');setTimeout(u,0);const p=S.people[+ds.i];S.people.splice(+ds.i,1);if(ui.sheet&&ui.sheet.kind==='people'){ui.sheet.del=null;if(ui.sheet.back)ui.sheet.back.p=ui.sheet.back.p.filter(x=>x!==p)}save();render();break}
-    case'clear':{ui.confirm=null;const u=withUndo('Wyczyszczono wpisy. Cele zostały.');S.log={};S.off={};S.people=[];S.notes={};S.reviews={};S.mood={};S.lt.forEach(x=>{if(x.kind==='manual')x.count=0;delete x.doneAt});S.sample=false;S.ms={};S.msInit=false;S.mit={};S.moodAt={};S.wplan={};S.eh={};S.moodAm={};S.exp=[];S.ct={};S.fc={};S.prof={};S.letters={};S.fb={};S.asst.plan={};S.asst.why={};S.asst.ck={};save();render();u();break}
+    case'clear':{ui.confirm=null;const u=withUndo('Wyczyszczono wpisy. Cele zostały.');S.log={};S.off={};S.people=[];S.notes={};S.reviews={};S.mood={};S.lt.forEach(x=>{if(x.kind==='manual')x.count=0;delete x.doneAt});S.sample=false;S.ms={};S.msInit=false;S.mit={};S.moodAt={};S.wplan={};S.eh={};S.moodAm={};S.exp=[];S.ct={};S.fc={};S.prof={};S.letters={};S.fb={};S.events=[];S.dtype={};delete S.sampleN;if(S.settings.wx&&S.settings.wx.demo){S.settings.wx={};S.wx={};S.wxAt=null}S.asst.plan={};S.asst.why={};S.asst.ck={};save();render();u();break}
     case'askreseed':ui.confirm='reseed';render();break;
-    case'start':Sync.start(ds.k);window.scrollTo(0,0);break;
-    case'reseed':{const u=withUndo('Wczytano dane przykładowe.');ui.confirm=null;S=seed();save();render();u();break}
+    case'start':Sync.start(ds.k,ds.n);window.scrollTo(0,0);break;
+    case'reseed':{const u=withUndo('Wczytano dane przykładowe.');ui.confirm=null;S=fixState(seed(ds.n||100));try{Learn.demo()}catch(e){}save();render();u();break}
     case'askwipe':ui.confirm='wipe';render();break;
     case'askclear':ui.confirm='clear';render();break;
     case'resetask':ui.sheet={kind:'reset',txt:'',leave:false,busy:false};renderSheet();break;
@@ -3153,9 +3182,13 @@ const Sync=(()=>{
     page((rs?'<div class="note"><p><b>Konto zresetowane.</b> Zacznij od nowa. Gdybyś chciał wrócić do starych danych, po starcie wejdź w Ustawienia → Dane i kopie.</p></div>':'')+'<div class="card"><h3 style="font-size:20px">Witaj w Rytmie</h3><p class="sub">Jak chcesz zacząć? Później wszystko możesz zmienić.</p>'+
       '<button class="opt" data-act="start" data-k="template"><b>Podstawowy zestaw</b><span>4 cele na start: siłownia 3 razy w tygodniu, sen 7,5 h, zdrowe jedzenie i 10 stron czytania dziennie. Resztę dodasz w Celach. Polecam.</span></button>'+
       '<button class="opt" data-act="start" data-k="zero"><b>Od zera</b><span>Pusta aplikacja. Sam dodajesz kategorie i cele.</span></button>'+
-      '<button class="opt" data-act="start" data-k="sample"><b>Najpierw rozejrzę się na przykładowych danych</b><span>110 wymyślonych dni. Potem jednym kliknięciem wyczyścisz wpisy i zostaną same cele.</span></button></div>');
+      '<span class="fl">Albo najpierw rozejrzyj się na przykładowych danych</span>'+
+      '<button class="opt" data-act="start" data-k="sample" data-n="100"><b>Przykład: 100 dni</b><span>Wszystko w akcji: wnioski z siłą sygnału, profil „Jak działasz”, prognoza dnia, eksperymenty, list od Pixy, pogoda i zdarzenia.</span></button>'+
+      '<button class="opt" data-act="start" data-k="sample" data-n="365"><b>Przykład: cały rok</b><span>Najmocniejsze wnioski, pora roku, zmiany w czasie, podsumowanie roku i kilka listów od Pixy.</span></button>'+
+      '<button class="opt" data-act="start" data-k="sample" data-n="30"><b>Przykład: pierwszy miesiąc</b><span>Tak wygląda początek: Pixa dopiero się uczy, pierwsze przeczucia.</span></button>'+
+      '<p class="gs" style="margin:8px 0 0">Dane przykładowe są wymyślone. Potem jednym kliknięciem („Zacznij od zera”) wyczyścisz wpisy i zostaną same cele.</p></div>');
   }
-  function start(k){S=fixState(k==='sample'?seed():k==='template'?templateState():emptyState());S.tour='new';ui.tab=Social.pendingJoin?'friends':k==='zero'?'goals':'today';window.save();render();Social.load()}
+  function start(k,n){S=fixState(k==='sample'?seed(n):k==='template'?templateState():emptyState());if(k==='sample')try{Learn.demo()}catch(e){console.warn('demo',e)}S.tour='new';ui.tab=Social.pendingJoin?'friends':k==='zero'?'goals':'today';window.save();render();Social.load()}
   function authPage(){
     const m=authMode,f=(id,type,lab,ac,ph)=>'<label class="fl" for="'+id+'">'+lab+'</label><input class="inp" id="'+id+'" type="'+type+'" autocomplete="'+ac+'"'+(ph?' placeholder="'+ph+'"':'')+(type==='email'?' value="'+esc(lastEmail)+'"':'')+' required>';
     let h='<div class="authwrap"><p class="sub" style="margin-bottom:16px">Twoje cele i nawyki w jednym miejscu, na telefonie i laptopie.</p><form class="card" id="authform" novalidate>';

@@ -27,7 +27,7 @@ const {chromium}=require('playwright');const stub=require('./stub');
   await p.click('#asst [data-asst=xstart][data-j="0"]');await w(200);
   console.log('trwa:',await p.evaluate(()=>Exp.active()&&Exp.active().title),'| panel:',(await p.textContent('#asst .pxstep')).trim());
   console.log('drugi naraz niemożliwy:',await p.evaluate(()=>{const a=Exp.active();return Exp.start({k:'zzz',m:'good',title:'x'})===a}));
-  await p.evaluate(()=>{const x=Exp.active();Exp.finish(x,true);ui.xp=null;render()});
+  await p.evaluate(()=>{const x=Exp.active();Exp.finish(x,true);ui.xp=null;ui.sheet=null;render()});
   // 3) eksperyment z porą: czytanie rano, na Dziś cel przechodzi do „Rano”
   const c={k:'slot|read|r',type:'slot',gid:'read',slot:'r',m:'goal',s:2,title:'„Czytanie” rano',how:'Przez 14 dni czytaj rano.',why:'test'};
   await p.evaluate(c=>{Exp.start(c);ui.tab='today';render()},c);

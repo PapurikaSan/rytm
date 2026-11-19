@@ -70,7 +70,7 @@ const {chromium}=require('playwright');const stub=require('./stub');
   // 6) święta: typ dnia
   console.log('11 listopada 2026 (śr) to dzień wolny:',await p.evaluate(()=>dtypeAuto('2026-11-11')),'| Wielkanoc 2027:',await p.evaluate(()=>[...plHol(2027)].filter(d=>d.slice(5,7)==='03'||d.slice(5,7)==='04').join(', ')));
   // 7) pogoda: włączenie, wyszukanie miasta, pobranie
-  await p.evaluate(()=>{ui.asstOpen=false;ui.xp=null;ui.chatTip=null;ui.tab='settings';ui.setSec='pixa';render()});
+  await p.evaluate(()=>{S.settings.wx={};S.wx={};S.wxAt=null;save();ui.asstOpen=false;ui.xp=null;ui.chatTip=null;ui.tab='settings';ui.setSec='pixa';render()});
   await p.click('[data-act=wxon]');await p.fill('#wxq','Kraków');await p.click('[data-act=wxfind]');await w(200);
   await p.click('[data-act=wxpick][data-i="0"]');await w(400);
   console.log('pogoda: zapytanie',geoQ,'| zapisane miasto',await p.evaluate(()=>JSON.stringify(S.settings.wx)),'| dni pogody',await p.evaluate(()=>Object.keys(S.wx).length),'| pobrań',wxCalls);
